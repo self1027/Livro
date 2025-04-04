@@ -1,0 +1,29 @@
+<%- include ('../partials/header.ejs') %>
+<div class="container">
+    <hr>
+    <div class="card">
+        <div class="card-header">
+            <h2>Novo Usuário</h2>
+        </div>
+        <div class="card-body">
+            <form method="post" action="/usuario/registrar">
+                <input class="form-control" type="text" name ="username" placeholder="Defina o nome do Usuário"><br>
+                <button class="btn btn-success">Cadastrar</button>
+            </form>
+        </div>  
+    </div><br>
+    <div class="card">
+        <div class="card-header">
+            <h2>Listagem de Usuários</h2>
+        </div>
+        <div class="card-body">
+            <form>
+                <% username.forEach(username=>{ %>
+                    <%=username.name%>
+                    <br>
+                <% }) %>
+            </form>
+        </div>  
+    </div>
+</div>
+<%- include ('../partials/footer.ejs') %>
