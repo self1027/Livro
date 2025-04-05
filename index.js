@@ -5,8 +5,10 @@ const user = require('./users/usersModel.js');
 const denunciation = require('./denunciations/denunciationsModel.js');
 const report = require('./reports/reportsModel.js');
 
+const DENUNCIATION_SENDER = require('./constants/denunciationSenders.js');
+
 const usersController = require('./users/usersController.js')
-//const denunciationsController = require('./denunciations/denunciationsController.js')
+const denunciationsController = require('./denunciations/denunciationsController.js')
 
 const app = express()
 
@@ -27,15 +29,15 @@ connection.authenticate().then(() => {
     console.log(error)
 })
 
-// Configura os relacionamentos
-user.hasMany(denunciation);       // Um usuário tem muitas denúncias
-denunciation.belongsTo(user);     // Uma denúncia pertence a um usuário
+// Relacionamentos
+user.hasMany(denunciation, { foreignKey: 'user_id' });
+denunciation.belongsTo(user, { foreignKey: 'user_id' });
 
-denunciation.hasMany(report);     // Uma denúncia tem muitos relatórios
-report.belongsTo(denunciation);   // Um relatório pertence a uma denúncia
+denunciation.hasMany(report, { foreignKey: 'denunciation_id' });
+report.belongsTo(denunciation, { foreignKey: 'denunciation_id' });
 
-user.hasMany(report);             // Um usuário tem muitos relatórios
-report.belongsTo(user);           // Um relatório pertence a um usuário
+user.hasMany(report, { foreignKey: 'user_id' });
+report.belongsTo(user, { foreignKey: 'user_id' });
 
 module.exports = {
     user,
@@ -43,11 +45,26 @@ module.exports = {
     report
 };
 
-app.get('/', (req, res) => {
-    res.render('index')
-})
+app.get('/', async (req, res) => {
+    try {
+        // Busca todas as denúncias no banco de dados
+        const denuncias = await denunciation.findAll({
+            order: [['created_at', 'DESC']] // Ordena por data de criação (mais recente primeiro)
+        });
 
-app.use('/', usersController)
+        // Renderiza a view 'index' passando as denúncias como variável
+        res.render('index', { 
+            denuncias: denuncias,
+            DENUNCIATION_SENDER: DENUNCIATION_SENDER 
+        });
+
+    } catch (error) {
+        console.error('Erro ao buscar denúncias:', error);
+        res.status(500).send('Erro ao carregar denúncias.');
+    }
+});
+
+app.use('/', usersController, denunciationsController)
 
 app.listen(3000, () => {
     console.log('Server On')
