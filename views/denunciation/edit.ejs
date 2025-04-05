@@ -1,0 +1,75 @@
+<%- include ('../partials/header.ejs') %>
+<%- include ('../partials/navbar.ejs' ) %>
+<div class="container">
+    <hr>
+    <div class="card">
+        <div class="card-header">
+            <h2>Editar Denúncia</h2>
+        </div>
+        <div class="card-body">
+            <form method="post" action="/denuncia/<%= denuncia.id %>?_method=PUT">
+                <!-- Campos não editáveis -->
+                <div class="mb-3">
+                    <label class="form-label">Ano</label>
+                    <input class="form-control" type="number" value="<%= year %>" readonly>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label">Número</label>
+                    <input class="form-control" type="number" value="<%= lastNumber %>" readonly>
+                </div>
+                
+                <!-- Campos editáveis -->
+                <div class="mb-3">
+                    <label class="form-label">Tipo de Registro</label>
+                    <select class="form-control" name="registration_type" id="registration_type">
+                        <% for (let key in DENUNCIATION_SENDER.DENUNCIATION_SENDER) { %>
+                            <option value="<%= key %>" <%= denuncia.registration_type === key ? 'selected' : '' %>>
+                                <%= DENUNCIATION_SENDER.DENUNCIATION_SENDER[key] %>
+                            </option>
+                        <% } %>
+                    </select>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label">Título</label>
+                    <input class="form-control" type="text" name="title" value="<%= denuncia.title %>" required>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Endereço</label>
+                    <div class="row">
+                        <div class="col-md-8 mb-2">
+                            <input class="form-control" name="endereco" value="<%= denuncia.endereco %>" placeholder="Nome da Rua" required>
+                        </div>
+                        <div class="col-md-4">
+                            <input class="form-control" name="numero" value="<%= denuncia.numero %>" placeholder="Número" required>
+                        </div>
+                    </div>
+                    <input class="form-control mt-2" name="bairro" value="<%= denuncia.bairro %>" placeholder="Bairro" required>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label">Descrição</label>
+                    <textarea class="form-control" name="description" rows="4" required><%= denuncia.description %></textarea>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label">Status</label>
+                    <select class="form-control" name="status">
+                        <option value="Aberta" <%= denuncia.status === 'Aberta' ? 'selected' : '' %>>Aberta</option>
+                        <option value="Em análise" <%= denuncia.status === 'Em análise' ? 'selected' : '' %>>Em análise</option>
+                        <option value="Resolvida" <%= denuncia.status === 'Resolvida' ? 'selected' : '' %>>Resolvida</option>
+                        <option value="Arquivada" <%= denuncia.status === 'Arquivada' ? 'selected' : '' %>>Arquivada</option>
+                    </select>
+                </div>
+                
+                <div class="d-flex justify-content-between">
+                    <a href="/denuncia/<%= denuncia.id %>" class="btn btn-secondary">Cancelar</a>
+                    <button type="submit" class="btn btn-primary">Salvar Alterações</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<%- include ('../partials/footer.ejs') %>

@@ -1,0 +1,100 @@
+<%- include ('../partials/header.ejs') %>
+<%- include ('../partials/navbar.ejs' ) %>
+<div class="container mt-4">
+    <% if (locals.success) { %>
+        <div class="alert alert-success"><%= success %></div>
+    <% } %>
+    <% if (locals.error) { %>
+        <div class="alert alert-danger"><%= error %></div>
+    <% } %>
+
+    <div class="card">
+        <div class="card-header">
+            <h2>Atribuir Denúncias a Fiscais</h2>
+        </div>
+        <div class="card-body">
+            <% if (denuncias.length > 0) { %>
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Nº</th>
+                                <th>Título</th>
+                                <th>Endereço</th>
+                                <th>Data</th>
+                                <th>Fiscal</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% denuncias.forEach(denuncia => { %>
+                                <tr>
+                                    <td><%= denuncia.year %>/<%= denuncia.number %></td>
+                                    <td><%= denuncia.title %></td>
+                                    <td>
+                                        <%= denuncia.endereco %>, <%= denuncia.numero %><br>
+                                        <%= denuncia.bairro %>
+                                    </td>
+                                    <td><%= new Date(denuncia.created_at).toLocaleDateString() %></td>
+                                    <td>
+                                        <% if (denuncia.userId) { %>
+                                            <%= denuncia.user.nome %>
+                                        <% } else { %>
+                                            <span class="badge bg-warning">Não atribuída</span>
+                                        <% } %>
+                                    </td>
+                                    <td>
+                                        <% if (!denuncia.userId) { %>
+                                            <button type="button" class="btn btn-sm btn-primary" 
+                                                    data-bs-toggle="modal" 
+                                                    data-bs-target="#atribuirModal<%= denuncia.id %>">
+                                                Atribuir Fiscal
+                                            </button>
+                                        <% } else { %>
+                                            <span class="badge bg-success">Atribuída</span>
+                                        <% } %>
+                                    </td>
+                                </tr>
+
+                                <!-- Modal de Atribuição -->
+                                <div class="modal fade" id="atribuirModal<%= denuncia.id %>" tabindex="-1">
+                                    <div class="modal-dialog">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title">Atribuir Fiscal</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                            </div>
+                                            <form action="/atribuir/<%= denuncia.id %>" method="POST">
+                                                <div class="modal-body">
+                                                    <div class="mb-3">
+                                                        <label class="form-label">Selecione o Fiscal</label>
+                                                        <select name="fiscalId" class="form-select" required>
+                                                            <% fiscais.forEach(fiscal => { %>
+                                                                <option value="<%= fiscal.id %>">
+                                                                    <%= fiscal.nome %> (<%= fiscal.matricula || fiscal.email %>)
+                                                                </option>
+                                                            <% }); %>
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                                    <button type="submit" class="btn btn-primary">Confirmar Atribuição</button>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            <% }); %>
+                        </tbody>
+                    </table>
+                </div>
+            <% } else { %>
+                <div class="alert alert-info">
+                    Nenhuma denúncia pendente de atribuição.
+                </div>
+            <% } %>
+        </div>
+    </div>
+</div>
+<%- include ('../partials/footer.ejs') %>
