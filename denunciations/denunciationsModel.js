@@ -24,9 +24,25 @@ const denunciation = connection.define('denunciations', {
         type: sequelize.TEXT,
         allowNull: false
     },
+    endereco: {
+        type: sequelize.STRING,
+        allowNull: false
+    },
+    numero: {
+        type: sequelize.STRING,
+        allowNull: false
+    },
+    bairro: {
+        type: sequelize.STRING,
+        allowNull: false
+    },
     created_at: {
         type: sequelize.DATE,
         defaultValue: sequelize.NOW
+    },
+    user_id: {  // Apenas mudei de userId para user_id
+        type: sequelize.INTEGER,
+        allowNull: true
     }
 }, {
     indexes: [
@@ -37,6 +53,5 @@ const denunciation = connection.define('denunciations', {
     ]
 });
 
-denunciation.sync()
-
+denunciation.sync();
 module.exports = denunciation;
