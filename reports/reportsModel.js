@@ -8,9 +8,16 @@ const report = connection.define('reports', {
     created_at: {
         type: sequelize.DATE,
         defaultValue: sequelize.NOW
+    },
+    denunciation_id: {  // Mantido do seu original
+        type: sequelize.INTEGER,
+        allowNull: false
+    },
+    user_id: {  // Mantido do seu original
+        type: sequelize.INTEGER,
+        allowNull: false
     }
 });
 
-report.sync()
-
+report.sync();
 module.exports = report;
