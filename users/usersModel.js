@@ -1,7 +1,6 @@
 const sequelize = require('sequelize');
 const connection = require('../database/database.js');
 
-
 const user = connection.define('users', {
     name: {
         type: sequelize.STRING,
@@ -9,5 +8,5 @@ const user = connection.define('users', {
     }
 });
 
-user.sync()
+user.sync();
 module.exports = user;
