@@ -12,7 +12,6 @@ router.get('/cadastro/usuario', (req, res) => {
 
 router.post('/usuario/registrar', (req, res) => {
     var username = req.body.username
-    console.log('Body recebido:', req.body);
     if(!username){
         return res.redirect('/')
     }
