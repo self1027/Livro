@@ -1,13 +1,21 @@
-<%- include ('../partials/header.ejs') %>
-<%- include ('../partials/navbar.ejs' ) %>
+<%- include('../partials/header.ejs') %>
+<%- include('../partials/navbar.ejs') %>
 <div class="container">
     <hr>
     <div class="card">
         <div class="card-header">
-            <h2>Cadastar Denuncia</h2>
+            <h2>Cadastrar Denúncia</h2>
         </div>
         <div class="card-body">
-            <form method="post" action="/denuncia/registrar" >
+            <!-- Exibe a mensagem de erro, caso exista -->
+            <% if (typeof message !== 'undefined' && message) { %>
+                <div class="alert alert-warning">
+                    <h4 class="alert-heading">Aviso</h4>
+                    <p><%- message %></p>
+                </div>
+            <% } %>
+
+            <form method="post" action="/denuncia/registrar">
                 <input class="form-control" type="number" name="year" value="<%= year %>" readonly><br>
                 
                 <input class="form-control" type="number" name="number" value="<%= lastNumber %>" readonly><br>
@@ -30,8 +38,6 @@
             
                 <button class="btn btn-success">Cadastrar</button>
             </form>
-            
-
         </div>  
     </div>
 </div>
@@ -58,4 +64,4 @@
         return true; // Permite o envio
     }
 </script>
-<%- include ('../partials/footer.ejs') %>
+<%- include('../partials/footer.ejs') %>
