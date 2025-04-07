@@ -1,0 +1,40 @@
+<%- include ('../partials/header.ejs') %>
+<%- include ('../partials/navbar.ejs') %>
+
+<div class="container mt-4">
+    <hr>
+    <% if (locals.success) { %>
+        <div class="alert alert-success"><%= success %></div>
+    <% } %>
+    <% if (locals.error) { %>
+        <div class="alert alert-danger"><%= error %></div>
+    <% } %>
+
+    <div class="card">
+        <div class="card-header">
+            <h2>Indicar Fiscal</h2>
+        </div>
+        <div class="card-body">
+            <p><strong>Denuncia:</strong> <%= denuncia.year %>/<%= denuncia.number %> - <%= denuncia.title %></p>
+            <p><strong>Endereço:</strong> <%= denuncia.endereco %>, <%= denuncia.numero %> - <%= denuncia.bairro %></p>
+            <p><strong>Data:</strong> <%= new Date(denuncia.created_at).toLocaleDateString() %></p>
+
+            <form action="/atribuir/<%= denuncia.id %>" method="POST">
+                <div class="mb-3">
+                    <label for="user" class="form-label">Selecionar Fiscal</label>
+                    <select name="userId" id="user" class="form-select" required>
+                        <% users.forEach(user => { %>
+                            <option value="<%= user.id %>"><%= user.name %></option>
+                        <% }); %>
+                    </select>
+                </div>
+                <div class="d-flex justify-content-between">
+                    <a href="/atribuir" class="btn btn-secondary">Voltar</a>
+                    <button type="submit" class="btn btn-primary">Confirmar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<%- include ('../partials/footer.ejs') %>
