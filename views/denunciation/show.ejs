@@ -8,16 +8,16 @@
         </div>
         <div class="card-body">
             <form>
-                <!-- Ano -->
-                <div class="mb-3">
-                    <label class="form-label">Ano</label>
-                    <input class="form-control" type="number" value="<%= denuncia.year %>" readonly>
-                </div>
-                
-                <!-- Número -->
-                <div class="mb-3">
-                    <label class="form-label">Número</label>
-                    <input class="form-control" type="number" value="<%= denuncia.number %>" readonly>
+                <!-- Grupo Ano e Número -->
+                <div class="mb-3 row">
+                    <div class="col-md-6">
+                        <label class="form-label">Ano</label>
+                        <input class="form-control" type="number" value="<%= denuncia.year %>" readonly>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Número</label>
+                        <input class="form-control" type="number" value="<%= denuncia.number %>" readonly>
+                    </div>
                 </div>
                 
                 <!-- Tipo de Registro -->
@@ -31,7 +31,7 @@
                     <label class="form-label">Título</label>
                     <input class="form-control" type="text" value="<%= denuncia.title %>" readonly>
                 </div>
-
+    
                 <!-- Endereço Completo -->
                 <div class="mb-3">
                     <label class="form-label">Endereço</label>
@@ -58,17 +58,19 @@
                     <input class="form-control" value="<%= new Date(denuncia.created_at).toLocaleDateString('pt-BR') %>" readonly>
                 </div>
                 
-                <!-- Status -->
-                <div class="mb-3">
-                    <label class="form-label">Status</label>
-                    <div>
-                        <span class="badge <%= denuncia.status === 'Pendente' ? 'bg-warning' : 'bg-success' %>">
-                            <%= denuncia.status %>
+                <td>
+                    <% 
+                        const statusInfo = DENUNCIATION_STATUS[denuncia.status?.trim()] || { label: 'Desconhecido', color: '#ccc' }; 
+                    %>
+                    <div style="display: flex; align-items: center;">
+                        <div style="width: 5px; height: 25px; background-color: <%= statusInfo.color %>; margin-right: 8px; border-radius: 2px;"></div>
+                        <span style="font-weight: bold; color: #000;">
+                            <%= statusInfo.label %>
                         </span>
                     </div>
-                </div>
+                </td>
+
                 
-                <!-- Botões de Ação -->
                 <div class="d-flex justify-content-between mt-4">
                     <a href="/" class="btn btn-secondary">
                         <i class="fas fa-arrow-left"></i> Voltar
@@ -77,10 +79,59 @@
                         <a href="/denuncia/<%= denuncia.id %>/edit" class="btn btn-primary me-2">
                             <i class="fas fa-edit"></i> Editar
                         </a>
+
+                        <!-- Condição para exibir o botão "Atribuir Fiscal" ou "Trocar Fiscal" -->
+                        <% if (reports && reports.length > 0) { %>
+                            <!-- Caso tenha fiscal, o botão será "Trocar Fiscal" -->
+                            <a href="/atribuir/<%= denuncia.id %>" class="btn btn-warning me-2">
+                                <i class="fas fa-exchange-alt"></i> Trocar Fiscal
+                            </a>
+                        <% } else { %>
+                            <!-- Caso não tenha fiscal, o botão será "Atribuir Fiscal" -->
+                            <a href="/atribuir/<%= denuncia.id %>" class="btn btn-warning me-2">
+                                <i class="fas fa-user-plus"></i> Atribuir Fiscal
+                            </a>
+                        <% } %>
                     </div>
                 </div>
+                
             </form>
         </div>  
+    </div>    
+
+    <br>
+    <hr>
+    <!-- Novo Formulário de Relatórios -->
+    <div class="card">
+        <div class="card-header">
+            <h3>Relatórios Associados</h3>
+        </div>
+        <div class="card-body">
+            <form action="/denuncia/<%= denuncia.id %>/adicionar-relatorio" method="POST">
+                <div class="mb-3">
+                    <label class="form-label">Adicionar Relatório</label>
+                    <textarea class="form-control" name="description" placeholder="Descrição" rows="4"></textarea>
+                </div>
+                <button type="submit" class="btn btn-success">Adicionar Relatório</button>
+            </form>
+            <hr>
+            <div class="mb-3">
+                <label class="form-label">Relatórios Existentes</label>
+                <ul class="list-group">
+                    <% if (reports && reports.length > 0) { %>
+                        <% reports.forEach(report => { %>
+                            <li class="list-group-item">
+                                <strong><%= report.description %></strong> - <%= new Date(report.created_at).toLocaleDateString('pt-BR') %>
+                            </li>
+                        <% }); %>
+                    <% } else { %>
+                        <li class="list-group-item">Nenhum relatório disponível</li>
+                    <% } %>
+                </ul>
+            </div>
+        </div>
     </div>
+    <br>
 </div>
+
 <%- include ('../partials/footer.ejs') %>
