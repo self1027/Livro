@@ -19,6 +19,7 @@
                                 <th>Endereço</th>
                                 <th>Data</th>
                                 <th>Status</th>
+                                <th>Fiscal</th>
                                 <th>Ações</th>
                             </tr>
                         </thead>
@@ -35,9 +36,22 @@
                                     </td>
                                     <td><%= new Date(denuncia.created_at).toLocaleDateString() %></td>
                                     <td>
-                                        <span class="badge <%= denuncia.status === 'Pendente' ? 'bg-warning' : 'bg-success' %>">
-                                            <%= denuncia.status %>
-                                        </span>
+                                        <% 
+                                            const statusInfo = DENUNCIATION_STATUS[denuncia.status?.trim()] || { label: 'Desconhecido', color: '#ccc' }; 
+                                        %>
+                                        <div style="display: flex; align-items: center;">
+                                            <div style="width: 5px; height: 25px; background-color: <%= statusInfo.color %>; margin-right: 8px; border-radius: 2px;"></div>
+                                            <span style="font-weight: bold; color: #000;">
+                                                <%= statusInfo.label %>
+                                            </span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <% if (denuncia.user) { %>
+                                            <%= denuncia.user.name %>
+                                        <% } else { %>
+                                            <span class="text-muted">Não atribuído</span>
+                                        <% } %>
                                     </td>
                                     <td>
                                         <a href="/denuncia/<%= denuncia.id %>" class="btn btn-sm btn-primary">
@@ -46,7 +60,7 @@
                                     </td>
                                 </tr>
                             <% }); %>
-                        </tbody>
+                        </tbody>                        
                     </table>
                 </div>
             <% } else { %>
