@@ -47,12 +47,17 @@ module.exports = {
 
 app.get('/', async (req, res) => {
     try {
-        // Busca todas as denúncias no banco de dados
+        // Busca todas as denúncias no banco de dados, incluindo os dados do fiscal (user)
         const denuncias = await denunciation.findAll({
-            order: [['created_at', 'DESC']] // Ordena por data de criação (mais recente primeiro)
+            include: [{
+                model: user,
+                as: 'user',
+                attributes: ['name']
+            }],
+            order: [['created_at', 'DESC']]
         });
 
-        // Renderiza a view 'index' passando as denúncias como variável
+        // Renderiza a view 'index' passando as denúncias e dados do fiscal como variável
         res.render('index', { 
             denuncias: denuncias,
             DENUNCIATION_SENDER: DENUNCIATION_SENDER 
@@ -63,6 +68,7 @@ app.get('/', async (req, res) => {
         res.status(500).send('Erro ao carregar denúncias.');
     }
 });
+
 
 app.use('/', usersController, denunciationsController)
 
