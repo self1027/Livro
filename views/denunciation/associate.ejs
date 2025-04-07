@@ -1,6 +1,8 @@
 <%- include ('../partials/header.ejs') %>
 <%- include ('../partials/navbar.ejs' ) %>
+
 <div class="container mt-4">
+    <hr>
     <% if (locals.success) { %>
         <div class="alert alert-success"><%= success %></div>
     <% } %>
@@ -45,46 +47,14 @@
                                     </td>
                                     <td>
                                         <% if (!denuncia.userId) { %>
-                                            <button type="button" class="btn btn-sm btn-primary" 
-                                                    data-bs-toggle="modal" 
-                                                    data-bs-target="#atribuirModal<%= denuncia.id %>">
+                                            <a href="/atribuir/<%= denuncia.id %>" class="btn btn-sm btn-primary">
                                                 Atribuir Fiscal
-                                            </button>
+                                            </a>
                                         <% } else { %>
                                             <span class="badge bg-success">Atribuída</span>
                                         <% } %>
                                     </td>
                                 </tr>
-
-                                <!-- Modal de Atribuição -->
-                                <div class="modal fade" id="atribuirModal<%= denuncia.id %>" tabindex="-1">
-                                    <div class="modal-dialog">
-                                        <div class="modal-content">
-                                            <div class="modal-header">
-                                                <h5 class="modal-title">Atribuir Fiscal</h5>
-                                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                                            </div>
-                                            <form action="/atribuir/<%= denuncia.id %>" method="POST">
-                                                <div class="modal-body">
-                                                    <div class="mb-3">
-                                                        <label class="form-label">Selecione o Fiscal</label>
-                                                        <select name="fiscalId" class="form-select" required>
-                                                            <% fiscais.forEach(fiscal => { %>
-                                                                <option value="<%= fiscal.id %>">
-                                                                    <%= fiscal.nome %> (<%= fiscal.matricula || fiscal.email %>)
-                                                                </option>
-                                                            <% }); %>
-                                                        </select>
-                                                    </div>
-                                                </div>
-                                                <div class="modal-footer">
-                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                                                    <button type="submit" class="btn btn-primary">Confirmar Atribuição</button>
-                                                </div>
-                                            </form>
-                                        </div>
-                                    </div>
-                                </div>
                             <% }); %>
                         </tbody>
                     </table>
@@ -97,4 +67,5 @@
         </div>
     </div>
 </div>
+
 <%- include ('../partials/footer.ejs') %>
