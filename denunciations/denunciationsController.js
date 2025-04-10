@@ -53,7 +53,7 @@ router.post('/denuncia/registrar', async (req, res) => {
                 numero: numero,
                 bairro: bairro,
                 status: {
-                    [Op.ne]: 'Finalizado' // Op.ne é usado para "diferente de" no Sequelize
+                    [Op.ne]: DENUNCIATION_STATUS.FINALIZADA.slug // Op.ne é usado para "diferente de" no Sequelize
                 }
             }
         });
@@ -79,7 +79,7 @@ router.post('/denuncia/registrar', async (req, res) => {
             numero,
             bairro,
             description,
-            status: "Aberta"
+            status: DENUNCIATION_STATUS.REGISTRADA.slug
         });
 
         // Redireciona para a página principal ou outra página de sucesso
@@ -97,39 +97,77 @@ router.post('/denuncia/registrar', async (req, res) => {
     }
 });
 
-
-
-
 router.get('/denuncia/:id', async (req, res) => {
     try {
         // Busca a denúncia com os relatórios associados
         const denuncia = await denunciationsModel.findByPk(req.params.id, {
-            include: [{
-                model: reportsModel, 
-                as: 'reports',
-                attributes: ['id', 'description', 'created_at'],
-            }]
+            include: [
+                {
+                    model: reportsModel,
+                    as: 'reports',
+                    attributes: ['id', 'description', 'created_at'],
+                },
+                {
+                    model: userModel, // Inclui o fiscal (usuário)
+                    as: 'user',
+                    attributes: ['name'],
+                }
+            ]
         });
-
+        
         if (!denuncia) {
             return res.status(404).render('error', {
                 message: 'Denúncia não encontrada'
             });
         }
-
-        // Renderiza a view 'show' da denúncia, passando os relatórios também
+        
+        // Renderiza a view 'show' da denúncia, passando os relatórios e dados do fiscal também
         res.render('denunciation/show', {
             denuncia: denuncia,
             reports: denuncia.reports, // Passando os relatórios para a view
+            fiscal: denuncia.user, // Passando o fiscal (usuário) para a view
             DENUNCIATION_SENDER: DENUNCIATION_SENDER,
             DENUNCIATION_STATUS: DENUNCIATION_STATUS
-        });
+        });        
 
     } catch (error) {
         console.error('Erro ao buscar denúncia:', error);
         res.status(500).render('error', {
             message: 'Erro ao carregar denúncia'
         });
+    }
+});
+
+router.post('/denuncia/edit/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const {
+            registration_type,
+            title,
+            endereco,
+            numero,
+            bairro,
+            description,
+            status
+        } = req.body;
+
+        await denunciationsModel.update(
+            {
+                registration_type,
+                title,
+                endereco,
+                numero,
+                bairro,
+                description,
+                status
+            },
+            { where: { id } }
+        );
+
+        res.redirect(`/denuncia/${id}`);
+    } catch (err) {
+        console.error('Erro ao atualizar denúncia:', err);
+        res.status(500).send('Erro ao atualizar denúncia.');
     }
 });
 
@@ -145,6 +183,7 @@ router.get('/denuncia/:id/edit', async (req, res) => {
             res.render('denunciation/edit', {
                 denuncia: denuncia,
                 DENUNCIATION_SENDER: DENUNCIATION_SENDER,
+                DENUNCIATION_STATUS: DENUNCIATION_STATUS,
                 year: denuncia.year,
                 lastNumber: denuncia.number
             });
@@ -252,6 +291,73 @@ router.post('/atribuir/:id', async (req, res) => {
         console.error(err);
     }
 });
+
+// Rota para exibir a página de busca (inicial)
+router.get('/buscar', (req, res) => {
+    res.render('denunciation/search', {
+        DENUNCIATION_STATUS: DENUNCIATION_STATUS,
+        DENUNCIATION_SENDER: DENUNCIATION_SENDER,
+        denuncias: [],
+        year: '', // A variável 'year' será passada com valor vazio inicialmente
+        number: '',
+        endereco: '',
+        numero: '',
+        bairro: '',
+        status: '',
+        registration_type: '',
+        scroll: false
+    });
+});
+
+// Rota para processar a busca
+router.get('/buscar/resultados', async (req, res) => {
+    try {
+        const { year, number, endereco, numero, bairro, status, registration_type } = req.query;
+
+        // Monta o objeto de busca com os parâmetros recebidos
+        const whereConditions = {};
+
+        if (year) whereConditions.year = year;
+        if (number) whereConditions.number = number;
+        if (endereco) whereConditions.endereco = { [Op.like]: `%${endereco}%` };
+        if (numero) whereConditions.numero = numero;
+        if (bairro) whereConditions.bairro = { [Op.like]: `%${bairro}%` };
+        if (status && status !== 'Selecione') whereConditions.status = status;
+        if (registration_type && registration_type !== 'Selecione') whereConditions.registration_type = registration_type;
+
+        const denuncias = await denunciationsModel.findAll({
+            where: whereConditions,
+            include: [{
+                model: userModel,
+                as: 'user', // Defina o alias do relacionamento, conforme está no seu modelo
+                attributes: ['name'] // Inclui o nome do fiscal responsável
+            }],
+            order: [
+                ['year', 'DESC'], // Ordena os anos em ordem decrescente
+                ['number', 'DESC'] // Para cada ano, ordena os números em ordem decrescente
+            ]
+        });
+
+        // Renderiza a view passando as denúncias encontradas e os parâmetros de busca
+        res.render('denunciation/search', {
+            denuncias,
+            DENUNCIATION_STATUS,
+            DENUNCIATION_SENDER,
+            year,
+            number,
+            endereco,
+            numero,
+            bairro,
+            status,
+            registration_type,
+            scroll: true
+        });
+    } catch (error) {
+        console.error('Erro ao buscar denúncias:', error);
+        res.status(500).send('Erro ao buscar denúncias');
+    }
+});
+
 
 
 module.exports = router
