@@ -2,6 +2,7 @@ const express = require('express')
 const router = express.Router()
 const userModel = require('./usersModel')
 const denunciation = require('../denunciations/denunciationsModel')
+const denunciationStatus = require('../constants/denunciationStatus')
 
 router.get('/cadastro/usuario', (req, res) => {
     userModel.findAll().then(username =>{
@@ -44,6 +45,7 @@ router.get('/area-fiscal', async (req, res) => {
 router.get('/area-fiscal/:id', async (req, res) => {
     try {
         const fiscalId = req.params.id;
+        const selectedStatus = req.query.status || denunciationStatus.REGISTRADA.label;
 
         // Buscar o fiscal pelo ID
         const fiscal = await userModel.findByPk(fiscalId);
@@ -58,14 +60,13 @@ router.get('/area-fiscal/:id', async (req, res) => {
         // Buscar todas as denúncias atribuídas ao fiscal
         const denuncias = await denunciation.findAll({
             where: {
-                user_id: fiscalId // Considerando que você tenha a coluna userId na tabela Denunciation
+                user_id: fiscalId
             }
         });
-
-        // Renderiza a página da área do fiscal com os dados do fiscal e suas denúncias
         return res.render('users/home', {
             fiscal,
-            denuncias
+            denuncias,
+            selectedStatus: selectedStatus
         });
     } catch (error) {
         console.error(error);
