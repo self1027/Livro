@@ -7,7 +7,7 @@
             <h2>Editar Denúncia</h2>
         </div>
         <div class="card-body">
-            <form method="post" action="/denuncia/<%= denuncia.id %>?_method=PUT">
+            <form method="post" action="/denuncia/edit/<%= denuncia.id %>?_method=PUT">
                 <!-- Campos não editáveis -->
                 <div class="mb-3">
                     <label class="form-label">Ano</label>
@@ -57,10 +57,11 @@
                 <div class="mb-3">
                     <label class="form-label">Status</label>
                     <select class="form-control" name="status">
-                        <option value="Aberta" <%= denuncia.status === 'Aberta' ? 'selected' : '' %>>Aberta</option>
-                        <option value="Em análise" <%= denuncia.status === 'Em análise' ? 'selected' : '' %>>Em análise</option>
-                        <option value="Resolvida" <%= denuncia.status === 'Resolvida' ? 'selected' : '' %>>Resolvida</option>
-                        <option value="Arquivada" <%= denuncia.status === 'Arquivada' ? 'selected' : '' %>>Arquivada</option>
+                        <% for (let key in DENUNCIATION_STATUS) { %>
+                            <option value="<%= key %>" <%= denuncia.status === key ? 'selected' : '' %>>
+                                <%= DENUNCIATION_STATUS[key].label %>
+                            </option>
+                        <% } %>
                     </select>
                 </div>
                 

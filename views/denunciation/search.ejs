@@ -1,0 +1,186 @@
+<%- include('../partials/header.ejs') %>
+<%- include('../partials/navbar.ejs') %>
+<div class="container">
+    <hr>
+    <div class="card">
+        <div class="card-header">
+            <h2>Buscar Denúncias</h2>
+        </div>
+        <div class="card-body">
+            <!-- Exibe a mensagem de erro, caso exista -->
+            <% if (typeof message !== 'undefined' && message) { %>
+                <div class="alert alert-warning">
+                    <h4 class="alert-heading">Aviso</h4>
+                    <p><%- message %></p>
+                </div>
+            <% } %>
+    
+            <form method="get" action="/buscar/resultados" onsubmit="return validateForm()">
+                <!-- Ano -->
+                <div class="mb-3">
+                    <label class="form-label">Ano</label>
+                    <input class="form-control" type="text" name="year" placeholder="Buscar por ano" value="<%= year %>" />
+                </div>
+            
+                <!-- Número -->
+                <div class="mb-3">
+                    <label class="form-label">Número</label>
+                    <input class="form-control" type="text" name="number" placeholder="Buscar por número" value="<%= number %>" />
+                </div>
+            
+                <!-- Endereço -->
+                <div class="mb-3">
+                    <label class="form-label">Endereço</label>
+                    <input class="form-control" type="text" name="endereco" placeholder="Buscar por endereço (rua, avenida, etc.)" value="<%= endereco %>" />
+                </div>
+            
+                <!-- Número do Endereço -->
+                <div class="mb-3">
+                    <label class="form-label">Número do Endereço</label>
+                    <input class="form-control" type="text" name="numero" placeholder="Buscar por número do endereço" value="<%= numero %>" />
+                </div>
+            
+                <!-- Bairro -->
+                <div class="mb-3">
+                    <label class="form-label">Bairro</label>
+                    <input class="form-control" type="text" name="bairro" placeholder="Buscar por bairro" value="<%= bairro %>" />
+                </div>
+            
+                <!-- Status -->
+                <div class="mb-3">
+                    <label class="form-label">Status</label>
+                    <select class="form-control" name="status" id="status">
+                        <option value="">Selecione</option>
+                        <% for (let key in DENUNCIATION_STATUS) { %>
+                            <option value="<%= key %>" <%= status === key ? 'selected' : '' %>><%= DENUNCIATION_STATUS[key].label %></option>
+                        <% } %>
+                    </select>
+                </div>
+            
+                <!-- Tipo de Registro -->
+                <div class="mb-3">
+                    <label class="form-label">Tipo de Registro</label>
+                    <select class="form-control" name="registration_type" id="registration_type">
+                        <option value="">Selecione</option>
+                        <% for (let key in DENUNCIATION_SENDER.DENUNCIATION_SENDER) { %>
+                            <option value="<%= key %>" <%= registration_type === key ? 'selected' : '' %>><%= DENUNCIATION_SENDER.DENUNCIATION_SENDER[key] %></option>
+                        <% } %>
+                    </select><br>
+                </div>
+            
+                <button type="submit" class="btn btn-success">Buscar</button>
+            </form>    
+    
+            <!-- Mensagem explicativa sobre a necessidade de preencher pelo menos um campo -->
+            <p class="text-muted mt-3">
+                <small>Por favor, preencha ao menos um campo para realizar a busca.</small>
+            </p>
+        </div>
+    </div>    
+    <br>
+<hr>
+    <!-- Exibição dos resultados da busca -->
+    <% if (denuncias && denuncias.length > 0) { %>
+        <div class="card mt-4" id="search-results">
+            <div class="card-header">
+                <h3>Resultados da Busca</h3>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead class="thead-dark">
+                            <tr>
+                                <th>Ano</th>
+                                <th>Número</th>
+                                <th>Tipo</th>
+                                <th>Título</th>
+                                <th>Endereço</th>
+                                <th>Data</th>
+                                <th>Status</th>
+                                <th>Fiscal</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% denuncias.forEach(denuncia => { %>
+                                <tr>
+                                    <td><%= denuncia.year %></td>
+                                    <td><%= denuncia.number %></td>
+                                    <td><%= DENUNCIATION_SENDER.DENUNCIATION_SENDER[denuncia.registration_type] %></td>
+                                    <td><%= denuncia.title %></td>
+                                    <td>
+                                        <%= denuncia.endereco %>, <%= denuncia.numero %><br>
+                                        <%= denuncia.bairro %>
+                                    </td>
+                                    <td><%= new Date(denuncia.created_at).toLocaleDateString() %></td>
+                                    <td>
+                                        <% 
+                                            const statusInfo = DENUNCIATION_STATUS[denuncia.status?.trim()] || { label: 'Desconhecido', color: '#ccc' }; 
+                                        %>
+                                        <div style="display: flex; align-items: flex-start;">
+                                            <div style="width: 5px; height: 25px; background-color: <%= statusInfo.color %>; margin-right: 8px; border-radius: 2px;"></div>
+                                            <span style="font-weight: bold; color: #000; display: inline-block; max-width: calc(100% - 13px); word-wrap: break-word;">
+                                                <%= statusInfo.label %>
+                                            </span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <% if (denuncia.user) { %>
+                                            <%= denuncia.user.name %>
+                                        <% } else { %>
+                                            <span class="text-muted">Não atribuído</span>
+                                        <% } %>
+                                    </td>
+                                    <td>
+                                        <a href="/denuncia/<%= denuncia.id %>" class="btn btn-sm btn-primary">
+                                            <i class="fas fa-eye"></i> Ver
+                                        </a>
+                                    </td>
+                                </tr>
+                            <% }); %>
+                        </tbody>                        
+                    </table>
+                </div>
+            </div>
+        </div>
+    <% } else if (denuncias && denuncias.length === 0) { %>
+        <div class="alert alert-info mt-4">
+            Nenhuma denúncia encontrada com os critérios especificados.
+        </div>
+    <% } %>
+</div>
+<br>
+
+<script>
+    // Verifica o valor do parâmetro 'scroll' e rola a página até os resultados, caso necessário
+    if (scroll) { 
+        window.onload = function() {
+            const resultsSection = document.getElementById('search-results');
+            if (resultsSection) {
+                resultsSection.scrollIntoView({ behavior: 'smooth' });
+            }
+        };
+    }
+
+    function validateForm() {
+        const form = document.querySelector('form');
+        const fields = form.querySelectorAll('input, select');
+        let isValid = false; // Pelo menos um campo precisa ser preenchido para permitir a busca
+
+        // Verifica se algum campo foi preenchido
+        fields.forEach(field => {
+            if (field.value.trim() !== '') {
+                isValid = true;
+            }
+        });
+
+        if (!isValid) {
+            alert('Por favor, preencha ao menos um campo para buscar.');
+            return false; // Impede o envio do formulário
+        }
+
+        return true; // Permite o envio
+    }
+</script>
+
+<%- include('../partials/footer.ejs') %>
