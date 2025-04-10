@@ -9,6 +9,7 @@ const DENUNCIATION_SENDER = require('./constants/denunciationSenders.js');
 
 const usersController = require('./users/usersController.js')
 const denunciationsController = require('./denunciations/denunciationsController.js')
+const reportsController = require('./reports/reportsController.js')
 
 const app = express()
 
@@ -45,6 +46,8 @@ module.exports = {
     report
 };
 
+const { Op } = require('sequelize');
+
 app.get('/', async (req, res) => {
     try {
         // Busca todas as denúncias no banco de dados, incluindo os dados do fiscal (user)
@@ -54,7 +57,10 @@ app.get('/', async (req, res) => {
                 as: 'user',
                 attributes: ['name']
             }],
-            order: [['created_at', 'DESC']]
+            order: [
+                ['year', 'DESC'], // Ordena os anos em ordem decrescente
+                ['number', 'DESC'] // Para cada ano, ordena os números em ordem decrescente
+            ]
         });
 
         // Renderiza a view 'index' passando as denúncias e dados do fiscal como variável
@@ -70,7 +76,8 @@ app.get('/', async (req, res) => {
 });
 
 
-app.use('/', usersController, denunciationsController)
+
+app.use('/', usersController, denunciationsController, reportsController)
 
 app.listen(3000, () => {
     console.log('Server On')
