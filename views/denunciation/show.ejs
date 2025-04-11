@@ -117,27 +117,51 @@
         </div>
         <div class="card-body">
             <form action="/denuncia/<%= denuncia.id %>/adicionar-relatorio" method="POST">
-                <!-- Campo invisível com o ID do usuário -->
                 <input type="hidden" name="user_id" value="<%= denuncia.user_id %>">
+                <input type="hidden" name="status_atual" value="<%= denuncia.status %>"> <!-- Status atual da denúncia -->
             
                 <div class="mb-3">
-                    <label class="form-label">Adicionar Relatório</label>
-                    <textarea class="form-control" name="description" placeholder="Descrição" rows="4"></textarea>
+                    <label for="description" class="form-label">Adicionar Relatório</label>
+                    <textarea class="form-control shadow-sm rounded-3" name="description" id="description" placeholder="Digite o relatório..." rows="4"></textarea>
                 </div>
-                
-                <button type="submit" class="btn btn-success">Adicionar Relatório</button>
-            </form>            
             
+                <div class="d-flex justify-content-between align-items-end mb-4">
+                    <div class="me-3" style="min-width: 250px; flex-grow: 1;">
+                        <label for="status" class="form-label">Atualizar Status</label>
+                        <select class="form-control" style="width: auto; min-width: 200px;" name="status" id="status">
+                            <% for (let key in DENUNCIATION_STATUS) { %>
+                                <option value="<%= key %>" <%= denuncia.status === key ? 'selected' : '' %>>
+                                    <%= DENUNCIATION_STATUS[key].label %>
+                                </option>
+                            <% } %>
+                        </select>
+                    </div>
+            
+                    <button type="submit" class="btn btn-success rounded-3 px-4">Adicionar Relatório</button>
+                </div>
+            </form>            
             <hr>
             <div class="mb-3">
                 <label class="form-label">Relatórios Existentes</label>
                 <ul class="list-group">
                     <% if (reports && reports.length > 0) { %>
                         <% reports.forEach(report => { %>
-                            <li class="list-group-item">
-                                <strong><%= report.description %></strong> - <%= new Date(report.created_at).toLocaleDateString('pt-BR') %>
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <!-- Descrição do relatório com quebras de linha e texto negrito no status alterado -->
+                                <div class="report-description">
+                                    <%- report.description.replace(/\n/g, '<br>').replace(/(Status alterado de .+ para .+)/, '<strong>$1</strong>') %>
+                                </div>
+                                
+                                <!-- Condição para mostrar o botão de editar apenas se o conteúdo for editável -->
+                                <% if (!report.description.includes("Denúncia atribuída ao fiscal")) { %>
+                                    <!-- Botão para editar, alinhado à direita -->
+                                    <a href="/relatorio/<%= report.id %>" class="btn btn-warning btn-sm">
+                                        Editar
+                                    </a>
+                                <% } %>
                             </li>
                         <% }); %>
+                        
                     <% } else { %>
                         <li class="list-group-item">Nenhum relatório disponível</li>
                     <% } %>
