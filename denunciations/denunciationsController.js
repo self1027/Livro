@@ -6,6 +6,7 @@ const reportsModel = require('../reports/reportsModel')
 const userModel = require('../users/usersModel')
 const DENUNCIATION_SENDER = require('../constants/denunciationSenders')
 const DENUNCIATION_STATUS = require('../constants/denunciationStatus')
+const dataAtual = new Date().toLocaleDateString('pt-BR');
 
 
 router.get('/cadastro/denuncia', async (req, res) => {
@@ -237,7 +238,7 @@ router.post('/atribuir/:denunciaId', async (req, res) => {
             await reportsModel.create({
                 denunciation_id: denunciaId,
                 user_id: userId,        
-                description: `Denúncia atribuída ao fiscal ${fiscal.name}`,
+                description: `Denúncia atribuída ao fiscal ${fiscal.name} - ${dataAtual}`,
                 status: 'Atribuída'
             });
     
