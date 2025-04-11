@@ -14,7 +14,11 @@ Table denunciations {
   status varchar
   title varchar [not null]
   description text [not null]
-  created_at timestamp [default: `now()`]
+  endereco varchar
+  numero varchar
+  bairro varchar
+  createdAt timestamp [default: `now()`]
+  updatedAt
 }
 
 Table reports {
