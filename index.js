@@ -4,12 +4,14 @@ const connection = require('./database/database.js')
 const user = require('./users/usersModel.js');
 const denunciation = require('./denunciations/denunciationsModel.js');
 const report = require('./reports/reportsModel.js');
+const pagination = require('./middlewares/pagination');
 
 const DENUNCIATION_SENDER = require('./constants/denunciationSenders.js');
 
 const usersController = require('./users/usersController.js')
 const denunciationsController = require('./denunciations/denunciationsController.js')
 const reportsController = require('./reports/reportsController.js')
+const loadingsController = require('./loadings/loadingsController.js')
 
 const app = express()
 
@@ -46,11 +48,15 @@ module.exports = {
     report
 };
 
-const { Op } = require('sequelize');
+app.use(pagination);
 
 app.get('/', async (req, res) => {
     try {
-        // Busca todas as denúncias no banco de dados, incluindo os dados do fiscal (user)
+        // Pega os parâmetros de offset e limit da query string
+        const limit = parseInt(req.query.limit) || 50;  // Limite de 50 por padrão
+        const offset = parseInt(req.query.offset) || 0;  // Offset começa de 0
+
+        // Busca as denúncias com base no offset e limit
         const denuncias = await denunciation.findAll({
             include: [{
                 model: user,
@@ -60,13 +66,17 @@ app.get('/', async (req, res) => {
             order: [
                 ['year', 'DESC'], // Ordena os anos em ordem decrescente
                 ['number', 'DESC'] // Para cada ano, ordena os números em ordem decrescente
-            ]
+            ],
+            limit: limit,
+            offset: offset
         });
 
-        // Renderiza a view 'index' passando as denúncias e dados do fiscal como variável
+        // Retorna a renderização da página inicial
         res.render('index', { 
             denuncias: denuncias,
-            DENUNCIATION_SENDER: DENUNCIATION_SENDER 
+            DENUNCIATION_SENDER: DENUNCIATION_SENDER,
+            offset: offset + limit, // Passa o próximo offset
+            limit: limit
         });
 
     } catch (error) {
@@ -77,7 +87,8 @@ app.get('/', async (req, res) => {
 
 
 
-app.use('/', usersController, denunciationsController, reportsController)
+
+app.use('/', usersController, denunciationsController, reportsController, loadingsController)
 
 app.listen(3000, () => {
     console.log('Server On')
