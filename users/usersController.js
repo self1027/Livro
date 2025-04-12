@@ -4,13 +4,21 @@ const userModel = require('./usersModel')
 const denunciation = require('../denunciations/denunciationsModel')
 const denunciationStatus = require('../constants/denunciationStatus')
 
-router.get('/cadastro/usuario', (req, res) => {
-    userModel.findAll().then(username =>{
+router.get('/cadastro/usuario', async (req, res) => {
+    try {
+        const users = await userModel.findAll({
+            order: [['name', 'ASC']]
+        });
+
         res.render('users/new', {
-            username : username
-        })
-    })
-})
+            username: users // cada item já inclui .name e .active
+        });
+    } catch (error) {
+        console.error('Erro ao buscar usuários:', error);
+        res.status(500).render('error', { message: 'Erro ao carregar usuários.' });
+    }
+});
+
 
 router.post('/usuario/registrar', (req, res) => {
     var username = req.body.username
@@ -45,29 +53,44 @@ router.get('/area-fiscal', async (req, res) => {
 router.get('/area-fiscal/:id', async (req, res) => {
     try {
         const fiscalId = req.params.id;
-        const selectedStatus = req.query.status || denunciationStatus.REGISTRADA.label;
+        const selectedStatus = req.query.status || 'REGISTRADA';
+        const page = parseInt(req.query.page) || 1;
+        const limit = 50;
+        const offset = (page - 1) * limit;
 
-        // Buscar o fiscal pelo ID
         const fiscal = await userModel.findByPk(fiscalId);
-        
-        // Se o fiscal não for encontrado, retorna erro
         if (!fiscal) {
             return res.status(404).render('error', {
                 message: 'Fiscal não encontrado.'
             });
         }
 
-        // Buscar todas as denúncias atribuídas ao fiscal
         const denuncias = await denunciation.findAll({
             where: {
-                user_id: fiscalId
+                user_id: fiscalId,
+                status: selectedStatus
+            },
+            limit,
+            offset
+        });
+
+        const total = await denunciation.count({
+            where: {
+                user_id: fiscalId,
+                status: selectedStatus
             }
         });
+
+        const hasMore = offset + limit < total;
+
         return res.render('users/home', {
             fiscal,
             denuncias,
-            selectedStatus: selectedStatus
+            selectedStatus,
+            hasMore,
+            nextPage: page + 1
         });
+
     } catch (error) {
         console.error(error);
         return res.status(500).render('error', {
@@ -75,5 +98,52 @@ router.get('/area-fiscal/:id', async (req, res) => {
         });
     }
 });
+
+router.get('/editar-usuario/:id', async (req, res) => {
+    const { id } = req.params;
+
+    try {
+        const user = await userModel.findByPk(id);
+
+        console.log(user)
+
+        if (!user) {
+            return res.status(404).render('error', { message: 'Usuário não encontrado.' });
+        }
+
+        res.render('users/edit', { user });
+    } catch (error) {
+        console.error('Erro ao carregar o usuário para edição:', error);
+        res.status(500).render('error', { message: 'Erro ao carregar usuário para edição.' });
+    }
+});
+
+router.post('/usuario/atualizar/:id', async (req, res) => {
+    const { id } = req.params;
+    const { name } = req.body;
+
+    try {
+        const user = await userModel.findByPk(id);
+
+        if (!user) {
+            return res.status(404).render('error', { message: 'Usuário não encontrado.' });
+        }
+
+        user.name = name;
+
+        // Se checkbox veio marcada, inverte o valor atual de `active`
+        if (req.body.active !== undefined) {
+            user.ativo = !user.ativo;
+        }
+
+        await user.save();
+        res.redirect('/cadastro/usuario');
+    } catch (error) {
+        console.error('Erro ao atualizar usuário:', error);
+        res.status(500).render('error', { message: 'Erro ao atualizar o usuário.' });
+    }
+});
+
+
 
 module.exports = router
