@@ -1,0 +1,31 @@
+<%- include ('../partials/header.ejs') %>
+<%- include ('../partials/navbar.ejs') %>
+
+<div class="container">
+    <hr>
+    <div class="card">
+        <div class="card-header">
+            <h2>Editar Usuário</h2>
+        </div>
+        <div class="card-body">
+            <form method="post" action="/usuario/atualizar/<%= user.id %>">
+                <div class="form-group">
+                    <label for="name">Nome do Usuário</label>
+                    <input class="form-control" type="text" name="name" id="name" value="<%= user.name %>" required>
+                </div>
+                <br>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" name="active" id="active" <%= user.active ? 'checked' : '' %>>
+                    <label class="form-check-label" for="active">
+                        <%= user.ativo ? 'Desativar Usuário' : 'Ativar Usuário' %>
+                    </label>
+                </div>
+                <br>
+                <button class="btn btn-primary" type="submit">Salvar Alterações</button>
+                <a href="/cadastro/usuario" class="btn btn-secondary">Cancelar</a>
+            </form>
+        </div>
+    </div>
+</div>
+
+<%- include ('../partials/footer.ejs') %>

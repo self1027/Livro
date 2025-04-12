@@ -70,15 +70,54 @@
                 </div>
             <% } %>
         </div>
+        <% if (hasMore) { %>
+            <div class="text-center mt-4">
+                <button id="loadMore" class="btn btn-outline-primary" data-next-page="<%= nextPage %>">
+                    Carregar mais
+                </button>
+            </div>
+        <% } %>        
     </div>
 </div>
 
 <%- include('../partials/footer.ejs') %>
 
 <script>
+    const statusFilter = document.getElementById('statusFilter');
+    const loadMoreBtn = document.getElementById('loadMore');
+
+    statusFilter.addEventListener('change', function () {
+        const selectedStatus = this.value;
+        window.location.href = `?status=${selectedStatus}`;
+    });
+
+    if (loadMoreBtn) {
+        loadMoreBtn.addEventListener('click', async function () {
+            const nextPage = this.dataset.nextPage;
+            const status = document.getElementById('statusFilter').value;
+            const response = await fetch(window.location.pathname + `?status=${status}&page=${nextPage}`);
+            const html = await response.text();
+
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(html, 'text/html');
+            const newRows = doc.querySelectorAll('tbody tr');
+            const tableBody = document.querySelector('tbody');
+
+            newRows.forEach(row => tableBody.appendChild(row));
+
+            const newLoadMore = doc.querySelector('#loadMore');
+            if (newLoadMore) {
+                loadMoreBtn.dataset.nextPage = newLoadMore.dataset.nextPage;
+            } else {
+                loadMoreBtn.remove(); // Remove botão se não há mais
+            }
+        });
+    }
+
     // Atualiza o filtro quando o usuário seleciona uma nova opção
     document.getElementById('statusFilter').addEventListener('change', function() {
         const selectedStatus = this.value;
         window.location.search = `?status=${selectedStatus}`; // Recarrega a página com o novo status selecionado
     });
+    
 </script>

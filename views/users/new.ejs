@@ -19,12 +19,29 @@
         </div>
         <div class="card-body">
             <form>
-                <% username.forEach(username=>{ %>
-                    <%=username.name%>
-                    <br>
+                <% username.forEach(user => { %>  
+                    <div class="d-flex align-items-center mb-2 p-2 border rounded bg-light">
+                        <!-- Bolinha de status (verde = ativo, vermelho = inativo) -->
+                        <div class="d-flex align-items-center">
+                            <span 
+                                class="rounded-circle" 
+                                style="width: 10px; height: 10px; background-color: <%= user.ativo ? '#28a745' : '#dc3545' %>;">
+                            </span>
+                            <!-- Espaço entre a bolinha e o nome -->
+                            <div style="margin-left: 10px;">
+                                <%= user.name %>
+                            </div>
+                        </div>
+            
+                        <!-- Botão editar -->
+                        <a href="/editar-usuario/<%= user.id %>" class="btn btn-warning btn-sm ml-auto">
+                            Editar
+                        </a>
+                    </div>
                 <% }) %>
-            </form>
-        </div>  
+            </form>                                    
+        </div>       
     </div>
 </div>
+<br>
 <%- include ('../partials/footer.ejs') %>
