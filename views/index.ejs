@@ -79,19 +79,15 @@
 </div>
 
 <script>
-    const DENUNCIATION_STATUS = <%= JSON.stringify(DENUNCIATION_STATUS) %>;
-    const DENUNCIATION_SENDER = <%= JSON.stringify(DENUNCIATION_SENDER) %>;
+    const DENUNCIATION_STATUS = <%- JSON.stringify(DENUNCIATION_STATUS) %>;
+    const DENUNCIATION_SENDER = <%- JSON.stringify(DENUNCIATION_SENDER) %>;
   
     let offset = <%= offset %>; // Pegando o offset inicial da página
     const limit = <%= limit %>; // Pegando o limite da página
   
     async function carregarMais() {
-        console.log('Função carregarMais foi chamada');
-
-        console.log(`Carregando mais denúncias com offset: ${offset} e limit: ${limit}`);
         const res = await fetch(`/api/denuncias?limit=${limit}&offset=${offset}`);
         const novas = await res.json();
-        console.log('Resposta da API:', novas);
 
 
         if (novas.length === 0) {
@@ -103,7 +99,6 @@
         const tbody = document.querySelector('#tabela-denuncias tbody');
 
         novas.forEach(denuncia => {
-            console.log('Nova denúncia:', denuncia); // debug
             const statusInfo = denuncia.status && DENUNCIATION_STATUS[denuncia.status.trim()] || { label: 'Desconhecido', color: '#ccc' };
             const tr = document.createElement('tr');
             tr.innerHTML = `

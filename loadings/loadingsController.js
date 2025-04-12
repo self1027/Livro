@@ -8,8 +8,6 @@ const DENUNCIATION_SENDER = require('../constants/denunciationSenders')
 router.get('/api/denuncias', async (req, res) => {
     const { limit = 50, offset = 0 } = req.query;
 
-    console.log(`Limit: ${limit}, Offset: ${offset}`);
-
     try {
         // Buscando as denúncias no banco de dados
         const denuncias = await denunciationsModel.findAll({
@@ -26,7 +24,6 @@ router.get('/api/denuncias', async (req, res) => {
             ]
         });
 
-        console.log(`Denúncias encontradas: ${denuncias.length}`);
         res.json(denuncias);
     } catch (error) {
         console.error('Erro ao buscar denúncias:', error);
