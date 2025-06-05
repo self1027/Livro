@@ -67,7 +67,18 @@
                         <% } %>
                     </select><br>
                 </div>
-            
+
+                <!-- Fiscal Responsável -->
+                <div class="mb-3">
+                    <label class="form-label">Fiscal Responsável</label>
+                    <select class="form-control" name="userId" id="userId">
+                        <option value="">Selecione</option>
+                        <% users.forEach(user => { %>
+                            <option value="<%= user.id %>" <%= userId == user.id ? 'selected' : '' %>><%= user.name %></option>
+                        <% }); %>
+                    </select>
+                </div>
+
                 <button type="submit" class="btn btn-success">Buscar</button>
             </form>    
     
