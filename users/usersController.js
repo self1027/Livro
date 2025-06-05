@@ -2,6 +2,7 @@ const express = require('express')
 const router = express.Router()
 const userModel = require('./usersModel')
 const denunciation = require('../denunciations/denunciationsModel')
+const reportsModel = require('../reports/reportsModel')
 const denunciationStatus = require('../constants/denunciationStatus')
 
 router.get('/cadastro/usuario', async (req, res) => {
@@ -50,6 +51,7 @@ router.get('/area-fiscal', async (req, res) => {
     }
 });
 
+// routes/yourRouter.js
 router.get('/area-fiscal/:id', async (req, res) => {
     try {
         const fiscalId = req.params.id;
@@ -68,8 +70,15 @@ router.get('/area-fiscal/:id', async (req, res) => {
         const denuncias = await denunciation.findAll({
             where: {
                 user_id: fiscalId,
-                status: selectedStatus
+                ...(selectedStatus !== 'ALL' && { status: selectedStatus })
             },
+            include: [
+                {
+                    model: reportsModel,
+                    as: 'reports',
+                    required: false
+                }
+            ],
             limit,
             offset
         });
@@ -77,7 +86,7 @@ router.get('/area-fiscal/:id', async (req, res) => {
         const total = await denunciation.count({
             where: {
                 user_id: fiscalId,
-                status: selectedStatus
+                ...(selectedStatus !== 'ALL' && { status: selectedStatus })
             }
         });
 
@@ -98,6 +107,7 @@ router.get('/area-fiscal/:id', async (req, res) => {
         });
     }
 });
+
 
 router.get('/editar-usuario/:id', async (req, res) => {
     const { id } = req.params;
