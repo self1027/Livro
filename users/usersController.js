@@ -79,9 +79,13 @@ router.get('/area-fiscal/:id', async (req, res) => {
                     required: false
                 }
             ],
+            order: [
+                ['year', 'DESC'],   // primeiro por ano
+                ['number', 'DESC']  // depois por número
+            ],
             limit,
             offset
-        });
+        });        
 
         const total = await denunciation.count({
             where: {
