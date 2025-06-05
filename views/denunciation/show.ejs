@@ -149,8 +149,12 @@
                             <li class="list-group-item d-flex justify-content-between align-items-center">
                                 <!-- Descrição do relatório com quebras de linha e texto negrito no status alterado -->
                                 <div class="report-description">
-                                    <%- report.description.replace(/\n/g, '<br>').replace(/(Status alterado de .+ para .+)/, '<strong>$1</strong>') %>
+                                    <%- report.description
+                                        .replace(/\n/g, '<br>')
+                                        .replace(/(Status alterado(?: de .+ para)? .+)/, '<strong>$1</strong>') 
+                                    %>
                                 </div>
+                                
                                 
                                 <!-- Condição para mostrar o botão de editar apenas se o conteúdo for editável -->
                                 <% if (!report.description.includes("Denúncia atribuída ao fiscal")) { %>
