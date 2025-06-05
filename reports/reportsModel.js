@@ -16,6 +16,10 @@ const report = connection.define('reports', {
     user_id: {  // Mantido do seu original
         type: sequelize.INTEGER,
         allowNull: false
+    },
+    type: {
+        type: sequelize.INTEGER,
+        allowNull: false
     }
 });
 
