@@ -294,52 +294,84 @@ router.post('/atribuir/:id', async (req, res) => {
 });
 
 // Rota para exibir a página de busca (inicial)
-router.get('/buscar', (req, res) => {
-    res.render('denunciation/search', {
-        DENUNCIATION_STATUS: DENUNCIATION_STATUS,
-        DENUNCIATION_SENDER: DENUNCIATION_SENDER,
-        denuncias: [],
-        year: '', // A variável 'year' será passada com valor vazio inicialmente
-        number: '',
-        endereco: '',
-        numero: '',
-        bairro: '',
-        status: '',
-        registration_type: '',
-        scroll: false
-    });
+router.get('/buscar', async (req, res) => {
+    try {
+        const users = await userModel.findAll({
+            order: [['name', 'ASC']]
+        });
+
+        res.render('denunciation/search', {
+            DENUNCIATION_STATUS,
+            DENUNCIATION_SENDER,
+            denuncias: [],
+            year: '',
+            number: '',
+            endereco: '',
+            numero: '',
+            bairro: '',
+            status: '',
+            registration_type: '',
+            userId: '',
+            users,
+            scroll: false
+        });
+    } catch (error) {
+        console.error('Erro ao carregar usuários:', error);
+        res.status(500).send('Erro ao carregar a página de busca');
+    }
 });
 
 // Rota para processar a busca
 router.get('/buscar/resultados', async (req, res) => {
     try {
-        const { year, number, endereco, numero, bairro, status, registration_type } = req.query;
+        const {
+            year,
+            number,
+            endereco,
+            numero,
+            bairro,
+            status,
+            registration_type,
+            userId
+        } = req.query;
 
-        // Monta o objeto de busca com os parâmetros recebidos
         const whereConditions = {};
 
         if (year) whereConditions.year = year;
         if (number) whereConditions.number = number;
-        if (endereco) whereConditions.endereco = { [Op.like]: `%${endereco}%` };
+
+        if (endereco) {
+            // Remove prefixos comuns como "Rua", "Av.", "Travessa", "Praça", etc.
+            const cleanEndereco = endereco
+                .replace(/^(rua|r\.|avenida|av\.|travessa|praça|estrada|alameda|rodovia)\s*/i, '')
+                .trim();
+
+            whereConditions.endereco = {
+                [Op.iLike]: `%${cleanEndereco}%`
+            };
+        }
+
         if (numero) whereConditions.numero = numero;
-        if (bairro) whereConditions.bairro = { [Op.like]: `%${bairro}%` };
+        if (bairro) whereConditions.bairro = { [Op.iLike]: `%${bairro}%` };
         if (status && status !== 'Selecione') whereConditions.status = status;
         if (registration_type && registration_type !== 'Selecione') whereConditions.registration_type = registration_type;
+        if (userId) whereConditions.user_id = userId;
+
+        const users = await userModel.findAll({ order: [['name', 'ASC']] });
 
         const denuncias = await denunciationsModel.findAll({
             where: whereConditions,
             include: [{
                 model: userModel,
-                as: 'user', // Defina o alias do relacionamento, conforme está no seu modelo
-                attributes: ['name'] // Inclui o nome do fiscal responsável
+                as: 'user',
+                attributes: ['name']
             }],
             order: [
-                ['year', 'DESC'], // Ordena os anos em ordem decrescente
-                ['number', 'DESC'] // Para cada ano, ordena os números em ordem decrescente
+                ['year', 'DESC'],
+                ['number', 'DESC']
             ]
         });
 
-        // Renderiza a view passando as denúncias encontradas e os parâmetros de busca
         res.render('denunciation/search', {
             denuncias,
             DENUNCIATION_STATUS,
@@ -351,14 +383,15 @@ router.get('/buscar/resultados', async (req, res) => {
             bairro,
             status,
             registration_type,
+            userId, // mantém o valor selecionado no dropdown
+            users,
             scroll: true
         });
+
     } catch (error) {
         console.error('Erro ao buscar denúncias:', error);
         res.status(500).send('Erro ao buscar denúncias');
     }
 });
-
-
 
 module.exports = router
