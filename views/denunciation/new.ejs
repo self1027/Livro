@@ -21,10 +21,10 @@
                 <input class="form-control" type="number" name="number" value="<%= lastNumber %>" readonly><br>
                 
                 <select class="form-control" name="registration_type" id="registration_type">
-                    <% for (let key in DENUNCIATION_SENDER.DENUNCIATION_SENDER) { %>
-                        <option value="<%= key %>"><%= DENUNCIATION_SENDER.DENUNCIATION_SENDER[key] %></option>
-                    <% } %>
-                </select><br>
+		    <% for (let key in DENUNCIATION_SENDER) { %>
+		        <option value="<%= key %>"><%= DENUNCIATION_SENDER[key] %></option>
+		    <% } %>
+		</select><br>
                 
                 <input class="form-control" type="text" name="title" placeholder="Título" required><br>
 

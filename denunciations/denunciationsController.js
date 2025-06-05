@@ -20,7 +20,7 @@ router.get('/cadastro/denuncia', async (req, res) => {
     
             // Verifica o valor de lastDenuncia
             const nextNumber = (lastDenuncia && lastDenuncia.number) ? lastDenuncia.number + 1 : 1;
-    
+	console.log(DENUNCIATION_SENDER)    
             res.render('denunciation/new', {
                 year: currentYear,
                 lastNumber: nextNumber,

@@ -31,7 +31,7 @@
                                 <tr>
                                     <td><%= denuncia.year %></td>
                                     <td><%= denuncia.number %></td>
-                                    <td><%= DENUNCIATION_SENDER.DENUNCIATION_SENDER[denuncia.registration_type] %></td>
+                                    <td><%= DENUNCIATION_SENDER[denuncia.registration_type] %></td>
                                     <td><%= denuncia.title %></td>
                                     <td>
                                         <%= denuncia.endereco %>, <%= denuncia.numero %><br>
@@ -104,7 +104,7 @@
             tr.innerHTML = `
                 <td>${denuncia.year}</td>
                 <td>${denuncia.number}</td>
-                <td>${DENUNCIATION_SENDER.DENUNCIATION_SENDER[denuncia.registration_type]}</td>
+                <td>${DENUNCIATION_SENDER[denuncia.registration_type]}</td>
                 <td>${denuncia.title}</td>
                 <td>${denuncia.endereco}, ${denuncia.numero}<br>${denuncia.bairro}</td>
                 <td>${new Date(denuncia.created_at).toLocaleDateString()}</td>
