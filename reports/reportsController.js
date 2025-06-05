@@ -5,52 +5,59 @@ const reportsModel = require('./reportsModel')
 const userModel = require('../users/usersModel')
 const DENUNCIATION_SENDER = require('../constants/denunciationSenders')
 const DENUNCIATION_STATUS = require('../constants/denunciationStatus')
+const REPORT_TYPE = require('../constants/reportType')
 
 router.post('/denuncia/:id/adicionar-relatorio', async (req, res) => {
     const denunciaId = req.params.id;
     const descriptionInput = req.body.description?.trim() || null;
     const userId = req.body.user_id;
-    const novoStatus = req.body.status;
+    const novoStatus = req.body.status; // Corrigido para novo_status (nome do campo no form)
 
     try {
+        // Validações básicas
+        if (!userId) return res.status(400).send('ID do usuário não informado');
+        
         const denuncia = await denunciationsModel.findByPk(denunciaId);
         if (!denuncia) return res.status(404).send('Denúncia não encontrada');
 
         const dataAtual = new Date().toLocaleDateString('pt-BR');
         const statusAnterior = denuncia.status;
-        const houveMudancaStatus = statusAnterior !== novoStatus;
+        const houveMudancaStatus = novoStatus && statusAnterior !== novoStatus;
 
-        let descriptionFinal = '';
+        // Obtém os labels dos status
+        const statusAnteriorLabel = DENUNCIATION_STATUS[statusAnterior]?.label || statusAnterior;
+        const novoStatusLabel = DENUNCIATION_STATUS[novoStatus]?.label || novoStatus;
 
-        if (descriptionInput && houveMudancaStatus) {
-            // Texto + status alterado
-            descriptionFinal = `${descriptionInput} - ${dataAtual}\nStatus alterado de ${statusAnterior} para ${novoStatus}`;
-        } else if (descriptionInput) {
-            // Só texto
-            descriptionFinal = `${descriptionInput} - ${dataAtual}`;
-        } else if (houveMudancaStatus) {
-            // Só status alterado
-            descriptionFinal = `Status alterado de ${statusAnterior} para ${novoStatus} - ${dataAtual}`;
-        } else {
-            return res.status(400).send('Nada para atualizar');
+        // Cria relatórios conforme necessário
+        if (descriptionInput) {
+            await reportsModel.create({
+                description: `${descriptionInput} - ${dataAtual}`,
+                denunciation_id: denunciaId,
+                user_id: userId,
+                type: REPORT_TYPE.TEXT
+            });
         }
 
-        // Cria o relatório
-        await reportsModel.create({
-            description: descriptionFinal,
-            denunciation_id: denunciaId,
-            user_id: userId
-        });
-
-        // Atualiza o status da denúncia, se necessário
         if (houveMudancaStatus) {
+            await reportsModel.create({
+                description: `${dataAtual}\nStatus alterado de "${statusAnteriorLabel}" para "${novoStatusLabel}"`,
+                denunciation_id: denunciaId,
+                user_id: userId,
+                type: REPORT_TYPE.STATUS_CHANGE
+            });
+
+            // Atualiza o status da denúncia
             denuncia.status = novoStatus;
             await denuncia.save();
         }
 
+        if (!descriptionInput && !houveMudancaStatus) {
+            return res.status(400).send('Nada para atualizar');
+        }
+
         res.redirect(`/denuncia/${denunciaId}`);
     } catch (error) {
-        console.error(error);
+        console.error('Erro ao adicionar relatório:', error);
         res.status(500).send('Erro ao adicionar o relatório');
     }
 });
@@ -78,8 +85,10 @@ router.get('/relatorio/:id', async (req, res) => {
         res.render('reports/show', {
             report: report,
             denuncia: denuncia,
-            DENUNCIATION_STATUS: DENUNCIATION_STATUS // Passa os status disponíveis
+            reportTypeLabel: REPORT_TYPE[report.type],
+            DENUNCIATION_STATUS: DENUNCIATION_STATUS
         });
+        
     } catch (error) {
         console.error(error);
         res.status(500).send('Erro ao carregar a página de edição');
@@ -89,44 +98,40 @@ router.get('/relatorio/:id', async (req, res) => {
 // Rota para editar um relatório
 router.post('/relatorio/:id/editar', async (req, res) => {
     const reportId = req.params.id;
-    const { description: newDescriptionRaw, status: newStatus, oldStatus, oldDescription } = req.body;
+    const { description: newDescriptionRaw, status: newStatus } = req.body;
+    const dataAtual = new Date().toLocaleDateString('pt-BR');
 
     try {
-        console.log(oldStatus, newStatus)
         const report = await reportsModel.findByPk(reportId);
-        if (!report) {
-            return res.status(404).send('Relatório não encontrado');
-        }
+        if (!report) return res.status(404).send('Relatório não encontrado');
 
+        // Atualiza o conteúdo com base no tipo
         let finalDescription = newDescriptionRaw;
 
-        // Só aplica lógica de status se tiver `oldStatus`
-        if (oldStatus && oldStatus !== newStatus) {
-            const labelOld = DENUNCIATION_STATUS[oldStatus]?.label || oldStatus;
+        // Se o tipo for STATUS_CHANGE, sobrescreve a descrição
+        if (report.type === REPORT_TYPE.STATUS_CHANGE) {
             const labelNew = DENUNCIATION_STATUS[newStatus]?.label || newStatus;
-
-            const statusLine = `Status alterado de ${labelOld} para ${labelNew}`;
-
-            // Remove linha anterior de status se houver
-            const statusLineRegex = /Status alterado de .+ para .+/;
-            const parts = oldDescription?.split('\n') || [];
-            const baseDescription = parts.filter(line => !statusLineRegex.test(line)).join('\n');
-
-            finalDescription = `${baseDescription}\n${statusLine}`;
+            finalDescription = `${dataAtual}\nStatus alterado para "${labelNew}"`
         }
 
         await report.update({
-            description: finalDescription,
-            status: newStatus
+            description: finalDescription
         });
+        
+        // Atualiza o status da denúncia se for diferente
+        if (newStatus && newStatus !== report.status) {
+            const denuncia = await denunciationsModel.findByPk(report.denunciation_id);
+            if (denuncia) {
+                denuncia.status = newStatus;
+                await denuncia.save();
+            }
+        }        
 
-        console.log('Relatório atualizado com sucesso.');
         res.redirect(`/denuncia/${report.denunciation_id}`);
     } catch (error) {
         console.error(error);
         res.redirect(`/relatorio/${reportId}`);
     }
 });
-
 
 module.exports = router;
