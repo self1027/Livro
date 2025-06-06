@@ -211,11 +211,13 @@ router.get('/atribuir', async (req, res) => {
                 ]
             });
     
-            const fiscais = await userModel.findAll();
+            const fiscaisValidos = await userModel.findAll({
+                where: { ativo: 1 }
+            });
             
             res.render('denunciation/associate', {
                 denuncias: denuncias,
-                fiscais: fiscais
+                fiscais: fiscaisValidos
             });
     
         } catch (error) {
@@ -263,7 +265,15 @@ router.get('/atribuir/:id', async (req, res) => {
             return res.redirect('/associate');
         }
 
-        const users = await userModel.findAll();
+        const users = await userModel.findAll({
+            where: { ativo: true }
+        });
+        
+        users.sort((a, b) => {
+            if (a.dataValues.name === 'Ricardo') return -1;
+            if (b.dataValues.name === 'Ricardo') return 1;
+            return 0;
+        });                
 
         res.render('denunciation/assign', { denuncia, users });
     } catch (err) {
