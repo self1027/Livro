@@ -49,4 +49,4 @@ Access the application in your browser at `http://localhost:3000`.
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT License - see the [LICENSE](https://github.com/self1027/Livro/blob/main/LICENCE) file for details.
