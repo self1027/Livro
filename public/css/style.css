@@ -34,3 +34,44 @@ main {
     text-align: center;
     margin-top: 10px;
 }
+
+html, body {
+    height: 100%;
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+}
+
+.wrapper {
+    flex: 1 0 auto;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+main {
+    flex: 1;
+}
+
+.footer {
+    background-color: #343a40 !important;
+    margin-top: auto;
+}
+
+/* Seus outros estilos permanecem iguais */
+.social-icons a {
+    transition: all 0.3s ease;
+}
+.social-icons a:hover {
+    transform: translateY(-2px);
+    opacity: 0.8;
+}
+.flaticon-attribution {
+    font-size: 0.7rem;
+    color: #6c757d;
+    text-align: center;
+    margin-top: 10px;
+}
+
