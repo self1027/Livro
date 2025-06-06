@@ -20,7 +20,6 @@ router.get('/cadastro/usuario', async (req, res) => {
     }
 });
 
-
 router.post('/usuario/registrar', (req, res) => {
     var username = req.body.username
     if(!username){
@@ -112,7 +111,6 @@ router.get('/area-fiscal/:id', async (req, res) => {
     }
 });
 
-
 router.get('/editar-usuario/:id', async (req, res) => {
     const { id } = req.params;
 
@@ -157,7 +155,5 @@ router.post('/usuario/atualizar/:id', async (req, res) => {
         res.status(500).render('error', { message: 'Erro ao atualizar o usuário.' });
     }
 });
-
-
 
 module.exports = router
