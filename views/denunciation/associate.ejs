@@ -37,7 +37,7 @@
                                         <%= denuncia.endereco %>, <%= denuncia.numero %><br>
                                         <%= denuncia.bairro %>
                                     </td>
-                                    <td><%= new Date(denuncia.created_at).toLocaleDateString() %></td>
+                                    <td><%= new Date(denuncia.created_at).toLocaleDateString('pt-BR') %></td>
                                     <td>
                                         <% if (denuncia.userId) { %>
                                             <%= denuncia.user.nome %>

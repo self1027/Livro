@@ -62,8 +62,8 @@
                     <label class="form-label">Tipo de Registro</label>
                     <select class="form-control" name="registration_type" id="registration_type">
                         <option value="">Selecione</option>
-                        <% for (let key in DENUNCIATION_SENDER.DENUNCIATION_SENDER) { %>
-                            <option value="<%= key %>" <%= registration_type === key ? 'selected' : '' %>><%= DENUNCIATION_SENDER.DENUNCIATION_SENDER[key] %></option>
+                        <% for (let key in DENUNCIATION_SENDER) { %>
+                            <option value="<%= key %>" <%= registration_type === key ? 'selected' : '' %>><%= DENUNCIATION_SENDER[key] %></option>
                         <% } %>
                     </select><br>
                 </div>
@@ -117,13 +117,13 @@
                                 <tr>
                                     <td><%= denuncia.year %></td>
                                     <td><%= denuncia.number %></td>
-                                    <td><%= DENUNCIATION_SENDER.DENUNCIATION_SENDER[denuncia.registration_type] %></td>
+                                    <td><%= DENUNCIATION_SENDER[denuncia.registration_type] %></td>
                                     <td><%= denuncia.title %></td>
                                     <td>
                                         <%= denuncia.endereco %>, <%= denuncia.numero %><br>
                                         <%= denuncia.bairro %>
                                     </td>
-                                    <td><%= new Date(denuncia.created_at).toLocaleDateString() %></td>
+                                    <td><%= new Date(denuncia.created_at).toLocaleDateString('pt-BR') %></td>
                                     <td>
                                         <% 
                                             const statusInfo = DENUNCIATION_STATUS[denuncia.status?.trim()] || { label: 'Desconhecido', color: '#ccc' }; 

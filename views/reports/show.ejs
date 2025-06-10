@@ -17,7 +17,7 @@
         <div class="card-body">
             <p><strong>Denúncia:</strong> <%= denuncia.year %>/<%= denuncia.number %> - <%= denuncia.title %></p>
             <p><strong>Endereço:</strong> <%= denuncia.endereco %>, <%= denuncia.numero %> - <%= denuncia.bairro %></p>
-            <p><strong>Data da Denúncia:</strong> <%= new Date(denuncia.created_at).toLocaleDateString() %></p>
+            <p><strong>Data da Denúncia:</strong> <%= new Date(denuncia.created_at).toLocaleDateString('pt-BR') %></p>
 
             <form action="/relatorio/<%= report.id %>/editar" method="POST">
                 <input type="hidden" name="oldDescription" value="<%= report.description %>">

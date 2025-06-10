@@ -17,7 +17,7 @@
         <div class="card-body">
             <p><strong>Denuncia:</strong> <%= denuncia.year %>/<%= denuncia.number %> - <%= denuncia.title %></p>
             <p><strong>Endereço:</strong> <%= denuncia.endereco %>, <%= denuncia.numero %> - <%= denuncia.bairro %></p>
-            <p><strong>Data:</strong> <%= new Date(denuncia.created_at).toLocaleDateString() %></p>
+            <p><strong>Data:</strong> <%= new Date(denuncia.created_at).toLocaleDateString('pt-BR') %></p>
 
             <form action="/atribuir/<%= denuncia.id %>" method="POST">
                 <div class="mb-3">
