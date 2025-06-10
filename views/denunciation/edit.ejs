@@ -23,9 +23,9 @@
                 <div class="mb-3">
                     <label class="form-label">Tipo de Registro</label>
                     <select class="form-control" name="registration_type" id="registration_type">
-                        <% for (let key in DENUNCIATION_SENDER.DENUNCIATION_SENDER) { %>
+                        <% for (let key in DENUNCIATION_SENDER) { %>
                             <option value="<%= key %>" <%= denuncia.registration_type === key ? 'selected' : '' %>>
-                                <%= DENUNCIATION_SENDER.DENUNCIATION_SENDER[key] %>
+                                <%= DENUNCIATION_SENDER[key] %>
                             </option>
                         <% } %>
                     </select>
