@@ -36,6 +36,10 @@ const denunciation = connection.define('denunciations', {
         type: sequelize.STRING,
         allowNull: false
     },
+    complemento: {
+        type: sequelize.STRING,
+        allowNull: true
+    },
     created_at: {
         type: sequelize.DATE,
         defaultValue: sequelize.NOW
