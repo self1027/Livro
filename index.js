@@ -85,11 +85,8 @@ app.get('/', async (req, res) => {
     }
 });
 
-
-
-
 app.use('/', usersController, denunciationsController, reportsController, loadingsController)
 
-app.listen(3000, () => {
+app.listen(80, () => {
     console.log('Server On')
 })
