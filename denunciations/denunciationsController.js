@@ -10,26 +10,41 @@ const dataAtual = new Date().toLocaleDateString('pt-BR');
 
 
 router.get('/cadastro/denuncia', async (req, res) => {
-        try {
-            const currentYear = new Date().getFullYear();
-    
-            const lastDenuncia = await denunciationsModel.findOne({
-                where: { year: currentYear },
-                order: [['number', 'DESC']]
-            });
-    
-            // Verifica o valor de lastDenuncia
-            const nextNumber = (lastDenuncia && lastDenuncia.number) ? lastDenuncia.number + 1 : 1;
-	console.log(DENUNCIATION_SENDER)    
-            res.render('denunciation/new', {
+    try {
+        const currentYear = new Date().getFullYear();
+
+        // Verifica se existe QUALQUER denúncia no banco (independente do ano)
+        const anyDenuncia = await denunciationsModel.findOne({
+            order: [['createdAt', 'ASC']] // Pega a primeira denúncia criada
+        });
+
+        // Se NÃO existir nenhuma denúncia no banco, começa com 110
+        if (!anyDenuncia) {
+            return res.render('denunciation/new', {
                 year: currentYear,
-                lastNumber: nextNumber,
+                lastNumber: 111, // Número inicial
                 DENUNCIATION_SENDER: DENUNCIATION_SENDER
             });
-        } catch (error) {
-            console.error('Erro ao carregar dados da denúncia:', error);
-            res.status(500).send('Erro ao carregar formulário de denúncia.');
         }
+
+        // Caso contrário, busca a última denúncia do ANO ATUAL
+        const lastDenuncia = await denunciationsModel.findOne({
+            where: { year: currentYear },
+            order: [['number', 'DESC']]
+        });
+
+        // Calcula o próximo número (último + 1 ou 1 se for o primeiro do ano)
+        const nextNumber = (lastDenuncia && lastDenuncia.number) ? lastDenuncia.number + 1 : 1;
+
+        res.render('denunciation/new', {
+            year: currentYear,
+            lastNumber: nextNumber,
+            DENUNCIATION_SENDER: DENUNCIATION_SENDER
+        });
+    } catch (error) {
+        console.error('Erro ao carregar dados da denúncia:', error);
+        res.status(500).send('Erro ao carregar formulário de denúncia.');
+    }
 });
 
 // Rota POST para registrar a denúncia
@@ -171,7 +186,6 @@ router.post('/denuncia/edit/:id', async (req, res) => {
         res.status(500).send('Erro ao atualizar denúncia.');
     }
 });
-
 
 router.get('/denuncia/:id/edit', async (req, res) => {
         try {
@@ -357,12 +371,12 @@ router.get('/buscar/resultados', async (req, res) => {
                 .trim();
 
             whereConditions.endereco = {
-                [Op.iLike]: `%${cleanEndereco}%`
+                [Op.like]: `%${cleanEndereco}%`
             };
         }
 
         if (numero) whereConditions.numero = numero;
-        if (bairro) whereConditions.bairro = { [Op.iLike]: `%${bairro}%` };
+        if (bairro) whereConditions.bairro = { [Op.like]: `%${bairro}%` };
         if (status && status !== 'Selecione') whereConditions.status = status;
         if (registration_type && registration_type !== 'Selecione') whereConditions.registration_type = registration_type;
         if (userId) whereConditions.user_id = userId;
