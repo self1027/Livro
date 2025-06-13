@@ -44,6 +44,7 @@ router.post('/denuncia/registrar', async (req, res) => {
             endereco,
             numero,
             bairro,
+            complemento,
             description
         } = req.body;
 
@@ -79,6 +80,7 @@ router.post('/denuncia/registrar', async (req, res) => {
             endereco,
             numero,
             bairro,
+            complemento: complemento || null,
             description,
             status: DENUNCIATION_STATUS.REGISTRADA.slug
         });
@@ -148,6 +150,7 @@ router.post('/denuncia/edit/:id', async (req, res) => {
             endereco,
             numero,
             bairro,
+            complemento,
             description,
             status
         } = req.body;
@@ -159,6 +162,7 @@ router.post('/denuncia/edit/:id', async (req, res) => {
                 endereco,
                 numero,
                 bairro,
+                complemento,
                 description,
                 status
             },
@@ -171,7 +175,6 @@ router.post('/denuncia/edit/:id', async (req, res) => {
         res.status(500).send('Erro ao atualizar denúncia.');
     }
 });
-
 
 router.get('/denuncia/:id/edit', async (req, res) => {
         try {
@@ -267,12 +270,6 @@ router.get('/atribuir/:id', async (req, res) => {
 
         const users = await userModel.findAll({
             where: { ativo: true }
-        });
-        
-        users.sort((a, b) => {
-            if (a.dataValues.name === 'Ricardo') return -1;
-            if (b.dataValues.name === 'Ricardo') return 1;
-            return 0;
         });                
 
         res.render('denunciation/assign', { denuncia, users });
