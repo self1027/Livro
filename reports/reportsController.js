@@ -20,7 +20,6 @@ router.post('/denuncia/:id/adicionar-relatorio', async (req, res) => {
         const denuncia = await denunciationsModel.findByPk(denunciaId);
         if (!denuncia) return res.status(404).send('Denúncia não encontrada');
 
-        const dataAtual = new Date().toLocaleDateString('pt-BR');
         const statusAnterior = denuncia.status;
         const houveMudancaStatus = novoStatus && statusAnterior !== novoStatus;
 
@@ -31,7 +30,7 @@ router.post('/denuncia/:id/adicionar-relatorio', async (req, res) => {
         // Cria relatórios conforme necessário
         if (descriptionInput) {
             await reportsModel.create({
-                description: `${descriptionInput} - ${dataAtual}`,
+                description: `${descriptionInput}`,
                 denunciation_id: denunciaId,
                 user_id: userId,
                 type: REPORT_TYPE.TEXT
@@ -40,7 +39,7 @@ router.post('/denuncia/:id/adicionar-relatorio', async (req, res) => {
 
         if (houveMudancaStatus) {
             await reportsModel.create({
-                description: `${dataAtual}\nStatus alterado de "${statusAnteriorLabel}" para "${novoStatusLabel}"`,
+                description: `Status alterado de "${statusAnteriorLabel}" para "${novoStatusLabel}"`,
                 denunciation_id: denunciaId,
                 user_id: userId,
                 type: REPORT_TYPE.STATUS_CHANGE
@@ -99,7 +98,6 @@ router.get('/relatorio/:id', async (req, res) => {
 router.post('/relatorio/:id/editar', async (req, res) => {
     const reportId = req.params.id;
     const { description: newDescriptionRaw, status: newStatus } = req.body;
-    const dataAtual = new Date().toLocaleDateString('pt-BR');
 
     try {
         const report = await reportsModel.findByPk(reportId);
@@ -111,7 +109,7 @@ router.post('/relatorio/:id/editar', async (req, res) => {
         // Se o tipo for STATUS_CHANGE, sobrescreve a descrição
         if (report.type === REPORT_TYPE.STATUS_CHANGE) {
             const labelNew = DENUNCIATION_STATUS[newStatus]?.label || newStatus;
-            finalDescription = `${dataAtual}\nStatus alterado para "${labelNew}"`
+            finalDescription = `Status alterado para "${labelNew}"`
         }
 
         await report.update({
