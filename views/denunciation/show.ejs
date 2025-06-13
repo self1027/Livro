@@ -8,51 +8,64 @@
         </div>
         <div class="card-body">
             <form>
-                <!-- Grupo Ano e Número -->
+                <!-- Ano e Número -->
                 <div class="mb-3 row">
                     <div class="col-md-6">
-                        <label class="form-label">Ano</label>
-                        <input class="form-control" type="number" value="<%= denuncia.year %>" readonly>
+                    <label class="form-label small text-muted">Ano do Registro</label>
+                    <input class="form-control" type="number" value="<%= denuncia.year %>" readonly placeholder="Ano em que a denúncia foi registrada">
                     </div>
                     <div class="col-md-6">
-                        <label class="form-label">Número</label>
-                        <input class="form-control" type="number" value="<%= denuncia.number %>" readonly>
+                    <label class="form-label small text-muted">Número da Denúncia</label>
+                    <input class="form-control" type="number" value="<%= denuncia.number %>" readonly placeholder="Número sequencial da denúncia">
                     </div>
                 </div>
-                
-                <!-- Tipo de Registro -->
-                <div class="mb-3">
-                    <label class="form-label">Tipo de Registro</label>
-                    <input class="form-control" value="<%= DENUNCIATION_SENDER[denuncia.registration_type] %>" readonly>
-                </div>
-                
-                <!-- Título -->
-                <div class="mb-3">
-                    <label class="form-label">Título</label>
-                    <input class="form-control" type="text" value="<%= denuncia.title %>" readonly>
-                </div>
-    
-                <!-- Endereço Completo -->
-                <div class="mb-3">
-                    <label class="form-label">Endereço</label>
-                    <div class="row">
-                        <div class="col-md-8 mb-2">
-                            <input class="form-control" value="<%= denuncia.endereco %>" placeholder="Nome da Rua" readonly>
-                        </div>
-                        <div class="col-md-4">
-                            <input class="form-control" value="<%= denuncia.numero %>" placeholder="Número" readonly>
-                        </div>
+
+                <hr style="border-color: #ddd; margin: 1.5rem 0;">
+
+                <!-- Origem e Título -->
+                <div class="mb-3 row">
+                    <div class="col-md-6">
+                    <label class="form-label small text-muted">Origem da Denúncia</label>
+                    <input class="form-control" value="<%= DENUNCIATION_SENDER[denuncia.registration_type] %>" readonly placeholder="Como a denúncia foi recebida">
                     </div>
-                    <input class="form-control mt-2" value="<%= denuncia.bairro %>" placeholder="Bairro" readonly>
+                    <div class="col-md-6">
+                    <label class="form-label small text-muted">Título da Denúncia</label>
+                    <input class="form-control" type="text" value="<%= denuncia.title %>" readonly placeholder="Título resumido da denúncia">
+                    </div>
                 </div>
-                
+
+                <hr style="border-color: #ddd; margin: 1.5rem 0;">
+
+                <!-- Endereço -->
+                <div class="mb-3 row">
+                    <div class="col-md-6 mb-2">
+                    <label class="form-label small text-muted">Nome da Rua</label>
+                    <input class="form-control" value="<%= denuncia.endereco %>" readonly placeholder="Nome da rua (sem prefixos e abreviações)">
+                    </div>
+                    <div class="col-md-3 mb-2">
+                    <label class="form-label small text-muted">Número</label>
+                    <input class="form-control" value="<%= denuncia.numero %>" readonly placeholder="Número do endereço">
+                    </div>
+                    <div class="col-md-3 mb-2">
+                    <label class="form-label small text-muted">Complemento</label>
+                    <input class="form-control" value="<%= denuncia.complemento || '' %>" readonly placeholder="Complemento (se houver)">
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label small text-muted">Bairro</label>
+                    <input class="form-control" value="<%= denuncia.bairro %>" readonly placeholder="Bairro">
+                </div>
+
+                <hr style="border-color: #ddd; margin: 1.5rem 0;">
+
                 <!-- Descrição -->
                 <div class="mb-3">
-                    <label class="form-label">Descrição</label>
-                    <textarea class="form-control" rows="4" readonly><%= denuncia.description %></textarea>
+                    <label class="form-label small text-muted">Descrição Detalhada</label>
+                    <textarea class="form-control" rows="5" readonly placeholder="Descrição completa da denúncia"><%= denuncia.description %></textarea>
                 </div>
-                
-                <!-- Data de Criação -->
+
+            
+                <!-- Data e Status -->
                 <div class="mb-3">
                     <label class="form-label">Data de Registro</label>
                     <input class="form-control" value="<%= new Date(denuncia.created_at).toLocaleDateString('pt-BR') %>" readonly>
@@ -69,17 +82,18 @@
                         </span>
                     </div>
                 </td>
-
-                <!-- Exibe o fiscal atribuído -->
-                <td>
+            
+                <!-- Fiscal -->
+                <div class="mb-3">
+                    <label class="form-label">Fiscal Responsável</label><br>
                     <% if (denuncia.user) { %>
-                        <span style="font-weight: bold;">Fiscal: </span>
-                        <span style="display: inline-block; margin-top: 4px;"><%= denuncia.user.name %></span>
+                        <span><i class="fas fa-user-check text-success"></i> <strong><%= denuncia.user.name %></strong></span>
                     <% } else { %>
-                        <span class="text-muted">Não atribuído</span>
+                        <span class="text-muted"><i class="fas fa-user-slash"></i> Não atribuído</span>
                     <% } %>
-                </td>
-                
+                </div>
+            
+                <!-- Botões -->
                 <div class="d-flex justify-content-between mt-4">
                     <a href="/" class="btn btn-secondary">
                         <i class="fas fa-arrow-left"></i> Voltar
@@ -88,22 +102,13 @@
                         <a href="/denuncia/<%= denuncia.id %>/edit" class="btn btn-primary me-2">
                             <i class="fas fa-edit"></i> Editar
                         </a>
-
-                        <!-- Condição para exibir o botão "Atribuir Fiscal" ou "Trocar Fiscal" -->
-                        <% if (denuncia.user_id) { %>
-                            <!-- Caso tenha fiscal, o botão será "Trocar Fiscal" -->
-                            <a href="/atribuir/<%= denuncia.id %>" class="btn btn-warning me-2">
-                                <i class="fas fa-exchange-alt"></i> Trocar Fiscal
-                            </a>
-                        <% } else { %>
-                            <!-- Caso não tenha fiscal, o botão será "Atribuir Fiscal" -->
-                            <a href="/atribuir/<%= denuncia.id %>" class="btn btn-warning me-2">
-                                <i class="fas fa-user-plus"></i> Atribuir Fiscal
-                            </a>
-                        <% } %>
+            
+                        <a href="/atribuir/<%= denuncia.id %>" class="btn btn-warning me-2">
+                            <i class="fas <%= denuncia.user_id ? 'fa-exchange-alt' : 'fa-user-plus' %>"></i>
+                            <%= denuncia.user_id ? 'Trocar Fiscal' : 'Atribuir Fiscal' %>
+                        </a>
                     </div>
                 </div>
-                
             </form>
         </div>  
     </div>    

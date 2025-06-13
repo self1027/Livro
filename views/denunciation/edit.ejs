@@ -8,68 +8,74 @@
         </div>
         <div class="card-body">
             <form method="post" action="/denuncia/edit/<%= denuncia.id %>?_method=PUT">
-                <!-- Campos não editáveis -->
-                <div class="mb-3">
-                    <label class="form-label">Ano</label>
-                    <input class="form-control" type="number" value="<%= year %>" readonly>
+                <!-- Ano e Número -->
+                <div class="row mb-3">
+                  <div class="col-md-6">
+                    <label class="form-label" for="year">Ano</label>
+                    <input class="form-control" type="number" id="year" name="year" value="<%= year %>" readonly>
+                    <small class="form-text text-muted">Ano em que a denúncia está sendo registrada.</small>
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label" for="number">Número da Denúncia</label>
+                    <input class="form-control" type="number" id="number" name="number" value="<%= lastNumber %>" readonly>
+                    <small class="form-text text-muted">Número sequencial gerado automaticamente.</small>
+                  </div>
                 </div>
-                
+              
+                <!-- Tipo de Registro -->
                 <div class="mb-3">
-                    <label class="form-label">Número</label>
-                    <input class="form-control" type="number" value="<%= lastNumber %>" readonly>
+                  <label class="form-label" for="registration_type">Origem da Denúncia</label>
+                  <select class="form-control" id="registration_type" name="registration_type" required>
+                    <% for (let key in DENUNCIATION_SENDER) { %>
+                      <option value="<%= key %>" <%= denuncia.registration_type === key ? 'selected' : '' %>>
+                        <%= DENUNCIATION_SENDER[key] %>
+                      </option>
+                    <% } %>
+                  </select>
+                  <small class="form-text text-muted">Informe como a denúncia foi recebida (telefone, presencialmente ou ofício).</small>
                 </div>
-                
-                <!-- Campos editáveis -->
+              
+                <!-- Título -->
                 <div class="mb-3">
-                    <label class="form-label">Tipo de Registro</label>
-                    <select class="form-control" name="registration_type" id="registration_type">
-                        <% for (let key in DENUNCIATION_SENDER) { %>
-                            <option value="<%= key %>" <%= denuncia.registration_type === key ? 'selected' : '' %>>
-                                <%= DENUNCIATION_SENDER[key] %>
-                            </option>
-                        <% } %>
-                    </select>
+                  <label class="form-label" for="title">Título</label>
+                  <input class="form-control" type="text" id="title" name="title" value="<%= denuncia.title %>" placeholder="Ex: Galinhas na Mineira" required>
+                  <small class="form-text text-muted">Um título breve e descritivo para identificar a denúncia.</small>
                 </div>
-                
+              
+                <!-- Endereço -->
                 <div class="mb-3">
-                    <label class="form-label">Título</label>
-                    <input class="form-control" type="text" name="title" value="<%= denuncia.title %>" required>
+                  <label class="form-label">Endereço do Local</label>
+              
+                  <input class="form-control mb-2" type="text" name="endereco"
+                    value="<%= denuncia.endereco %>"
+                    placeholder="Nome da Rua (sem 'Rua', 'Av.', etc.)"
+                    required>
+              
+                  <input class="form-control mb-2" type="text" name="numero" value="<%= denuncia.numero %>" placeholder="Número da Casa" required>
+              
+                  <input class="form-control mb-2" type="text" name="complemento" value="<%= denuncia.complemento || '' %>" placeholder="Complemento (opcional)">
+              
+                  <input class="form-control" type="text" name="bairro" value="<%= denuncia.bairro %>" placeholder="Bairro" required>
+              
+                  <small class="form-text text-muted">
+                    Informe apenas o nome da rua ou avenida, <strong>sem prefixos</strong> como "Rua", "Av.", "Travessa", e
+                    <strong>evite abreviações</strong>. Isso ajuda a manter os registros padronizados, facilita buscas e comparações e evita repetições.
+                  </small>
                 </div>
-
+              
+                <!-- Descrição -->
                 <div class="mb-3">
-                    <label class="form-label">Endereço</label>
-                    <div class="row">
-                        <div class="col-md-8 mb-2">
-                            <input class="form-control" name="endereco" value="<%= denuncia.endereco %>" placeholder="Nome da Rua" required>
-                        </div>
-                        <div class="col-md-4">
-                            <input class="form-control" name="numero" value="<%= denuncia.numero %>" placeholder="Número" required>
-                        </div>
-                    </div>
-                    <input class="form-control mt-2" name="bairro" value="<%= denuncia.bairro %>" placeholder="Bairro" required>
+                  <label class="form-label" for="description">Descrição da Denúncia</label>
+                  <textarea class="form-control" id="description" name="description" placeholder="Descreva os detalhes da situação..." rows="4" required><%= denuncia.description %></textarea>
+                  <small class="form-text text-muted">Descreva com o máximo de detalhes possíveis o que está acontecendo no local.</small>
                 </div>
-                
-                <div class="mb-3">
-                    <label class="form-label">Descrição</label>
-                    <textarea class="form-control" name="description" rows="4" required><%= denuncia.description %></textarea>
-                </div>
-                
-                <div class="mb-3">
-                    <label class="form-label">Status</label>
-                    <select class="form-control" name="status">
-                        <% for (let key in DENUNCIATION_STATUS) { %>
-                            <option value="<%= key %>" <%= denuncia.status === key ? 'selected' : '' %>>
-                                <%= DENUNCIATION_STATUS[key].label %>
-                            </option>
-                        <% } %>
-                    </select>
-                </div>
-                
+              
                 <div class="d-flex justify-content-between">
-                    <a href="/denuncia/<%= denuncia.id %>" class="btn btn-secondary">Cancelar</a>
-                    <button type="submit" class="btn btn-primary">Salvar Alterações</button>
+                  <a href="/denuncia/<%= denuncia.id %>" class="btn btn-secondary">Cancelar</a>
+                  <button type="submit" class="btn btn-primary">Salvar Alterações</button>
                 </div>
-            </form>
+              </form>
+                            
         </div>
     </div>
 </div>

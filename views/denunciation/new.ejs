@@ -16,28 +16,73 @@
             <% } %>
 
             <form method="post" action="/denuncia/registrar">
-                <input class="form-control" type="number" name="year" value="<%= year %>" readonly><br>
-                
-                <input class="form-control" type="number" name="number" value="<%= lastNumber %>" readonly><br>
-                
-                <select class="form-control" name="registration_type" id="registration_type">
-		    <% for (let key in DENUNCIATION_SENDER) { %>
-		        <option value="<%= key %>"><%= DENUNCIATION_SENDER[key] %></option>
-		    <% } %>
-		</select><br>
-                
-                <input class="form-control" type="text" name="title" placeholder="Título" required><br>
 
-                <input class="form-control" type="text" name="endereco" placeholder="Nome da Rua" required><br>
+                <!-- Ano e Número -->
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Ano</label>
+                        <input class="form-control" type="number" name="year" value="<%= year %>" readonly>
+                        <small class="form-text text-muted">Ano em que a denúncia está sendo registrada.</small>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Número da Denúncia</label>
+                        <input class="form-control" type="number" name="number" value="<%= lastNumber %>" readonly>
+                        <small class="form-text text-muted">Número sequencial gerado automaticamente.</small>
+                    </div>
+                </div>
             
-                <input class="form-control" type="text" name="numero" placeholder="Número do Endereço" required><br>
+                <!-- Tipo de Registro -->
+                <div class="mb-3">
+                    <label class="form-label">Origem da Denúncia</label>
+                    <select class="form-control" name="registration_type" id="registration_type" required>
+                        <% for (let key in DENUNCIATION_SENDER) { %>
+                            <option value="<%= key %>"><%= DENUNCIATION_SENDER[key] %></option>
+                        <% } %>
+                    </select>
+                    <small class="form-text text-muted">Informe como a denúncia foi recebida (telefone, presencialmente ou ofício).</small>
+                </div>
             
-                <input class="form-control" type="text" name="bairro" placeholder="Bairro" required><br>
-                
-                <textarea class="form-control" name="description" placeholder="Descrição" rows="4" required></textarea><br>
+                <!-- Título -->
+                <div class="mb-3">
+                    <label class="form-label">Título</label>
+                    <input class="form-control" type="text" name="title" placeholder="Ex: Galinhas na Mineira" required>
+                    <small class="form-text text-muted">Um título breve e descritivo para identificar a denúncia.</small>
+                </div>
             
-                <button class="btn btn-success">Cadastrar</button>
-            </form>
+                <!-- Endereço -->
+                <div class="mb-3">
+                    <label class="form-label">Endereço do Local</label>
+
+                    <input class="form-control mb-2" type="text" name="endereco"
+                        placeholder="Nome da Rua (sem 'Rua', 'Av.', etc.)"
+                        required>
+
+                    <input class="form-control mb-2" type="text" name="numero" placeholder="Número da Casa" required>
+
+                    <input class="form-control mb-2" type="text" name="complemento" placeholder="Complemento (opcional)">
+
+                    <input class="form-control" type="text" name="bairro" placeholder="Bairro" required>
+
+                    <small class="form-text text-muted">
+                        Informe apenas o nome da rua ou avenida, <strong>sem prefixos</strong> como "Rua", "Av.", "Travessa", e
+                        <strong>evite abreviações</strong>. Isso ajuda a manter os registros padronizados, facilita buscas e comparações e evita repetições.
+                    </small>
+                </div>
+            
+                <!-- Descrição -->
+                <div class="mb-3">
+                    <label class="form-label">Descrição da Denúncia</label>
+                    <textarea class="form-control" name="description" placeholder="Descreva os detalhes da situação..." rows="4" required></textarea>
+                    <small class="form-text text-muted">Descreva com o máximo de detalhes possíveis o que está acontecendo no local.</small>
+                </div>
+            
+                <!-- Botão -->
+                <div class="d-flex justify-content-end">
+                    <button class="btn btn-success">
+                        <i class="fas fa-save"></i> Cadastrar Denúncia
+                    </button>
+                </div>
+            </form>            
         </div>  
     </div>
 </div>
