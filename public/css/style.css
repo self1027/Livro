@@ -75,3 +75,8 @@ main {
     margin-top: 10px;
 }
 
+.popover {
+    max-width: 500px; /* Aumenta a largura do popover */
+    white-space: normal; /* Permite quebra de linha */
+  }
+  

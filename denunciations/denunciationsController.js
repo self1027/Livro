@@ -235,7 +235,8 @@ router.get('/atribuir', async (req, res) => {
             
             res.render('denunciation/associate', {
                 denuncias: denuncias,
-                fiscais: fiscaisValidos
+                fiscais: fiscaisValidos,
+                DENUNCIATION_SENDER
             });
     
         } catch (error) {
