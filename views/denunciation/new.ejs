@@ -108,5 +108,44 @@
         }
         return true; // Permite o envio
     }
+
+    const textFields = document.querySelectorAll('input[type="text"], textarea');
+    let capsWarningEl = null;
+  
+    function createCapsLockWarning() {
+      // Cria o elemento de aviso apenas uma vez
+      if (capsWarningEl) return;
+  
+      capsWarningEl = document.createElement('div');
+      capsWarningEl.className = 'alert alert-danger mt-3';
+      capsWarningEl.textContent = 'Caps Lock está ativado. Digitação bloqueada nos campos de texto.';
+      capsWarningEl.id = 'capsLockAlert';
+      document.querySelector('.card-body').prepend(capsWarningEl);
+    }
+  
+    function removeCapsLockWarning() {
+      if (capsWarningEl) {
+        capsWarningEl.remove();
+        capsWarningEl = null;
+      }
+    }
+  
+    // Aplica a lógica para cada campo
+    textFields.forEach(field => {
+      field.addEventListener('keydown', function(e) {
+        const capsOn = e.getModifierState && e.getModifierState('CapsLock');
+        if (capsOn && e.key.length === 1 && !e.ctrlKey && !e.metaKey) {
+          e.preventDefault();
+          createCapsLockWarning();
+        } else {
+          removeCapsLockWarning();
+        }
+      });
+  
+      field.addEventListener('keyup', function(e) {
+        const capsOn = e.getModifierState && e.getModifierState('CapsLock');
+        if (!capsOn) removeCapsLockWarning();
+      });
+    });
 </script>
 <%- include('../partials/footer.ejs') %>
