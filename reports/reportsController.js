@@ -132,4 +132,27 @@ router.post('/relatorio/:id/editar', async (req, res) => {
     }
 });
 
+// Rota para deletar um relatório
+router.post('/relatorio/:id/deletar', async (req, res) => {
+    const reportId = req.params.id;
+
+    try {
+        const report = await reportsModel.findByPk(reportId);
+        if (!report) return res.status(404).send('Relatório não encontrado');
+
+        // Guardar o ID da denúncia antes de deletar
+        const denunciaId = report.denunciation_id;
+
+        // Deleta o relatório
+        await report.destroy();
+
+        // Redireciona de volta para a página da denúncia
+        res.redirect(`/denuncia/${denunciaId}`);
+    } catch (error) {
+        console.error(error);
+        res.status(500).send('Erro ao excluir relatório');
+    }
+});
+
+
 module.exports = router;

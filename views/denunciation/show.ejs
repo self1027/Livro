@@ -163,11 +163,20 @@
                                 
                                 <!-- Condição para mostrar o botão de editar apenas se o conteúdo for editável -->
                                 <% if (!report.description.includes("Denúncia atribuída ao fiscal")) { %>
-                                    <!-- Botão para editar, alinhado à direita -->
-                                    <a href="/relatorio/<%= report.id %>" class="btn btn-warning btn-sm">
-                                        Editar
-                                    </a>
-                                <% } %>
+                                    <div class="d-flex justify-content-end" style="gap: 8px;">
+                                        <a href="/relatorio/<%= report.id %>" class="btn btn-warning btn-sm">
+                                            Editar
+                                        </a>
+                                
+                                        <form action="/relatorio/<%= report.id %>/deletar" method="POST" style="display:inline;">
+                                            <button type="submit" 
+                                                    class="btn btn-danger btn-sm"
+                                                    onclick="return confirm('Tem certeza que deseja excluir este relatório?');">
+                                                Apagar
+                                            </button>
+                                        </form>
+                                    </div>
+                                <% } %>                                                                                                                                                
                             </li>
                             <br>
                         <% }); %>
