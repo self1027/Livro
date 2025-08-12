@@ -5,6 +5,7 @@ const user = require('./users/usersModel.js');
 const denunciation = require('./denunciations/denunciationsModel.js');
 const report = require('./reports/reportsModel.js');
 const pagination = require('./middlewares/pagination');
+const setupSwagger = require('./swagger');
 
 const DENUNCIATION_SENDER = require('./constants/denunciationSenders.js');
 
@@ -14,6 +15,8 @@ const reportsController = require('./reports/reportsController.js')
 const loadingsController = require('./loadings/loadingsController.js')
 
 const app = express()
+
+setupSwagger(app);
 
 // View Engine
 app.set('view engine', 'ejs')
@@ -89,4 +92,5 @@ app.use('/', usersController, denunciationsController, reportsController, loadin
 
 app.listen(80, () => {
     console.log('Server On')
+    console.log('Swagger UI available at http://localhost/api-docs');
 })

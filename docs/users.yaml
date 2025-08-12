@@ -1,0 +1,273 @@
+openapi: 3.0.0
+info:
+  title: User Management API
+  version: 1.0.0
+paths:
+  /cadastro/usuario:
+    get:
+      tags: [Users]
+      summary: Get user registration page
+      description: Retrieves a page displaying all users sorted alphabetically
+      responses:
+        '200':
+          description: User list loaded successfully
+          content:
+            text/html:
+              schema:
+                type: string
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  /usuario/registrar:
+    post:
+      tags: [Users]
+      summary: Register new user
+      description: Creates a new user in the system
+      requestBody:
+        $ref: '#/components/requestBodies/UserCreate'
+      responses:
+        '302':
+          description: Redirects to registration page after successful creation
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  /area-fiscal:
+    get:
+      tags: [Fiscal]
+      summary: Get fiscal selection page
+      description: Displays a page to select a fiscal officer
+      responses:
+        '200':
+          description: Fiscal selection page loaded
+          content:
+            text/html:
+              schema:
+                type: string
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  /area-fiscal/{id}:
+    get:
+      tags: [Fiscal]
+      summary: Get fiscal dashboard
+      description: Displays the dashboard for a specific fiscal officer with their cases
+      parameters:
+        - $ref: '#/components/parameters/userId'
+        - in: query
+          name: status
+          schema:
+            $ref: '#/components/schemas/DenunciationStatusEnum'
+          description: Filter cases by status
+        - in: query
+          name: page
+          schema:
+            type: integer
+            minimum: 1
+          description: Pagination page number
+      responses:
+        '200':
+          description: Fiscal dashboard loaded successfully
+          content:
+            text/html:
+              schema:
+                type: string
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  /editar-usuario/{id}:
+    get:
+      tags: [Users]
+      summary: Get user edit page
+      description: Displays the edit form for a specific user
+      parameters:
+        - $ref: '#/components/parameters/userId'
+      responses:
+        '200':
+          description: User edit page loaded successfully
+          content:
+            text/html:
+              schema:
+                type: string
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  /usuario/atualizar/{id}:
+    post:
+      tags: [Users]
+      summary: Update user information
+      description: Updates user details including name and active status
+      parameters:
+        - $ref: '#/components/parameters/userId'
+      requestBody:
+        $ref: '#/components/requestBodies/UserUpdate'
+      responses:
+        '302':
+          description: Redirects to user registration page after update
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+components:
+  schemas:
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+          description: Auto-generated user ID
+          example: 1
+        name:
+          type: string
+          description: Full name of the user
+          example: "Jane Doe"
+        ativo:
+          type: boolean
+          description: Whether the user is active
+          default: true
+      required:
+        - name
+        - ativo
+
+    DenunciationStatus:
+      type: object
+      description: Complete denunciation status configuration
+      properties:
+        label:
+          type: string
+          description: Human-readable status name
+        color:
+          type: string
+          description: Hex color code for UI representation
+          format: hex-color
+        slug:
+          type: string
+          description: Machine-readable status identifier
+      example:
+        label: "Registrada"
+        color: "#3498db"
+        slug: "REGISTRADA"
+
+    DenunciationStatusEnum:
+      type: string
+      description: Available denunciation status values
+      enum:
+        - REGISTRADA
+        - EM_ANDAMENTO
+        - NOTIFICADA
+        - EM_PUBLICACAO
+        - FEITO_AIF
+        - FINALIZADA
+        - ALL
+      x-enum-varnames:
+        - REGISTERED
+        - IN_PROGRESS
+        - NOTIFIED
+        - IN_PUBLICATION
+        - ADMINISTRATIVE_PROCESS
+        - FINISHED
+        - ALL_STATUSES
+
+    DenunciationSender:
+      type: string
+      description: Source of the denunciation
+      enum:
+        - "Denuncia Anônima Realizada Presencialmente"
+        - "Denuncia Anônima Realizada via Telefone"
+        - "Ofício Recebido"
+      example: "Denuncia Anônima Realizada Presencialmente"
+      x-enum-varnames:
+        - IN_PERSON_ANONYMOUS
+        - PHONE_ANONYMOUS
+        - OFFICIAL_LETTER
+
+    ReportType:
+      type: integer
+      description: Type of report entry
+      enum: [0, 1]
+      example: 1
+      x-enum-descriptions:
+        - "Status change report"
+        - "Text report"
+      x-enum-varnames:
+        - STATUS_CHANGE
+        - TEXT
+
+  parameters:
+    userId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: integer
+        minimum: 1
+      description: Numeric ID of the user
+
+  requestBodies:
+    UserCreate:
+      description: Data required to create a new user
+      required: true
+      content:
+        application/x-www-form-urlencoded:
+          schema:
+            type: object
+            properties:
+              username:
+                type: string
+                description: Name for the new user
+                minLength: 2
+                example: "New User"
+            required:
+              - username
+
+    UserUpdate:
+      description: Data required to update a user
+      required: true
+      content:
+        application/x-www-form-urlencoded:
+          schema:
+            type: object
+            properties:
+              name:
+                type: string
+                description: Updated name for the user
+                minLength: 2
+                example: "Updated Name"
+              active:
+                type: string
+                description: Checkbox value to toggle active status (present=active)
+                example: "on"
+            required:
+              - name
+
+  responses:
+    BadRequest:
+      description: Invalid request parameters
+      content:
+        text/html:
+          schema:
+            type: string
+            example: "Invalid request data"
+
+    NotFound:
+      description: Requested resource not found
+      content:
+        text/html:
+          schema:
+            type: string
+            example: "User not found"
+
+    ServerError:
+      description: Internal server error occurred
+      content:
+        text/html:
+          schema:
+            type: string
+            example: "An internal server error occurred"

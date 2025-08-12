@@ -1,0 +1,257 @@
+components:
+  schemas:
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+          description: Auto-generated user ID
+          example: 1
+        name:
+          type: string
+          description: Full name of the user
+          example: "John Doe"
+        ativo:
+          type: boolean
+          description: Whether the user is active
+          default: true
+      required:
+        - name
+        - ativo
+
+    Denunciation:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+          description: Auto-generated denunciation ID
+        year:
+          type: integer
+          description: Year of registration
+          example: 2023
+        number:
+          type: integer
+          description: Case number
+          example: 123
+        registration_type:
+          type: string
+          description: Type of registration
+          enum: [OFICIO, REQUERIMENTO, DENUNCIA]
+          x-enum-varnames: [OFFICIAL_LETTER, REQUEST, DENUNCIATION]
+        status:
+          $ref: '#/components/schemas/DenunciationStatusEnum'
+          description: Current status of the case
+        title:
+          type: string
+          description: Short title of the case
+          example: "Illegal construction"
+        description:
+          type: string
+          description: Detailed description of the issue
+          example: "Detailed description of the issue"
+        endereco:
+          type: string
+          description: Street address
+          example: "Main Street"
+        numero:
+          type: string
+          description: Address number
+          example: "123"
+        bairro:
+          type: string
+          description: Neighborhood
+          example: "Downtown"
+        complemento:
+          type: string
+          nullable: true
+          description: Address complement
+          example: "Apartment 4B"
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+          description: Creation timestamp
+        user_id:
+          type: integer
+          nullable: true
+          description: "Assigned fiscal ID"
+        sender:
+          $ref: '#/components/schemas/DenunciationSender'
+          description: Source of the denunciation
+      required:
+        - year
+        - number
+        - title
+        - description
+        - endereco
+        - numero
+        - bairro
+
+    Report:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+          description: Auto-generated report ID
+        description:
+          type: string
+          description: Report content
+          example: "Status changed to 'In Progress'"
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+          description: Creation timestamp
+        denunciation_id:
+          type: integer
+          description: Related denunciation ID
+          example: 1
+        user_id:
+          type: integer
+          description: Author user ID
+          example: 1
+        type:
+          $ref: '#/components/schemas/ReportType'
+          description: Type of report
+      required:
+        - description
+        - denunciation_id
+        - user_id
+        - type
+
+    # Constants schemas
+    DenunciationStatusEnum:
+      type: string
+      description: Available denunciation status values
+      enum:
+        - REGISTRADA
+        - EM_ANDAMENTO
+        - NOTIFICADA
+        - EM_PUBLICACAO
+        - FEITO_AIF
+        - FINALIZADA
+      x-enum-varnames:
+        - REGISTERED
+        - IN_PROGRESS
+        - NOTIFIED
+        - IN_PUBLICATION
+        - ADMINISTRATIVE_PROCESS
+        - FINISHED
+
+    DenunciationStatus:
+      type: object
+      description: Complete denunciation status configuration
+      properties:
+        label:
+          type: string
+          description: Human-readable status name
+        color:
+          type: string
+          description: Hex color code for UI representation
+          format: hex-color
+        slug:
+          type: string
+          description: Machine-readable status identifier
+      example:
+        label: "Registrada"
+        color: "#3498db"
+        slug: "REGISTRADA"
+
+    DenunciationSender:
+      type: string
+      description: Source of the denunciation
+      enum:
+        - "Denuncia Anônima Realizada Presencialmente"
+        - "Denuncia Anônima Realizada via Telefone"
+        - "Ofício Recebido"
+      example: "Denuncia Anônima Realizada Presencialmente"
+      x-enum-varnames:
+        - IN_PERSON_ANONYMOUS
+        - PHONE_ANONYMOUS
+        - OFFICIAL_LETTER
+
+    ReportType:
+      type: integer
+      description: Type of report entry
+      enum: [0, 1]
+      example: 1
+      x-enum-descriptions:
+        - "Status change report"
+        - "Text report"
+      x-enum-varnames:
+        - STATUS_CHANGE
+        - TEXT
+
+  parameters:
+    userId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: integer
+      description: ID of the user
+    denunciationId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: integer
+      description: ID of the denunciation
+    reportId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: integer
+      description: ID of the report
+
+  responses:
+    NotFound:
+      description: The requested resource was not found
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+                example: "Resource not found"
+    ServerError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+                example: "Internal server error"
+    Unauthorized:
+      description: Unauthorized access
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+                example: "Unauthorized"
+
+  requestBodies:
+    DenunciationUpdate:
+      description: Denunciation update data
+      required: true
+      content:
+        application/x-www-form-urlencoded:
+          schema:
+            $ref: '#/components/schemas/Denunciation'
+    ReportCreate:
+      description: Report creation data
+      required: true
+      content:
+        application/x-www-form-urlencoded:
+          schema:
+            $ref: '#/components/schemas/Report'

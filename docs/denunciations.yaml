@@ -1,0 +1,209 @@
+openapi: 3.0.0
+info:
+  title: Denunciation Management API
+  description: API for managing denunciations and related operations
+  version: 1.0.0
+paths:
+  /cadastro/denuncia:
+    get:
+      tags: [Denunciations]
+      summary: Get denunciation registration form
+      description: Retrieves the form for registering new denunciations with auto-generated number
+      responses:
+        '200':
+          description: Successfully loaded registration form
+          content:
+            text/html:
+              schema:
+                type: string
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  /denuncia/registrar:
+    post:
+      tags: [Denunciations]
+      summary: Register new denunciation
+      description: Creates a new denunciation with the provided data
+      requestBody:
+        $ref: '#/components/requestBodies/DenunciationUpdate'
+      responses:
+        '302':
+          description: Redirects to home page on success
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  /denuncia/{id}:
+    get:
+      tags: [Denunciations]
+      summary: Get denunciation details
+      description: Retrieves details of a specific denunciation including reports and assigned fiscal
+      parameters:
+        - $ref: '#/components/parameters/denunciationId'
+      responses:
+        '200':
+          description: Successfully retrieved denunciation
+          content:
+            text/html:
+              schema:
+                type: string
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  /denuncia/{id}/edit:
+    get:
+      tags: [Denunciations]
+      summary: Get denunciation edit form
+      description: Retrieves the form for editing a denunciation
+      parameters:
+        - $ref: '#/components/parameters/denunciationId'
+      responses:
+        '200':
+          description: Successfully loaded edit form
+          content:
+            text/html:
+              schema:
+                type: string
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+    post:
+      tags: [Denunciations]
+      summary: Update denunciation
+      description: Updates denunciation information
+      parameters:
+        - $ref: '#/components/parameters/denunciationId'
+      requestBody:
+        $ref: '#/components/requestBodies/DenunciationUpdate'
+      responses:
+        '302':
+          description: Redirects to denunciation details page
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  /atribuir:
+    get:
+      tags: [Denunciations]
+      summary: Get assignment page
+      description: Retrieves page for assigning fiscals to denunciations
+      responses:
+        '200':
+          description: Successfully loaded assignment page
+          content:
+            text/html:
+              schema:
+                type: string
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  /atribuir/{denunciaId}:
+    post:
+      tags: [Denunciations]
+      summary: Assign fiscal to denunciation
+      description: Assigns a fiscal to a denunciation and creates a report
+      parameters:
+        - name: denunciaId
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID of the denunciation to assign
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                userId:
+                  type: integer
+                  description: ID of the fiscal to assign
+              required:
+                - userId
+      responses:
+        '302':
+          description: Redirects to assignment page with success message
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  /buscar:
+    get:
+      tags: [Denunciations]
+      summary: Get search page
+      description: Retrieves the denunciation search page with empty results
+      responses:
+        '200':
+          description: Successfully loaded search page
+          content:
+            text/html:
+              schema:
+                type: string
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  /buscar/resultados:
+    get:
+      tags: [Denunciations]
+      summary: Search denunciations
+      description: Searches denunciations based on various criteria
+      parameters:
+        - name: year
+          in: query
+          schema:
+            type: integer
+          description: Year filter
+        - name: number
+          in: query
+          schema:
+            type: integer
+          description: Number filter
+        - name: endereco
+          in: query
+          schema:
+            type: string
+          description: Street address filter
+        - name: numero
+          in: query
+          schema:
+            type: string
+          description: Address number filter
+        - name: bairro
+          in: query
+          schema:
+            type: string
+          description: Neighborhood filter
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [REGISTRADA, EM_ANDAMENTO, FINALIZADA]
+          description: Status filter
+        - name: registration_type
+          in: query
+          schema:
+            type: string
+            enum: [OFICIO, REQUERIMENTO, DENUNCIA]
+          description: Registration type filter
+        - name: userId
+          in: query
+          schema:
+            type: integer
+          description: Assigned fiscal ID filter
+      responses:
+        '200':
+          description: Successfully retrieved search results
+          content:
+            text/html:
+              schema:
+                type: string
+        '500':
+          $ref: '#/components/responses/ServerError'

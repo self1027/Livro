@@ -1,0 +1,70 @@
+openapi: 3.0.0
+info:
+  title: Reports Management API
+  version: 1.0.0
+paths:
+  /denuncia/{id}/adicionar-relatorio:
+    post:
+      tags: [Reports]
+      summary: Add report to denunciation
+      parameters:
+        - $ref: '#/components/parameters/denunciationId'
+      requestBody:
+        $ref: '#/components/requestBodies/ReportCreate'
+      responses:
+        '302':
+          description: Redirects to denunciation page
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  /relatorio/{id}:
+    get:
+      tags: [Reports]
+      summary: Get report details
+      parameters:
+        - $ref: '#/components/parameters/reportId'
+      responses:
+        '200':
+          description: Successfully retrieved report
+          content:
+            text/html:
+              schema:
+                type: string
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  /relatorio/{id}/editar:
+    post:
+      tags: [Reports]
+      summary: Edit a report
+      parameters:
+        - $ref: '#/components/parameters/reportId'
+      requestBody:
+        $ref: '#/components/requestBodies/ReportCreate'
+      responses:
+        '302':
+          description: Redirects to denunciation page
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  /relatorio/{id}/deletar:
+    post:
+      tags: [Reports]
+      summary: Delete a report
+      parameters:
+        - $ref: '#/components/parameters/reportId'
+      responses:
+        '302':
+          description: Redirects to denunciation page
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
