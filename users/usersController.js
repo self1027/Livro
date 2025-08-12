@@ -20,12 +20,12 @@ router.get('/cadastro/usuario', async (req, res) => {
     }
 });
 
-router.post('/usuario/registrar', (req, res) => {
+router.post('/usuario/registrar', async (req, res) => {
     var username = req.body.username
     if(!username){
         return res.redirect('/')
     }
-    userModel.create({
+    await userModel.create({
         name: username
     }).then(() => {
         res.redirect('/cadastro/usuario')
