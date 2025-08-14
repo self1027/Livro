@@ -7,6 +7,7 @@ const userModel = require('../users/usersModel')
 const DENUNCIATION_SENDER = require('../constants/denunciationSenders')
 const DENUNCIATION_STATUS = require('../constants/denunciationStatus')
 const dataAtual = new Date().toLocaleDateString('pt-BR');
+const PDFDocument = require('pdfkit');
 
 
 router.get('/cadastro/denuncia', async (req, res) => {
@@ -416,5 +417,46 @@ router.get('/buscar/resultados', async (req, res) => {
         res.status(500).send('Erro ao buscar denúncias');
     }
 });
+
+router.get('/denuncias/pdf', async (req, res) => {
+    const { fiscalId, status } = req.query;
+  
+    if (!fiscalId) return res.status(400).send('fiscalId é obrigatório');
+  
+    const whereClause = { user_id: fiscalId };
+    if (status && status !== 'ALL') whereClause.status = status;
+  
+    const denuncias = await denunciationsModel.findAll({
+      where: whereClause,
+      order: [['year', 'DESC'], ['number', 'DESC']]
+    });
+  
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', 'inline; filename=denuncias.pdf');
+  
+    const doc = new PDFDocument({ margin: 50 });
+    doc.pipe(res);
+  
+    const statusLabel = status !== 'ALL' ? DENUNCIATION_STATUS[status]?.label : 'Todas';
+    doc.fontSize(18).text(`Denúncias ${statusLabel} - Fiscal ${fiscalId}`, { align: 'center' });
+    doc.moveDown();
+  
+    denuncias.forEach(d => {
+      doc.fontSize(12).text(`Denúncia #${d.number}/${d.year} - ${d.title}`);
+      doc.text(`Endereço: ${d.endereco}, Nº ${d.numero} - Bairro ${d.bairro}`);
+      d.complemento && doc.text(`Complemento: ${d.complemento}`);
+      doc.text(`Descrição: ${d.description}`);
+      doc.moveDown(0.5);
+  
+      doc.moveTo(doc.page.margins.left, doc.y)
+         .lineTo(doc.page.width - doc.page.margins.right, doc.y)
+         .stroke();
+  
+      doc.moveDown(1);
+    });
+  
+    doc.end();
+  });
+  
 
 module.exports = router
