@@ -50,7 +50,6 @@ router.get('/area-fiscal', async (req, res) => {
     }
 });
 
-// routes/yourRouter.js
 router.get('/area-fiscal/:id', async (req, res) => {
     try {
         const fiscalId = req.params.id;
