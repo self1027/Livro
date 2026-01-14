@@ -425,6 +425,8 @@ router.get('/denuncias/pdf', async (req, res) => {
   
     const whereClause = { user_id: fiscalId };
     if (status && status !== 'ALL') whereClause.status = status;
+
+    const fiscal = await userModel.findByPk(fiscalId)
   
     const denuncias = await denunciationsModel.findAll({
       where: whereClause,
@@ -438,22 +440,30 @@ router.get('/denuncias/pdf', async (req, res) => {
     doc.pipe(res);
   
     const statusLabel = status !== 'ALL' ? DENUNCIATION_STATUS[status]?.label : 'Todas';
-    doc.fontSize(18).text(`Denúncias ${statusLabel} - Fiscal ${fiscalId}`, { align: 'center' });
+    doc.fontSize(18).text(`Denúncias ${statusLabel} - Fiscal ${fiscal.name}`, { align: 'center' });
     doc.moveDown();
   
     denuncias.forEach(d => {
-      doc.fontSize(12).text(`Denúncia #${d.number}/${d.year} - ${d.title}`);
-      doc.text(`Endereço: ${d.endereco}, Nº ${d.numero} - Bairro ${d.bairro}`);
-      d.complemento && doc.text(`Complemento: ${d.complemento}`);
-      doc.text(`Descrição: ${d.description}`);
-      doc.moveDown(0.5);
-  
-      doc.moveTo(doc.page.margins.left, doc.y)
-         .lineTo(doc.page.width - doc.page.margins.right, doc.y)
-         .stroke();
-  
-      doc.moveDown(1);
-    });
+        doc.fontSize(12).text(`Denúncia #${d.number}/${d.year} - ${d.title}`, { align: 'center' });
+        doc.text(`Endereço: ${d.endereco}, Nº ${d.numero} - Bairro ${d.bairro}`, { align: 'center' });
+        doc.moveDown(1); // quebra de linha após o endereço
+      
+        // Complemento (se houver)
+        if (d.complemento) {
+          doc.text(`Complemento: ${d.complemento}`, { align: 'center' });
+        }
+      
+        doc.text(`Descrição: ${d.description}`, { align: 'justify' });
+      
+        doc.moveDown(0.5);
+      
+        // Linha separadora
+        doc.moveTo(doc.page.margins.left, doc.y)
+           .lineTo(doc.page.width - doc.page.margins.right, doc.y)
+           .stroke();
+      
+        doc.moveDown(1);
+      });      
   
     doc.end();
   });
