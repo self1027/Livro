@@ -16,8 +16,6 @@ const loadingsController = require('./loadings/loadingsController.js')
 
 const app = express()
 
-setupSwagger(app);
-
 // View Engine
 app.set('view engine', 'ejs')
 
@@ -52,6 +50,8 @@ module.exports = {
 };
 
 app.use(pagination);
+
+setupSwagger(app);
 
 app.get('/', async (req, res) => {
     try {

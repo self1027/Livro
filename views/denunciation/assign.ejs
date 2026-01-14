@@ -20,19 +20,19 @@
             <p><strong>Data:</strong> <%= new Date(denuncia.created_at).toLocaleDateString('pt-BR') %></p>
 
             <form action="/atribuir/<%= denuncia.id %>" method="POST">
-                <div class="mb-3">
-                    <label for="user" class="form-label">Selecionar Fiscal</label>
-                    <select name="userId" id="user" class="form-select" required>
+                <div class="mb-4">
+                    <label for="user" class="form-label fw-semibold">Selecionar Fiscal</label>
+                    <select name="userId" id="user" class="form-control shadow-sm" required>
                         <% users.forEach(user => { %>
                             <option value="<%= user.id %>"><%= user.name %></option>
                         <% }); %>
                     </select>
-                </div>
+                  </div>                                   
                 <div class="d-flex justify-content-between">
-                    <a href="/atribuir" class="btn btn-secondary">Voltar</a>
-                    <button type="submit" class="btn btn-primary">Confirmar</button>
+                    <a href="/atribuir" class="btn btn-outline-secondary px-4">Voltar</a>
+                    <button type="submit" class="btn btn-primary px-4">Confirmar</button>
                 </div>
-            </form>
+            </form>            
         </div>
     </div>
 </div>

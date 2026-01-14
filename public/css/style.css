@@ -78,5 +78,13 @@ main {
 .popover {
     max-width: 500px; /* Aumenta a largura do popover */
     white-space: normal; /* Permite quebra de linha */
-  }
+}
+  
+textarea {
+  min-height: 10rem;     /* seu mínimo */
+  overflow-y: hidden;    /* sem barra vertical */
+  resize: vertical;      /* usuário ainda pode aumentar manualmente, se quiser */
+  box-sizing: border-box;
+  width: 100%;
+}
   

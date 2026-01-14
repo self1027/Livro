@@ -17,7 +17,7 @@ const mergedDoc = {
     description: 'Combined API documentation for Users, Denunciations, and Reports'
   },
   servers: [
-    { url: 'http://192.168.110.100/', description: 'Production server' }
+    { url: `http://${require('os').hostname()}`, description: 'Intranet server' }
   ],
   paths: {
     ...denunciationsDoc.paths,
@@ -29,10 +29,10 @@ const mergedDoc = {
 
 module.exports = (app) => {
   // Serve Swagger UI
-  app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(mergedDoc));
+  app.use('/docs', swaggerUi.serve, swaggerUi.setup(mergedDoc));
   
   // Serve raw OpenAPI spec
-  app.get('/api-docs.json', (req, res) => {
+  app.get('/docs.json', (req, res) => {
     res.json(mergedDoc);
   });
 };

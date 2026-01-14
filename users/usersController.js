@@ -8,7 +8,10 @@ const denunciationStatus = require('../constants/denunciationStatus')
 router.get('/cadastro/usuario', async (req, res) => {
     try {
         const users = await userModel.findAll({
-            order: [['name', 'ASC']]
+            order: [
+                ['ativo', 'DESC'],
+                ['name', 'ASC']
+            ]
         });
 
         res.render('users/new', {
