@@ -1,0 +1,70 @@
+{
+  "id": "decreto_12342_78",
+  "nome": "Decreto nº 12.342, de 27 de setembro de 1978",
+  "artigos": {
+    "art8": {
+      "numero": 8,
+      "caput": "As instalações prediais de água e esgotos deverão seguir as normas e especificações da ABNT e aquelas adotadas pelas entidades responsáveis pelos sistemas, às quais caberá fiscalizar estas instalações, sem prejuízo da fiscalização exercida pela autoridade sanitária.",
+      "paragrafos": {
+        "par1": {
+          "numero": 1,
+          "texto": "As normas referidas neste artigo deverão atender ao estabelecido no presente Regulamento e ser submetidas à apreciação da autoridade sanitária competente, sempre que solicitadas."
+        },
+        "par2": {
+          "numero": 2,
+          "texto": "A autoridade sanitária poderá estabelecer que as normas sejam revistas na forma que indicar, bem como solicitar informações sobre a fiscalização das instalações."
+        }
+      }
+    },
+    "art9": {
+      "numero": 9,
+      "caput": "Todo prédio deverá ser abastecido de água potável em quantidade suficiente ao fim a que se destina, e dotado de dispositivos e instalações adequados destinados a receber e a conduzir os despejos.",
+      "paragrafos": {
+        "par1": {
+          "numero": 1,
+          "texto": "Onde houver redes públicas de água ou esgotos, em condições de atendimento, as edificações novas ou já existentes serão obrigatoriamente a elas ligadas e por elas respectivamente abastecidas ou esgotadas."
+        },
+        "par2": {
+          "numero": 2,
+          "texto": "É vedada a interligação de instalações prediais internas entre prédios situados em lotes distintos."
+        }
+      }
+    },
+    "art12": {
+      "numero": 12,
+      "caput": "Não será permitida:",
+      "incisos": {
+        "i": "a instalação de dispositivos para sucção de água diretamente das redes de distribuição;",
+        "ii": "a passagem de tubulações de água potável pelo interior de fossas, ramais de esgotos, poços de visita e caixas de inspeção de esgotos, bem como de tubulações de esgoto por reservatórios ou depósitos de água;",
+        "iii": "a interconexão de tubulações ligadas diretamente a sistemas públicos com tubulações que contenham água proveniente de outras fontes de abastecimento;",
+        "iv": "a introdução, direta ou indireta, de esgotos em conduto de águas pluviais;",
+        "v": "qualquer outra instalação, processo ou atividade que, a juízo da autoridade sanitária, possa representar risco de contaminação da água potável;",
+        "vi": "a ligação de ralos de águas pluviais e de drenagem à rede de esgotos, a critério da autoridade competente."
+      }
+    },
+    "art214": {
+      "numero": 214,
+      "caput": "Os despejos das garagens, oficinas, postos de serviço e de abastecimento de veículos, nos quais seja feita lavagem ou lubrificação, deverão passar por instalação retentora de areia e graxa, aprovada pelo órgão competente."
+    },
+    "art355": {
+      "numero": 355,
+      "caput": "Nas atividades de controle, as autoridades sanitárias indicarão os métodos de combate adequados, cabendo aos executores a obediência às normas de segurança recomendadas, sempre que utilizadas técnicas, equipamentos ou produtos químicos que possam apresentar riscos ao homem, aos animais e às plantas.",
+      "paragrafos": {
+        "par1": {
+          "numero": 1,
+          "texto": "A responsabilidade pelo controle das moscas, baratas e eventuais vetores mecânicos será assim distribuída, cabendo:",
+          "incisos": {
+            "i": "à autoridade sanitária local a orientação técnica e educativa, com ou sem auxílio dos serviços especializados, a vigilância sanitária, o levantamento e a avaliação dos resultados;",
+            "ii": "às Prefeituras Municipais, o saneamento dos criadouros e abrigos associados ao lixo ou entulhos e das canalizações nas vias públicas;",
+            "iii": "às escolas, a ação educativa junto aos escolares;",
+            "iv": "aos particulares, a manutenção das condições higiênicas nos imóveis que ocupem; e aos proprietários dos imóveis não ocupados."
+          }
+        },
+        "par2": {
+          "numero": 2,
+          "texto": "A autoridade sanitária poderá tomar medidas complementares."
+        }
+      }
+    }
+  }
+}

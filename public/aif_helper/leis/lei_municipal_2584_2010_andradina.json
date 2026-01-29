@@ -1,0 +1,27 @@
+{
+  "id": "lei_municipal_2584_2010_andradina",
+  "nome": "Lei nº 2.584/2010",
+  "municipio": "Andradina",
+  "artigos": {
+    "art1": {
+        "numero": 1,
+        "caput": "Os proprietários, locatários, possuidores ou responsáveis a qualquer título, de imóveis com ou sem edificação, localizados no território do Município, são obrigados a adotar as medidas necessárias à manutenção de suas limpezas, sem acúmulo de lixo, entulhos e demais materiais inservíveis, drenados e enterrados no caso de serem pantanosos ou alagadiços, e a evitar quaisquer outras condições que propiciem a presença e a proliferação ou qualquer outro gênero e espécie, seja ela transmissora ou não de moléstias ao ser humano."
+    },
+    "art2": {
+        "numero": 2,
+        "caput": "Os proprietários de imóveis onde haja construção civil, e os responsáveis pela execução das respectivas obras, sejam públicas ou privadas, ficam obrigados a adotar medidas de proteção, respeitadas as normas e posturas municipais, de modo a evitar acúmulo de água, originadas ou não de chuvas, bem como a realizar manutenção e limpeza dos locais sob a sua responsabilidade, providenciando o descarte ambientalmente correto de materiais inservíveis que possam acumular água ou matéria orgânica, esteja a obra em plena execução ou temporariamente paralisada."
+    },
+    "art3": {
+      "numero": 3,
+      "caput": "Os proprietários, locatários, possuidores ou responsáveis a qualquer título, de imóveis dotados de piscinas, ficam obrigados a manter tratamento adequado da água, de forma a não permitir a presença ou proliferação de mosquitos."
+    },
+    "art10": {
+      "numero": 10,
+      "caput": "Nos terrenos baldios, estabelecimentos e residências onde são mantidos ou comercializados materiais recicláveis de qualquer natureza, apontados pela Vigilância de Saúde do Município como de risco à proliferação de mosquitos, ficam seus proprietários ou responsáveis obrigados a manter os materiais sob cobertura apropriada e aprovada pela autoridade sanitária municipal, respeitadas as demais normas legais aplicáveis à espécie."
+    },
+    "art14": {
+        "numero": 14,
+        "caput": "Os proprietários ou responsáveis por ferros-velhos, comércio e beneficiamento de aparas, e por estabelecimentos que comercializam sucatas em geral e congêneres, deverão providenciar cobertura adequada, respeitadas as demais normas legais aplicáveis à espécie, de forma a impedir o acúmulo de água."
+    }
+  }
+}

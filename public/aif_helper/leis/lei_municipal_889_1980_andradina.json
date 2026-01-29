@@ -1,0 +1,23 @@
+{
+  "id": "lei_municipal_889_1980_andradina",
+  "nome": "Lei nº 889, de 25 de fevereiro de 1980",
+  "municipio": "Andradina",
+  "artigos": {
+    "art66": {
+        "numero": 66,
+        "caput": "O morador é responsável perante as autoridades fiscais pela manutenção da habitação em perfeitas condições de higiene."
+    },
+    "art69": {
+      "numero": 69,
+      "caput": "Os proprietários ou moradores são obrigados a conservar em perfeito estado de asseio os seus quintais, pátios, prédios e terrenos."
+    },
+    "art70": {
+        "numero": 70,
+        "caput": "Nas habitações ou estabelecimentos é terminantemente proibido conservar água estagnada nos quintais, pátios ou áreas livres abertas ou fechadas, bem como vegetação que facilite a proliferação de germes e insetos transmissores de moléstias."
+    },
+    "art188": {
+      "numero": 188,
+      "caput": "É proibido o despejo nas vias públicas de águas servidas de estabelecimentos comerciais, industriais, recreativos, hospitalares, oficinas, lavagem de viaturas e outros."
+    }
+  }
+}

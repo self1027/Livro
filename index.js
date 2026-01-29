@@ -89,6 +89,9 @@ app.get('/', async (req, res) => {
 });
 
 app.use('/', usersController, denunciationsController, reportsController, loadingsController)
+app.get('/aif', (req, res) => {
+    res.render('aif_helper/index.ejs');
+});
 
 app.listen(3000, () => {
     console.log('Server On http://localhost:3000')
