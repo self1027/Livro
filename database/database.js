@@ -1,9 +1,9 @@
 const Sequelize = require('sequelize');
-const connection = new Sequelize('livro-visa', 'root', 'masterkey', {
-    host: '127.0.0.1', // Use IP explícito
+const connection = new Sequelize('livro_visa', 'root', 'masterkey', {
+    host: '127.0.0.1',
     dialect: 'mysql',
     dialectOptions: {
-        connectTimeout: 60000 // Para servidores lentos
+        connectTimeout: 60000
     },
     pool: {
         max: 5,
@@ -11,7 +11,7 @@ const connection = new Sequelize('livro-visa', 'root', 'masterkey', {
         acquire: 30000,
         idle: 10000
     },
-    logging: console.log // Ative apenas em desenvolvimento
+    logging: console.log
 });
 
 module.exports = connection
