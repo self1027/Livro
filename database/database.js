@@ -10,8 +10,7 @@ const connection = new Sequelize('livro_visa', 'root', 'masterkey', {
         min: 0,
         acquire: 30000,
         idle: 10000
-    },
-    logging: console.log
+    }
 });
 
 module.exports = connection

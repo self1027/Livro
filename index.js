@@ -16,24 +16,19 @@ const loadingsController = require('./loadings/loadingsController.js')
 
 const app = express()
 
-// View Engine
 app.set('view engine', 'ejs')
 
-// Static
 app.use(express.static('public'))
 
-// Body Parser
 app.use(bodyParser.urlencoded({extended:false}))
 app.use(bodyParser.json())
 
-// Database
 connection.authenticate().then(() => {
     console.log('Conexão feita com sucesso')
 }).catch((error) => {
     console.log(error)
 })
 
-// Relacionamentos
 user.hasMany(denunciation, { foreignKey: 'user_id' });
 denunciation.belongsTo(user, { foreignKey: 'user_id' });
 
@@ -57,9 +52,8 @@ app.get('/', async (req, res) => {
     try {
         // Pega os parâmetros de offset e limit da query string
         const limit = parseInt(req.query.limit) || 50;  // Limite de 50 por padrão
-        const offset = parseInt(req.query.offset) || 0;  // Offset começa de 0
+        const offset = parseInt(req.query.offset) || 0;
 
-        // Busca as denúncias com base no offset e limit
         const denuncias = await denunciation.findAll({
             include: [{
                 model: user,
@@ -93,7 +87,6 @@ app.get('/aif', (req, res) => {
     res.render('aif_helper/index.ejs');
 });
 
-app.listen(3000, () => {
-    console.log('Server On http://localhost:3000')
+app.listen(80, () => {
     console.log('Swagger UI available at http://localhost/api-docs');
 })
