@@ -1,0 +1,478 @@
+<%- include('../partials/header.ejs') %>
+<%- include('../partials/navbar.ejs') %>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
+<style>
+#calendario th,
+#calendario td {
+    min-width: 120px;
+    height: 110px;
+    vertical-align: top;
+    position: relative;
+}
+
+.controle-col {
+    width: 160px;
+    min-width: 160px;
+    font-weight: 600;
+    background: #f1f3f5;
+    cursor: pointer;
+    position: relative;
+    padding-top: 25px !important;
+    vertical-align: top !important; 
+}
+
+.nome-badge {
+    display: block; 
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    color: #fff;
+    font-weight: 600;
+    max-width: 100%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    position: relative;
+    z-index: 2;
+    text-align: center;
+}
+
+.controle-col .nome-badge {
+    margin-top: 20px; 
+}
+
+.dia-util .nome-badge,
+.fds .nome-badge {
+    margin-top: 20px;
+    position: relative;
+    z-index: 2;
+    display: block; 
+    text-align: center;
+}
+
+.nome-badge {
+    box-shadow: none;
+}
+
+.icone-anotacao {
+    position: absolute;
+    top: 0px; 
+    right: 6px;
+    font-size: 1.1rem;
+    color: #ff6b6b;
+    opacity: 1;
+    cursor: help;
+    z-index: 10;
+    transition: transform 0.2s, color 0.2s;
+    background: transparent;
+    display: block !important;
+    pointer-events: auto;
+    text-shadow: 0 0 3px rgba(255,255,255,0.8);
+}
+
+.icone-anotacao:hover {
+    transform: scale(1.2);
+    color: #ff3b3b;
+}
+
+.dia-util {
+    cursor: pointer;
+    transition: background 0.2s ease;
+    position: relative;
+    padding-top: 25px !important;
+    min-height: 110px;
+    background-color: transparent;
+    vertical-align: top;
+}
+
+.dia-util:hover {
+    background: #eef2f7;
+}
+
+.fds {
+    background: #f8f9fa;
+    color: #adb5bd;
+    position: relative;
+    padding-top: 25px !important;
+    min-height: 110px;
+    vertical-align: top;
+}
+
+.feriado {
+    background: #fff3cd !important;
+}
+
+.dia-numero {
+    position: absolute;
+    top: 6px;
+    left: 8px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #495057;
+    z-index: 1;
+}
+
+.tooltip-inner {
+    max-width: 250px;
+    text-align: left;
+    padding: 8px 12px;
+    background-color: #333;
+    font-size: 0.85rem;
+    white-space: pre-wrap;
+}
+
+.controle-col.tem-anotacao {
+    background-color: #f1f3f5 !important;
+}
+
+.controle-col .icone-anotacao {
+    position: absolute;
+    top: 0px;
+    right: 6px;
+    z-index: 10;
+}
+
+.controle-col .text-muted {
+    display: block;
+    margin-top: 20px;
+    text-align: center;
+}
+</style>
+
+<div class="container">
+    <hr>
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h2>Calendário Semanal</h2>
+            <div>
+                <button class="btn btn-outline-secondary btn-sm btn-nav-mes" onclick="mudarMes(-1)">
+                    <i class="fa-solid fa-arrow-left"></i>
+                </button>
+                <span id="mesAtual" class="mx-3 fw-bold"></span>
+                <button class="btn btn-outline-secondary btn-sm btn-nav-mes" onclick="mudarMes(1)">
+                    <i class="fa-solid fa-arrow-right"></i>
+                </button>
+            </div>
+        </div>
+
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered text-center" id="calendario">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Controle</th>
+                            <th>Seg</th>
+                            <th>Ter</th>
+                            <th>Qua</th>
+                            <th>Qui</th>
+                            <th>Sex</th>
+                            <th>Sáb</th>
+                            <th>Dom</th>
+                        </tr>
+                    </thead>
+                    <tbody id="corpoCalendario"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <br>
+</div>
+
+<div class="modal fade" id="modalSemana" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Configuração</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="chaveSelecionada">
+
+                <div id="tipoDiaContainer" class="mb-3" style="display:none;">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="checkboxFeriado">
+                        <label class="form-check-label" for="checkboxFeriado">
+                            Feriado / Ponto Facultativo
+                        </label>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Nome / Responsável</label>
+                    <input type="text" id="inputNome" class="form-control" placeholder="Digite o nome..." autocomplete="off">
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Anotação</label>
+                    <textarea id="inputAnotacao" class="form-control" rows="3" placeholder="Detalhes adicionais..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                <button class="btn btn-primary" onclick="salvar()">Salvar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let dataAtual = new Date();
+let semanaInfo = {};
+let diaInfo = {};
+let tipoEdicao = null;
+
+document.addEventListener("DOMContentLoaded", () => {
+    if (typeof $ !== 'undefined') {
+        $('#modalSemana').on('shown.bs.modal', function () {
+            $('#inputNome').trigger('focus');
+            $('#inputNome').select();
+        });
+    }
+
+    document.getElementById('modalSemana').addEventListener('keydown', (e) => {
+        if (e.key === "Enter" && e.target.id !== "inputAnotacao") {
+            e.preventDefault();
+            salvar();
+        }
+    });
+
+    renderizarCalendario();
+});
+
+function formatarISO(date){
+    const d = new Date(date.getTime() - (date.getTimezoneOffset() * 60000));
+    return d.toISOString().split('T')[0];
+}
+
+function inicioSemana(date){
+    const d = new Date(date);
+    const dia = d.getDay();
+    const diff = d.getDate() - (dia === 0 ? 6 : dia - 1);
+    d.setDate(diff);
+    d.setHours(0,0,0,0);
+    return d;
+}
+
+function corNome(nome){
+    let hash = 0;
+    for(let i = 0; i < nome.length; i++){
+        hash = nome.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    const hue = Math.abs(hash * 137.508) % 360;
+    return `hsl(${hue}, 65%, 45%)`;
+}
+
+function ativarTooltips() {
+    if (typeof $ !== 'undefined') {
+        $('[data-toggle="tooltip"]').tooltip({
+            container: 'body',
+            trigger: 'hover',
+            placement: 'top',
+            html: true
+        });
+    }
+}
+
+function renderizarCalendario(){
+    if (typeof $ !== 'undefined') {
+        $('[data-toggle="tooltip"]').tooltip('dispose');
+    }
+    
+    const corpo = document.getElementById('corpoCalendario');
+    const mesLabel = document.getElementById('mesAtual');
+    corpo.innerHTML = "";
+
+    const ano = dataAtual.getFullYear();
+    const mes = dataAtual.getMonth();
+
+    mesLabel.innerText = dataAtual.toLocaleDateString('pt-BR',{month:'long',year:'numeric'});
+
+    const primeiroDia = new Date(ano, mes, 1);
+    const ultimoDia = new Date(ano, mes+1, 0);
+
+    let semanaInicio = inicioSemana(primeiroDia);
+
+    while(semanaInicio <= ultimoDia){
+        const tr = document.createElement('tr');
+        const chaveSemana = formatarISO(semanaInicio);
+        const infoSemana = semanaInfo[chaveSemana];
+
+        const tdControle = document.createElement('td');
+        tdControle.className = "controle-col";
+        tdControle.style.cursor = "pointer";
+
+        if(infoSemana){
+            if(infoSemana.anotacao && infoSemana.anotacao.trim() !== ""){
+                const iconSpan = document.createElement('i');
+                iconSpan.className = "fas fa-quote-right icone-anotacao";
+                iconSpan.setAttribute('data-toggle', 'tooltip');
+                iconSpan.setAttribute('data-placement', 'top');
+                iconSpan.setAttribute('title', infoSemana.anotacao);
+                tdControle.appendChild(iconSpan);
+            }
+            
+            const nomeDiv = document.createElement('div');
+            nomeDiv.className = "nome-badge";
+            nomeDiv.style.background = corNome(infoSemana.nome);
+            nomeDiv.textContent = infoSemana.nome;
+            tdControle.appendChild(nomeDiv);
+        }else{
+            const spanMuted = document.createElement('span');
+            spanMuted.className = "text-muted";
+            spanMuted.textContent = "Definir Semana";
+            tdControle.appendChild(spanMuted);
+        }
+
+        tdControle.onclick = ()=>abrirModal(chaveSemana,'semana');
+        tr.appendChild(tdControle);
+
+        for(let i=0;i<7;i++){
+            const dia = new Date(semanaInicio);
+            dia.setDate(semanaInicio.getDate()+i);
+
+            const diaSemana = dia.getDay();
+            const chaveDia = formatarISO(dia);
+            const infoDia = diaInfo[chaveDia];
+            const isFds = (diaSemana === 0 || diaSemana === 6);
+
+            const td = document.createElement('td');
+            
+            const numeroDiv = document.createElement('div');
+            numeroDiv.className = "dia-numero";
+            numeroDiv.textContent = dia.getDate();
+            td.appendChild(numeroDiv);
+
+            if(isFds){
+                td.className = "fds";
+                tr.appendChild(td);
+                continue;
+            }
+
+            td.classList.add("dia-util");
+
+            let nomeExibir = null;
+            let anotacaoFinal = null;
+
+            if(infoDia?.tipo === "feriado"){
+                td.classList.add("feriado");
+                anotacaoFinal = infoDia.anotacao;
+                
+                const feriadoDiv = document.createElement('div');
+                feriadoDiv.className = "small text-danger mt-2";
+                feriadoDiv.textContent = "FERIADO";
+                td.appendChild(feriadoDiv);
+            }
+            else if(infoDia?.tipo === "sobrescrito"){
+                nomeExibir = infoDia.nome;
+                anotacaoFinal = infoDia.anotacao;
+            }
+            else if(infoSemana){
+                nomeExibir = infoSemana.nome;
+                anotacaoFinal = infoSemana.anotacao;
+            }
+
+            if(anotacaoFinal && anotacaoFinal.trim() !== ""){
+                const iconSpan = document.createElement('i');
+                iconSpan.className = "fas fa-quote-right icone-anotacao";
+                iconSpan.setAttribute('data-toggle', 'tooltip');
+                iconSpan.setAttribute('data-placement', 'top');
+                iconSpan.setAttribute('title', anotacaoFinal);
+                td.appendChild(iconSpan);
+            }
+
+            if(nomeExibir){
+                const nomeDiv = document.createElement('div');
+                nomeDiv.className = "nome-badge";
+                nomeDiv.style.background = corNome(nomeExibir);
+                nomeDiv.textContent = nomeExibir;
+                td.appendChild(nomeDiv);
+            }
+
+            td.onclick = ()=>abrirModal(chaveDia,'dia');
+            tr.appendChild(td);
+        }
+        corpo.appendChild(tr);
+        semanaInicio.setDate(semanaInicio.getDate()+7);
+    }
+    
+    setTimeout(() => {
+        ativarTooltips();
+    }, 100);
+}
+
+function abrirModal(chave,tipo){
+    if (typeof $ !== 'undefined') {
+        $('.tooltip').remove();
+    }
+    
+    tipoEdicao = tipo;
+    document.getElementById('chaveSelecionada').value = chave;
+
+    const inputNome = document.getElementById('inputNome');
+    const inputAnot = document.getElementById('inputAnotacao');
+    const checkFer = document.getElementById('checkboxFeriado');
+
+    if(tipo === "semana"){
+        document.querySelector('.modal-title').innerText = "Configurar Semana";
+        document.getElementById('tipoDiaContainer').style.display = "none";
+        const existente = semanaInfo[chave] || {};
+        inputNome.value = existente.nome || "";
+        inputAnot.value = existente.anotacao || "";
+    }
+    else{
+        document.querySelector('.modal-title').innerText = "Configurar Dia";
+        document.getElementById('tipoDiaContainer').style.display = "block";
+        const existente = diaInfo[chave] || {};
+        checkFer.checked = existente.tipo === "feriado";
+        inputNome.value = existente.tipo === "sobrescrito" ? existente.nome || "" : "";
+        inputAnot.value = existente.anotacao || "";
+    }
+
+    if (typeof $ !== 'undefined') {
+        $('#modalSemana').modal('show');
+    }
+}
+
+function salvar(){
+    const chave = document.getElementById('chaveSelecionada').value;
+    const nome = document.getElementById('inputNome').value.trim();
+    const anotacao = document.getElementById('inputAnotacao').value.trim();
+
+    if(tipoEdicao === "semana"){
+        if(!nome) {
+            alert("Por favor, informe o nome do responsável pela semana.");
+            return;
+        }
+        semanaInfo[chave] = { nome, anotacao };
+    }
+    else{
+        const feriado = document.getElementById('checkboxFeriado').checked;
+        if(feriado){
+            diaInfo[chave] = { tipo: "feriado", anotacao };
+        }
+        else if(nome){
+            diaInfo[chave] = { tipo: "sobrescrito", nome, anotacao };
+        }
+        else {
+            delete diaInfo[chave];
+        }
+    }
+
+    if (typeof $ !== 'undefined') {
+        $('#modalSemana').modal('hide');
+    }
+    
+    renderizarCalendario();
+}
+
+function mudarMes(valor){
+    dataAtual.setMonth(dataAtual.getMonth()+valor);
+    renderizarCalendario();
+}
+</script>
+
+<%- include('../partials/footer.ejs') %><%# TODO: Fazer persistencia de dados add na navbar e mandar pra prod %>

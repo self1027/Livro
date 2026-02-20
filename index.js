@@ -92,6 +92,9 @@ app.use('/', usersController, denunciationsController, reportsController, loadin
 app.get('/aif', (req, res) => {
     res.render('aif_helper/index.ejs');
 });
+app.get('/escala', (req, res) => {
+    res.render('schedule/index.ejs');
+});
 
 app.listen(3000, () => {
     console.log('Server On http://localhost:3000')
