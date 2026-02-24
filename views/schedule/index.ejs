@@ -1,8 +1,6 @@
 <%- include('../partials/header.ejs') %>
 <%- include('../partials/navbar.ejs') %>
 
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-
 <style>
 #calendario th,
 #calendario td {
@@ -145,7 +143,7 @@
     <hr>
     <div class="card">
         <div class="card-header d-flex justify-content-between align-items-center">
-            <h2>Calendário Semanal</h2>
+            <h2>Calendário Semanal (Período da Tarde)</h2>
             <div>
                 <button class="btn btn-outline-secondary btn-sm btn-nav-mes" onclick="mudarMes(-1)">
                     <i class="fa-solid fa-arrow-left"></i>
@@ -220,12 +218,19 @@
 </div>
 
 <script>
-let dataAtual = new Date();
-let semanaInfo = {};
-let diaInfo = {};
+let semanas = <%- JSON.stringify(semanas || []) %>;
+let dias = <%- JSON.stringify(dias || []) %>;
+let dataAtual = new Date(<%= ano %>, <%= mes %>);
 let tipoEdicao = null;
 
+const semanaMap = {};
+semanas.forEach(s => semanaMap[s.week_key] = s);
+
+const diaMap = {};
+dias.forEach(d => diaMap[d.data] = d);
+
 document.addEventListener("DOMContentLoaded", () => {
+
     if (typeof $ !== 'undefined') {
         $('#modalSemana').on('shown.bs.modal', function () {
             $('#inputNome').trigger('focus');
@@ -257,6 +262,23 @@ function inicioSemana(date){
     return d;
 }
 
+function fimSemana(date){
+    const d = new Date(date);
+    const dia = d.getDay();
+    const diff = dia === 0 ? 0 : 7 - dia;
+    d.setDate(d.getDate() + diff);
+    d.setHours(0,0,0,0);
+    return d;
+}
+
+function getWeekKey(date){
+    const d = new Date(date);
+    const oneJan = new Date(d.getFullYear(),0,1);
+    const dias = Math.floor((d - oneJan) / 86400000);
+    const semana = Math.ceil((dias + oneJan.getDay() + 1) / 7);
+    return `${semana}-${d.getFullYear()}`;
+}
+
 function corNome(nome){
     let hash = 0;
     for(let i = 0; i < nome.length; i++){
@@ -266,22 +288,8 @@ function corNome(nome){
     return `hsl(${hue}, 65%, 45%)`;
 }
 
-function ativarTooltips() {
-    if (typeof $ !== 'undefined') {
-        $('[data-toggle="tooltip"]').tooltip({
-            container: 'body',
-            trigger: 'hover',
-            placement: 'top',
-            html: true
-        });
-    }
-}
-
 function renderizarCalendario(){
-    if (typeof $ !== 'undefined') {
-        $('[data-toggle="tooltip"]').tooltip('dispose');
-    }
-    
+
     const corpo = document.getElementById('corpoCalendario');
     const mesLabel = document.getElementById('mesAtual');
     corpo.innerHTML = "";
@@ -292,59 +300,51 @@ function renderizarCalendario(){
     mesLabel.innerText = dataAtual.toLocaleDateString('pt-BR',{month:'long',year:'numeric'});
 
     const primeiroDia = new Date(ano, mes, 1);
-    const ultimoDia = new Date(ano, mes+1, 0);
+    const ultimoDia = new Date(ano, mes + 1, 0);
 
-    let semanaInicio = inicioSemana(primeiroDia);
+    let inicioGrid = inicioSemana(primeiroDia);
+    const fimGrid = fimSemana(ultimoDia);
 
-    while(semanaInicio <= ultimoDia){
+    while(inicioGrid <= fimGrid){
+
         const tr = document.createElement('tr');
-        const chaveSemana = formatarISO(semanaInicio);
-        const infoSemana = semanaInfo[chaveSemana];
+        const weekKey = getWeekKey(inicioGrid);
+        const infoSemana = semanaMap[weekKey] || null;
 
         const tdControle = document.createElement('td');
         tdControle.className = "controle-col";
-        tdControle.style.cursor = "pointer";
 
         if(infoSemana){
-            if(infoSemana.anotacao && infoSemana.anotacao.trim() !== ""){
-                const iconSpan = document.createElement('i');
-                iconSpan.className = "fas fa-quote-right icone-anotacao";
-                iconSpan.setAttribute('data-toggle', 'tooltip');
-                iconSpan.setAttribute('data-placement', 'top');
-                iconSpan.setAttribute('title', infoSemana.anotacao);
-                tdControle.appendChild(iconSpan);
+            if(infoSemana.anotacao){
+                const icon = document.createElement('i');
+                icon.className = "fas fa-quote-right icone-anotacao";
+                icon.title = infoSemana.anotacao;
+                tdControle.appendChild(icon);
             }
-            
+
             const nomeDiv = document.createElement('div');
             nomeDiv.className = "nome-badge";
             nomeDiv.style.background = corNome(infoSemana.nome);
             nomeDiv.textContent = infoSemana.nome;
             tdControle.appendChild(nomeDiv);
-        }else{
-            const spanMuted = document.createElement('span');
-            spanMuted.className = "text-muted";
-            spanMuted.textContent = "Definir Semana";
-            tdControle.appendChild(spanMuted);
+        } else {
+            tdControle.innerHTML = `<span class="text-muted">Definir Semana</span>`;
         }
 
-        tdControle.onclick = ()=>abrirModal(chaveSemana,'semana');
+        tdControle.onclick = ()=>abrirModal(weekKey,'semana');
         tr.appendChild(tdControle);
 
         for(let i=0;i<7;i++){
-            const dia = new Date(semanaInicio);
-            dia.setDate(semanaInicio.getDate()+i);
 
-            const diaSemana = dia.getDay();
+            const dia = new Date(inicioGrid);
+            dia.setDate(inicioGrid.getDate()+i);
+
             const chaveDia = formatarISO(dia);
-            const infoDia = diaInfo[chaveDia];
-            const isFds = (diaSemana === 0 || diaSemana === 6);
+            const infoDia = diaMap[chaveDia];
+            const isFds = (dia.getDay() === 0 || dia.getDay() === 6);
 
             const td = document.createElement('td');
-            
-            const numeroDiv = document.createElement('div');
-            numeroDiv.className = "dia-numero";
-            numeroDiv.textContent = dia.getDate();
-            td.appendChild(numeroDiv);
+            td.innerHTML = `<div class="dia-numero">${dia.getDate()}</div>`;
 
             if(isFds){
                 td.className = "fds";
@@ -359,12 +359,8 @@ function renderizarCalendario(){
 
             if(infoDia?.tipo === "feriado"){
                 td.classList.add("feriado");
+                td.innerHTML += `<div class="small text-danger mt-2">FERIADO</div>`;
                 anotacaoFinal = infoDia.anotacao;
-                
-                const feriadoDiv = document.createElement('div');
-                feriadoDiv.className = "small text-danger mt-2";
-                feriadoDiv.textContent = "FERIADO";
-                td.appendChild(feriadoDiv);
             }
             else if(infoDia?.tipo === "sobrescrito"){
                 nomeExibir = infoDia.nome;
@@ -375,40 +371,28 @@ function renderizarCalendario(){
                 anotacaoFinal = infoSemana.anotacao;
             }
 
-            if(anotacaoFinal && anotacaoFinal.trim() !== ""){
-                const iconSpan = document.createElement('i');
-                iconSpan.className = "fas fa-quote-right icone-anotacao";
-                iconSpan.setAttribute('data-toggle', 'tooltip');
-                iconSpan.setAttribute('data-placement', 'top');
-                iconSpan.setAttribute('title', anotacaoFinal);
-                td.appendChild(iconSpan);
+            if(anotacaoFinal){
+                td.innerHTML += `<i class="fas fa-quote-right icone-anotacao" title="${anotacaoFinal}"></i>`;
             }
 
             if(nomeExibir){
-                const nomeDiv = document.createElement('div');
-                nomeDiv.className = "nome-badge";
-                nomeDiv.style.background = corNome(nomeExibir);
-                nomeDiv.textContent = nomeExibir;
-                td.appendChild(nomeDiv);
+                td.innerHTML += `
+                    <div class="nome-badge" style="background:${corNome(nomeExibir)}">
+                        ${nomeExibir}
+                    </div>`;
             }
 
             td.onclick = ()=>abrirModal(chaveDia,'dia');
             tr.appendChild(td);
         }
+
         corpo.appendChild(tr);
-        semanaInicio.setDate(semanaInicio.getDate()+7);
+        inicioGrid.setDate(inicioGrid.getDate()+7);
     }
-    
-    setTimeout(() => {
-        ativarTooltips();
-    }, 100);
 }
 
 function abrirModal(chave,tipo){
-    if (typeof $ !== 'undefined') {
-        $('.tooltip').remove();
-    }
-    
+
     tipoEdicao = tipo;
     document.getElementById('chaveSelecionada').value = chave;
 
@@ -419,60 +403,82 @@ function abrirModal(chave,tipo){
     if(tipo === "semana"){
         document.querySelector('.modal-title').innerText = "Configurar Semana";
         document.getElementById('tipoDiaContainer').style.display = "none";
-        const existente = semanaInfo[chave] || {};
+        const existente = semanaMap[chave] || {};
         inputNome.value = existente.nome || "";
         inputAnot.value = existente.anotacao || "";
     }
     else{
         document.querySelector('.modal-title').innerText = "Configurar Dia";
         document.getElementById('tipoDiaContainer').style.display = "block";
-        const existente = diaInfo[chave] || {};
+        const existente = diaMap[chave] || {};
         checkFer.checked = existente.tipo === "feriado";
         inputNome.value = existente.tipo === "sobrescrito" ? existente.nome || "" : "";
         inputAnot.value = existente.anotacao || "";
     }
 
-    if (typeof $ !== 'undefined') {
-        $('#modalSemana').modal('show');
-    }
+    $('#modalSemana').modal('show');
 }
 
-function salvar(){
+async function salvar(){
+
     const chave = document.getElementById('chaveSelecionada').value;
     const nome = document.getElementById('inputNome').value.trim();
     const anotacao = document.getElementById('inputAnotacao').value.trim();
+    const feriado = document.getElementById('checkboxFeriado').checked;
+
+    let url = '';
+    let payload = {};
 
     if(tipoEdicao === "semana"){
-        if(!nome) {
-            alert("Por favor, informe o nome do responsável pela semana.");
+
+        if(!nome){
+            alert("Informe o nome.");
             return;
         }
-        semanaInfo[chave] = { nome, anotacao };
+
+        url = '/escala/semana';
+        payload = { week_key: chave, nome, anotacao };
     }
     else{
-        const feriado = document.getElementById('checkboxFeriado').checked;
+
+        url = '/escala/dia';
+
         if(feriado){
-            diaInfo[chave] = { tipo: "feriado", anotacao };
+            payload = { data: chave, tipo: 'feriado', anotacao };
         }
         else if(nome){
-            diaInfo[chave] = { tipo: "sobrescrito", nome, anotacao };
+            payload = { data: chave, tipo: 'sobrescrito', nome, anotacao };
         }
-        else {
-            delete diaInfo[chave];
+        else{
+            payload = { data: chave, tipo: 'remover' };
         }
     }
 
-    if (typeof $ !== 'undefined') {
-        $('#modalSemana').modal('hide');
-    }
-    
-    renderizarCalendario();
+    await fetch(url,{
+        method:'POST',
+        headers:{ 'Content-Type':'application/json' },
+        body: JSON.stringify(payload)
+    });
+
+    location.href = `/escala?ano=${dataAtual.getFullYear()}&mes=${dataAtual.getMonth()}`;
 }
 
 function mudarMes(valor){
-    dataAtual.setMonth(dataAtual.getMonth()+valor);
-    renderizarCalendario();
+    let novoMes = dataAtual.getMonth() + valor;
+    let novoAno = dataAtual.getFullYear();
+
+    if (novoMes < 0) {
+        novoMes = 11;
+        novoAno--;
+    }
+
+    if (novoMes > 11) {
+        novoMes = 0;
+        novoAno++;
+    }
+
+    location.href = `/escala?ano=${novoAno}&mes=${novoMes}`;
 }
 </script>
 
-<%- include('../partials/footer.ejs') %><%# TODO: Fazer persistencia de dados add na navbar e mandar pra prod %>
+<%- include('../partials/footer.ejs') %>

@@ -12,6 +12,7 @@ const DENUNCIATION_SENDER = require('./constants/denunciationSenders.js');
 const usersController = require('./users/usersController.js')
 const denunciationsController = require('./denunciations/denunciationsController.js')
 const reportsController = require('./reports/reportsController.js')
+const scheduleController = require('./schedule/scheduleController.js')
 const loadingsController = require('./loadings/loadingsController.js')
 
 const app = express()
@@ -23,7 +24,7 @@ app.set('view engine', 'ejs')
 app.use(express.static('public'))
 
 // Body Parser
-app.use(bodyParser.urlencoded({extended:false}))
+app.use(bodyParser.urlencoded({extended:true}))
 app.use(bodyParser.json())
 
 // Database
@@ -88,7 +89,7 @@ app.get('/', async (req, res) => {
     }
 });
 
-app.use('/', usersController, denunciationsController, reportsController, loadingsController)
+app.use('/', usersController, denunciationsController, reportsController, loadingsController, scheduleController)
 app.get('/aif', (req, res) => {
     res.render('aif_helper/index.ejs');
 });
