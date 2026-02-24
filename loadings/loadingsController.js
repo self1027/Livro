@@ -9,7 +9,6 @@ router.get('/api/denuncias', async (req, res) => {
     const { limit = 50, offset = 0 } = req.query;
 
     try {
-        // Buscando as denúncias no banco de dados
         const denuncias = await denunciationsModel.findAll({
             limit: parseInt(limit),
             offset: parseInt(offset),

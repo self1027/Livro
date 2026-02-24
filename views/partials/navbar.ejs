@@ -1,16 +1,16 @@
 <style>
     .navbar {
-        padding: 0.4rem 1rem; /* reduz altura */
-        font-size: 0.9rem;    /* reduz fonte */
+        padding: 0.4rem 1rem;
+        font-size: 0.9rem;
       }
       
       .navbar-brand {
-        font-size: 1rem;      /* título menor */
+        font-size: 1rem;
         padding: 0.3rem 0;
       }
       
       .nav-link {
-        padding: 0.3rem 0.6rem; /* menos espaço lateral/vertical */
+        padding: 0.3rem 0.6rem;
       }
             
       .nav-link:hover {
@@ -24,46 +24,83 @@
 </style>  
 
 <nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm">
-    <a class="navbar-brand font-weight-bold" href="/">
-      <i class="fas fa-book mr-2"></i> Livro VISA Andradina
-    </a>
-  
-    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" 
-            aria-controls="navbarNav" aria-expanded="false" aria-label="Alternar navegação">
-      <span class="navbar-toggler-icon"></span>
-    </button>
-  
-    <div class="collapse navbar-collapse" id="navbarNav">
-      <ul class="navbar-nav mr-auto">
-        <li class="nav-item mx-2">
-          <a class="nav-link" href="/cadastro/denuncia">
-            <i class="fas fa-plus-circle mr-1"></i> Nova Denúncia
+  <a class="navbar-brand font-weight-bold" href="/">
+    <i class="fas fa-book mr-2"></i> Livro VISA Andradina
+  </a>
+
+  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav"
+          aria-controls="navbarNav" aria-expanded="false" aria-label="Alternar navegação">
+    <span class="navbar-toggler-icon"></span>
+  </button>
+
+  <div class="collapse navbar-collapse" id="navbarNav">
+
+    <!-- Esquerda -->
+    <ul class="navbar-nav mr-auto">
+      <li class="nav-item mx-2">
+        <a class="nav-link" href="/cadastro/denuncia">
+          <i class="fas fa-plus-circle mr-1"></i> Nova Denúncia
+        </a>
+      </li>
+
+      <li class="nav-item mx-2">
+        <a class="nav-link" href="/cadastro/usuario">
+          <i class="fas fa-user-plus mr-1"></i> Cadastrar Fiscal
+        </a>
+      </li>
+
+      <li class="nav-item mx-2">
+        <a class="nav-link" href="/atribuir">
+          <i class="fas fa-tasks mr-1"></i> Atribuir Fiscal
+        </a>
+      </li>
+    </ul>
+
+    <!-- Direita -->
+    <ul class="navbar-nav ml-auto">
+      <li class="nav-item dropdown mx-2">
+        <a class="nav-link dropdown-toggle" href="#" id="fiscalDropdown"
+           role="button" data-toggle="dropdown"
+           aria-haspopup="true" aria-expanded="false">
+          <i class="fas fa-user-shield mr-1"></i> Fiscal
+        </a>
+
+        <div class="dropdown-menu dropdown-menu-right shadow-sm"
+             aria-labelledby="fiscalDropdown">
+
+          <a class="dropdown-item" href="/area-fiscal">
+            <i class="fas fa-user mr-2"></i> Área do Fiscal
           </a>
-        </li>
-        <li class="nav-item mx-2">
-          <a class="nav-link" href="/cadastro/usuario">
-            <i class="fas fa-user-plus mr-1"></i> Cadastrar Fiscal
+
+          <a class="dropdown-item" href="/aif">
+            <i class="fas fa-file-alt mr-2"></i> Lavrar AIF
           </a>
-        </li>
-        <li class="nav-item mx-2">
-          <a class="nav-link" href="/atribuir">
-            <i class="fas fa-tasks mr-1"></i> Atribuir Fiscal
+
+          <a class="dropdown-item" href="/escala">
+            <i class="fas fa-calendar-alt mr-2"></i> Escala
           </a>
-        </li>
-      </ul>
-  
-      <ul class="navbar-nav ml-auto">
-        <li class="nav-item mx-2">
-          <a class="nav-link" href="/aif">
-            <i class="fas fa-file-alt mr-1"></i> Lavrar AIF
+
+          <div class="dropdown-divider"></div>
+
+          <a class="dropdown-item disabled text-muted"
+             href="#"
+             tabindex="-1"
+             data-toggle="tooltip"
+             data-placement="left"
+             title="Em breve">
+            <i class="fas fa-chart-bar mr-2"></i> Números
           </a>
-        </li>
-        <li class="nav-item mx-2">
-          <a class="nav-link" href="/area-fiscal">
-            <i class="fas fa-user-shield mr-1"></i> Área do Fiscal
-          </a>
-        </li>
-      </ul>
-    </div>
-  </nav>
+
+        </div>
+      </li>
+    </ul>
+
+  </div>
+</nav>
+
+<script>
+  $(function () {
+    $('[data-toggle="tooltip"]').tooltip();
+  });
+</script>
   

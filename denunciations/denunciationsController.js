@@ -9,32 +9,27 @@ const DENUNCIATION_STATUS = require('../constants/denunciationStatus')
 const dataAtual = new Date().toLocaleDateString('pt-BR');
 const PDFDocument = require('pdfkit');
 
-
 router.get('/cadastro/denuncia', async (req, res) => {
     try {
         const currentYear = new Date().getFullYear();
 
-        // Verifica se existe QUALQUER denúncia no banco (independente do ano)
         const anyDenuncia = await denunciationsModel.findOne({
-            order: [['createdAt', 'ASC']] // Pega a primeira denúncia criada
+            order: [['createdAt', 'ASC']]
         });
 
-        // Se NÃO existir nenhuma denúncia no banco, começa com 110
         if (!anyDenuncia) {
             return res.render('denunciation/new', {
                 year: currentYear,
-                lastNumber: 111, // Número inicial
+                lastNumber: 111,
                 DENUNCIATION_SENDER: DENUNCIATION_SENDER
             });
         }
 
-        // Caso contrário, busca a última denúncia do ANO ATUAL
         const lastDenuncia = await denunciationsModel.findOne({
             where: { year: currentYear },
             order: [['number', 'DESC']]
         });
 
-        // Calcula o próximo número (último + 1 ou 1 se for o primeiro do ano)
         const nextNumber = (lastDenuncia && lastDenuncia.number) ? lastDenuncia.number + 1 : 1;
 
         res.render('denunciation/new', {
@@ -48,10 +43,8 @@ router.get('/cadastro/denuncia', async (req, res) => {
     }
 });
 
-// Rota POST para registrar a denúncia
 router.post('/denuncia/registrar', async (req, res) => {
     try {
-        // Extrai os dados do corpo da requisição (req.body)
         const {
             year,
             number,
@@ -64,31 +57,27 @@ router.post('/denuncia/registrar', async (req, res) => {
             description
         } = req.body;
 
-        // Verifica se já existe uma denúncia com o mesmo endereço e status diferente de 'Finalizado'
         const existingDenuncia = await denunciationsModel.findOne({
             where: {
                 endereco: endereco,
                 numero: numero,
                 bairro: bairro,
                 status: {
-                    [Op.ne]: DENUNCIATION_STATUS.FINALIZADA.slug // Op.ne é usado para "diferente de" no Sequelize
+                    [Op.ne]: DENUNCIATION_STATUS.FINALIZADA.slug
                 }
             }
         });
 
-        // Se já existir uma denúncia com o mesmo endereço e status não finalizado, retorna erro
         if (existingDenuncia) {
-            // Renderiza a página de cadastro novamente, passando a mensagem e o link para a denúncia repetida
             return res.render('denunciation/new', {
                 message: `Já existe uma denúncia registrada com este endereço. Você pode visualizar a denúncia em: <a href="/denuncia/${existingDenuncia.id}">Clique aqui para visualizar</a>.`,
-                year, // Passa os dados preenchidos no formulário para que não se percam
-                lastNumber: number, // Passa o número da última denúncia
-                DENUNCIATION_SENDER // Passa as opções de tipos de registro
+                year,
+                lastNumber: number,
+                DENUNCIATION_SENDER
             });
         }
 
-        // Cria a denúncia no banco de dados
-        const newDenuncia = await denunciationsModel.create({
+        await denunciationsModel.create({
             year,
             number,
             registration_type,
@@ -101,13 +90,10 @@ router.post('/denuncia/registrar', async (req, res) => {
             status: DENUNCIATION_STATUS.REGISTRADA.slug
         });
 
-        // Redireciona para a página principal ou outra página de sucesso
         res.redirect('/');
-
     } catch (error) {
         console.error('Erro ao registrar denúncia:', error);
 
-        // Trata erros específicos (ex.: violação de chave única "year + number")
         if (error.name === 'SequelizeUniqueConstraintError') {
             return res.status(400).send('Já existe uma denúncia com este número no ano atual.');
         }
@@ -118,7 +104,6 @@ router.post('/denuncia/registrar', async (req, res) => {
 
 router.get('/denuncia/:id', async (req, res) => {
     try {
-        // Busca a denúncia com os relatórios associados
         const denuncia = await denunciationsModel.findByPk(req.params.id, {
             include: [
                 {
@@ -127,7 +112,7 @@ router.get('/denuncia/:id', async (req, res) => {
                     attributes: ['id', 'description', 'created_at'],
                 },
                 {
-                    model: userModel, // Inclui o fiscal (usuário)
+                    model: userModel,
                     as: 'user',
                     attributes: ['name'],
                 }
@@ -140,11 +125,10 @@ router.get('/denuncia/:id', async (req, res) => {
             });
         }
         
-        // Renderiza a view 'show' da denúncia, passando os relatórios e dados do fiscal também
         res.render('denunciation/show', {
             denuncia: denuncia,
-            reports: denuncia.reports, // Passando os relatórios para a view
-            fiscal: denuncia.user, // Passando o fiscal (usuário) para a view
+            reports: denuncia.reports,
+            fiscal: denuncia.user,
             DENUNCIATION_SENDER: DENUNCIATION_SENDER,
             DENUNCIATION_STATUS: DENUNCIATION_STATUS
         });        
@@ -193,83 +177,84 @@ router.post('/denuncia/edit/:id', async (req, res) => {
 });
 
 router.get('/denuncia/:id/edit', async (req, res) => {
-        try {
-            const denuncia = await denunciationsModel.findByPk(req.params.id);
-            
-            if (!denuncia) {
-                return res.status(404).send('Denúncia não encontrada');
-            }
-    
-            res.render('denunciation/edit', {
-                denuncia: denuncia,
-                DENUNCIATION_SENDER: DENUNCIATION_SENDER,
-                DENUNCIATION_STATUS: DENUNCIATION_STATUS,
-                year: denuncia.year,
-                lastNumber: denuncia.number
-            });
-    
-        } catch (error) {
-            console.error('Erro ao carregar denúncia para edição:', error);
-            res.status(500).send('Erro ao carregar formulário de edição');
+    try {
+        const denuncia = await denunciationsModel.findByPk(req.params.id);
+        
+        if (!denuncia) {
+            return res.status(404).send('Denúncia não encontrada');
         }
+
+        res.render('denunciation/edit', {
+            denuncia: denuncia,
+            DENUNCIATION_SENDER: DENUNCIATION_SENDER,
+            DENUNCIATION_STATUS: DENUNCIATION_STATUS,
+            year: denuncia.year,
+            lastNumber: denuncia.number
+        });
+
+    } catch (error) {
+        console.error('Erro ao carregar denúncia para edição:', error);
+        res.status(500).send('Erro ao carregar formulário de edição');
+    }
 });
 
 router.get('/atribuir', async (req, res) => {
-        try {
-            const denuncias = await denunciationsModel.findAll({
-                where: { user_id: null },
-                include: [
-                    {
-                        model: reportsModel,
-                        as: 'reports',
-                        include: [{
-                            model: userModel,
-                            as: 'user'
-                        }]
-                    }
-                ]
-            });
-    
-            const fiscaisValidos = await userModel.findAll({
-                where: { ativo: 1 }
-            });
-            
-            res.render('denunciation/associate', {
-                denuncias: denuncias,
-                fiscais: fiscaisValidos,
-                DENUNCIATION_SENDER
-            });
-    
-        } catch (error) {
-            console.error('Erro:', error);
-            res.status(500).send('Erro ao carregar página');
-        }
+    try {
+        const denuncias = await denunciationsModel.findAll({
+            where: { user_id: null },
+            include: [
+                {
+                    model: reportsModel,
+                    as: 'reports',
+                    include: [{
+                        model: userModel,
+                        as: 'user'
+                    }]
+                }
+            ]
+        });
+
+        const fiscaisValidos = await userModel.findAll({
+            where: { ativo: 1 }
+        });
+        
+        res.render('denunciation/associate', {
+            denuncias: denuncias,
+            fiscais: fiscaisValidos,
+            DENUNCIATION_SENDER
+        });
+
+    } catch (error) {
+        console.error('Erro:', error);
+        res.status(500).send('Erro ao carregar página');
+    }
 });
 
 router.post('/atribuir/:denunciaId', async (req, res) => {
-        try {
-            const { userId } = req.body;
-            const { denunciaId } = req.params;
-    
-            await denunciationsModel.update(
-                { user_id: userId },  
-                { where: { id: denunciaId } }
-            );
-            const fiscal = await userModel.findByPk(userId);
+    try {
+        const { userId } = req.body;
+        const { denunciaId } = req.params;
 
-            await reportsModel.create({
-                denunciation_id: denunciaId,
-                user_id: userId,        
-                description: `Denúncia atribuída ao fiscal ${fiscal.name} - ${dataAtual}`,
-                status: 'Atribuída'
-            });
-    
-            res.redirect('/atribuir?success=Denúncia+atribuída+com+sucesso');
-    
-        } catch (error) {
-            console.error('Erro ao atribuir fiscal:', error);
-            res.redirect('/atribuir?error=Erro+ao+atribuir+fiscal');
-        }
+        await denunciationsModel.update(
+            { user_id: userId },  
+            { where: { id: denunciaId } }
+        );
+
+        const fiscal = await userModel.findByPk(userId);
+
+        await reportsModel.create({
+            denunciation_id: denunciaId,
+            user_id: userId,        
+            description: `Denúncia atribuída ao fiscal ${fiscal.name} - ${dataAtual}`,
+            status: 'Atribuída'
+        });
+
+        res.redirect('/atribuir?success=Denúncia+atribuída+com+sucesso');
+
+    } catch (error) {
+        console.error('Erro ao atribuir fiscal:', error);
+        res.redirect('/atribuir?error=Erro+ao+atribuir+fiscal');
+    }
 });
 
 router.get('/atribuir/:id', async (req, res) => {
@@ -317,7 +302,6 @@ router.post('/atribuir/:id', async (req, res) => {
     }
 });
 
-// Rota para exibir a página de busca (inicial)
 router.get('/buscar', async (req, res) => {
     try {
         const users = await userModel.findAll({
@@ -345,7 +329,6 @@ router.get('/buscar', async (req, res) => {
     }
 });
 
-// Rota para processar a busca
 router.get('/buscar/resultados', async (req, res) => {
     try {
         const {
@@ -365,7 +348,6 @@ router.get('/buscar/resultados', async (req, res) => {
         if (number) whereConditions.number = number;
 
         if (endereco) {
-            // Remove prefixos comuns como "Rua", "Av.", "Travessa", "Praça", etc.
             const cleanEndereco = endereco
                 .replace(/^(rua|r\.|avenida|av\.|travessa|praça|estrada|alameda|rodovia)\s*/i, '')
                 .trim();
@@ -407,7 +389,7 @@ router.get('/buscar/resultados', async (req, res) => {
             bairro,
             status,
             registration_type,
-            userId, // mantém o valor selecionado no dropdown
+            userId,
             users,
             scroll: true
         });
@@ -446,9 +428,8 @@ router.get('/denuncias/pdf', async (req, res) => {
     denuncias.forEach(d => {
         doc.fontSize(12).text(`Denúncia #${d.number}/${d.year} - ${d.title}`, { align: 'center' });
         doc.text(`Endereço: ${d.endereco}, Nº ${d.numero} - Bairro ${d.bairro}`, { align: 'center' });
-        doc.moveDown(1); // quebra de linha após o endereço
+        doc.moveDown(1);
       
-        // Complemento (se houver)
         if (d.complemento) {
           doc.text(`Complemento: ${d.complemento}`, { align: 'center' });
         }
@@ -457,7 +438,6 @@ router.get('/denuncias/pdf', async (req, res) => {
       
         doc.moveDown(0.5);
       
-        // Linha separadora
         doc.moveTo(doc.page.margins.left, doc.y)
            .lineTo(doc.page.width - doc.page.margins.right, doc.y)
            .stroke();
@@ -466,7 +446,6 @@ router.get('/denuncias/pdf', async (req, res) => {
       });      
   
     doc.end();
-  });
+});
   
-
-module.exports = router
+module.exports = router;
