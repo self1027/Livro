@@ -9,11 +9,11 @@ const report = connection.define('reports', {
         type: sequelize.DATE,
         defaultValue: sequelize.NOW
     },
-    denunciation_id: {  // Mantido do seu original
+    denunciation_id: {
         type: sequelize.INTEGER,
         allowNull: false
     },
-    user_id: {  // Mantido do seu original
+    user_id: {
         type: sequelize.INTEGER,
         allowNull: false
     },

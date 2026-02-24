@@ -44,7 +44,7 @@ const denunciation = connection.define('denunciations', {
         type: sequelize.DATE,
         defaultValue: sequelize.NOW
     },
-    user_id: {  // Apenas mudei de userId para user_id
+    user_id: {
         type: sequelize.INTEGER,
         allowNull: true
     }

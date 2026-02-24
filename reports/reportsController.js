@@ -11,10 +11,9 @@ router.post('/denuncia/:id/adicionar-relatorio', async (req, res) => {
     const denunciaId = req.params.id;
     const descriptionInput = req.body.description?.trim() || null;
     const userId = req.body.user_id;
-    const novoStatus = req.body.status; // Corrigido para novo_status (nome do campo no form)
+    const novoStatus = req.body.status;
 
     try {
-        // Validações básicas
         if (!userId) return res.status(400).send('ID do usuário não informado');
         
         const denuncia = await denunciationsModel.findByPk(denunciaId);
@@ -23,11 +22,9 @@ router.post('/denuncia/:id/adicionar-relatorio', async (req, res) => {
         const statusAnterior = denuncia.status;
         const houveMudancaStatus = novoStatus && statusAnterior !== novoStatus;
 
-        // Obtém os labels dos status
         const statusAnteriorLabel = DENUNCIATION_STATUS[statusAnterior]?.label || statusAnterior;
         const novoStatusLabel = DENUNCIATION_STATUS[novoStatus]?.label || novoStatus;
 
-        // Cria relatórios conforme necessário
         if (descriptionInput) {
             await reportsModel.create({
                 description: `${descriptionInput}`,
@@ -45,7 +42,6 @@ router.post('/denuncia/:id/adicionar-relatorio', async (req, res) => {
                 type: REPORT_TYPE.STATUS_CHANGE
             });
 
-            // Atualiza o status da denúncia
             denuncia.status = novoStatus;
             await denuncia.save();
         }
@@ -61,26 +57,22 @@ router.post('/denuncia/:id/adicionar-relatorio', async (req, res) => {
     }
 });
 
-// Rota para renderizar a página de edição de relatório
 router.get('/relatorio/:id', async (req, res) => {
     const reportId = req.params.id;
 
     try {
-        // Busca o relatório pelo ID
         const report = await reportsModel.findByPk(reportId);
         
         if (!report) {
             return res.status(404).send('Relatório não encontrado');
         }
 
-        // Busca a denúncia relacionada ao relatório
         const denuncia = await denunciationsModel.findByPk(report.denunciation_id);
 
         if (!denuncia) {
             return res.status(404).send('Denúncia não encontrada');
         }
 
-        // Passa os dados para a view de edição
         res.render('reports/show', {
             report: report,
             denuncia: denuncia,
@@ -94,7 +86,6 @@ router.get('/relatorio/:id', async (req, res) => {
     }
 });
 
-// Rota para editar um relatório
 router.post('/relatorio/:id/editar', async (req, res) => {
     const reportId = req.params.id;
     const { description: newDescriptionRaw, status: newStatus } = req.body;
@@ -103,10 +94,8 @@ router.post('/relatorio/:id/editar', async (req, res) => {
         const report = await reportsModel.findByPk(reportId);
         if (!report) return res.status(404).send('Relatório não encontrado');
 
-        // Atualiza o conteúdo com base no tipo
         let finalDescription = newDescriptionRaw;
 
-        // Se o tipo for STATUS_CHANGE, sobrescreve a descrição
         if (report.type === REPORT_TYPE.STATUS_CHANGE) {
             const labelNew = DENUNCIATION_STATUS[newStatus]?.label || newStatus;
             finalDescription = `Status alterado para "${labelNew}"`
@@ -116,7 +105,6 @@ router.post('/relatorio/:id/editar', async (req, res) => {
             description: finalDescription
         });
         
-        // Atualiza o status da denúncia se for diferente
         if (newStatus && newStatus !== report.status) {
             const denuncia = await denunciationsModel.findByPk(report.denunciation_id);
             if (denuncia) {
@@ -132,21 +120,17 @@ router.post('/relatorio/:id/editar', async (req, res) => {
     }
 });
 
-// Rota para deletar um relatório
 router.post('/relatorio/:id/deletar', async (req, res) => {
     const reportId = req.params.id;
 
     try {
         const report = await reportsModel.findByPk(reportId);
         if (!report) return res.status(404).send('Relatório não encontrado');
-
-        // Guardar o ID da denúncia antes de deletar
+ar
         const denunciaId = report.denunciation_id;
 
-        // Deleta o relatório
         await report.destroy();
 
-        // Redireciona de volta para a página da denúncia
         res.redirect(`/denuncia/${denunciaId}`);
     } catch (error) {
         console.error(error);
