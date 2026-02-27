@@ -24,6 +24,11 @@ module.exports = DENUNCIATION_STATUS = {
         color: "#16a085", // Verde escuro
         slug: "FEITO_AIF"
     },
+        PENDENTE: {
+        label: "Pendente",
+        color: "#e74c3c", // Vermelho
+        slug: "PENDENTE"
+    },
     FINALIZADA: {
         label: "Finalizada",
         color: "#95a5a6", // Cinza
