@@ -270,6 +270,6 @@ app.get('/admin', async (req, res) => {
 
 });
 
-app.listen(3000, () => {
+app.listen(80, () => {
     console.log('Swagger UI available at http://localhost/api-docs');
 })
