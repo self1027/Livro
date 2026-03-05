@@ -8,6 +8,7 @@ const pagination = require('./middlewares/pagination');
 const setupSwagger = require('./swagger');
 
 const Sequelize = require('sequelize');
+const { Op } = require('sequelize');
 
 const DENUNCIATION_SENDER = require('./constants/denunciationSenders.js');
 
@@ -138,7 +139,16 @@ app.get('/admin', async (req, res) => {
         });
 
         const andamento = await denunciationsModel.count({
-            where: { year, status: DENUNCIATION_STATUS.EM_ANDAMENTO.slug }
+            where: {
+                year: year, // Filtro de ano que você já possui
+                status: {
+                    [Op.notIn]: [
+                        DENUNCIATION_STATUS.REGISTRADA.slug,
+                        DENUNCIATION_STATUS.PENDENTE.slug,
+                        DENUNCIATION_STATUS.FINALIZADA.slug
+                    ]
+                }
+            },
         });
 
         const resolvidas = await denunciationsModel.count({
