@@ -1,0 +1,52 @@
+<%- include('../partials/header.ejs') %>
+<%- include('../partials/navbar.ejs') %>
+
+<div class="container">
+
+<hr>
+
+<div class="card">
+
+    <div class="card-header">
+        <h2>Editar Bairro</h2>
+    </div>
+
+    <div class="card-body">
+
+        <form method="post" action="/bairro/atualizar/<%= district.id %>">
+
+            <div class="form-group">
+
+                <label>Nome do Bairro</label>
+
+                <input
+                    type="text"
+                    class="form-control"
+                    name="name"
+                    value="<%= district.name %>"
+                    required
+                >
+
+            </div>
+
+            <br>
+
+            <button class="btn btn-primary">
+                Salvar Alterações
+            </button>
+
+            <a href="/cadastro/bairro" class="btn btn-secondary">
+                Cancelar
+            </a>
+
+        </form>
+
+    </div>
+
+</div>
+
+</div>
+
+<br>
+
+<%- include('../partials/footer.ejs') %>

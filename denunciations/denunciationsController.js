@@ -4,6 +4,7 @@ const { Op } = require('sequelize');
 const denunciationsModel = require('./denunciationsModel')
 const reportsModel = require('../reports/reportsModel')
 const userModel = require('../users/usersModel')
+const districtModel = require('../district/districtModel')
 const DENUNCIATION_SENDER = require('../constants/denunciationSenders')
 const DENUNCIATION_STATUS = require('../constants/denunciationStatus')
 const dataAtual = new Date().toLocaleDateString('pt-BR');
@@ -11,7 +12,13 @@ const PDFDocument = require('pdfkit');
 
 router.get('/cadastro/denuncia', async (req, res) => {
     try {
+
         const currentYear = new Date().getFullYear();
+
+        const districts = await districtModel.findAll({
+            attributes: ['id', 'name'],
+            order: [['name', 'ASC']]
+        });
 
         const anyDenuncia = await denunciationsModel.findOne({
             order: [['createdAt', 'ASC']]
@@ -21,7 +28,8 @@ router.get('/cadastro/denuncia', async (req, res) => {
             return res.render('denunciation/new', {
                 year: currentYear,
                 lastNumber: 111,
-                DENUNCIATION_SENDER: DENUNCIATION_SENDER
+                districts,
+                DENUNCIATION_SENDER
             });
         }
 
@@ -30,21 +38,29 @@ router.get('/cadastro/denuncia', async (req, res) => {
             order: [['number', 'DESC']]
         });
 
-        const nextNumber = (lastDenuncia && lastDenuncia.number) ? lastDenuncia.number + 1 : 1;
+        const nextNumber = (lastDenuncia && lastDenuncia.number)
+            ? lastDenuncia.number + 1
+            : 1;
 
         res.render('denunciation/new', {
             year: currentYear,
             lastNumber: nextNumber,
-            DENUNCIATION_SENDER: DENUNCIATION_SENDER
+            districts,
+            DENUNCIATION_SENDER
         });
+
     } catch (error) {
+
         console.error('Erro ao carregar dados da denúncia:', error);
         res.status(500).send('Erro ao carregar formulário de denúncia.');
+
     }
 });
 
 router.post('/denuncia/registrar', async (req, res) => {
+
     try {
+
         const {
             year,
             number,
@@ -56,6 +72,38 @@ router.post('/denuncia/registrar', async (req, res) => {
             complemento,
             description
         } = req.body;
+
+        /* ============================= */
+        /* VALIDAÇÃO DO BAIRRO NO BANCO  */
+        /* ============================= */
+
+        if (!bairro || !bairro.trim()) {
+            return res.status(400).render('denunciation/new', {
+                message: "Bairro é obrigatório.",
+                year,
+                lastNumber: number,
+                DENUNCIATION_SENDER
+            });
+        }
+
+        const district = await require('../districts/districtModel').findOne({
+            where: {
+                name: bairro.trim()
+            }
+        });
+
+        if (!district) {
+            return res.status(400).render('denunciation/new', {
+                message: "Bairro inválido. Selecione um bairro cadastrado.",
+                year,
+                lastNumber: number,
+                DENUNCIATION_SENDER
+            });
+        }
+
+        /* ============================= */
+        /* VERIFICAÇÃO DE DUPLICIDADE     */
+        /* ============================= */
 
         const existingDenuncia = await denunciationsModel.findOne({
             where: {
@@ -69,13 +117,19 @@ router.post('/denuncia/registrar', async (req, res) => {
         });
 
         if (existingDenuncia) {
+
             return res.render('denunciation/new', {
                 message: `Já existe uma denúncia registrada com este endereço. Você pode visualizar a denúncia em: <a href="/denuncia/${existingDenuncia.id}">Clique aqui para visualizar</a>.`,
                 year,
                 lastNumber: number,
                 DENUNCIATION_SENDER
             });
+
         }
+
+        /* ============================= */
+        /* CRIAÇÃO DA DENÚNCIA           */
+        /* ============================= */
 
         await denunciationsModel.create({
             year,
@@ -84,14 +138,16 @@ router.post('/denuncia/registrar', async (req, res) => {
             title,
             endereco,
             numero,
-            bairro,
+            bairro: district.name, // garante que vem do banco
             complemento: complemento || null,
             description,
             status: DENUNCIATION_STATUS.REGISTRADA.slug
         });
 
         res.redirect('/');
+
     } catch (error) {
+
         console.error('Erro ao registrar denúncia:', error);
 
         if (error.name === 'SequelizeUniqueConstraintError') {
@@ -99,7 +155,9 @@ router.post('/denuncia/registrar', async (req, res) => {
         }
 
         res.status(500).send('Erro interno ao registrar denúncia.');
+
     }
+
 });
 
 router.get('/denuncia/:id', async (req, res) => {
@@ -141,60 +199,56 @@ router.get('/denuncia/:id', async (req, res) => {
     }
 });
 
+router.get('/denuncia/edit/:id', async (req, res) => {
+    try {
+        const denuncia = await denunciationsModel.findByPk(req.params.id);
+        if (!denuncia) return res.status(404).send('Denúncia não encontrada');
+
+        const districts = await districtModel.findAll({ order: [['name', 'ASC']] });
+
+        res.render('denunciation/edit', {
+            denuncia,
+            districts,
+            DENUNCIATION_SENDER,
+            DENUNCIATION_STATUS,
+            // Garante que as variáveis do seu EJS existam
+            year: denuncia.year,
+            lastNumber: denuncia.number
+        });
+    } catch (error) {
+        console.error('Erro ao carregar denúncia:', error);
+        res.status(500).send('Erro interno');
+    }
+});
+
 router.post('/denuncia/edit/:id', async (req, res) => {
     try {
         const { id } = req.params;
-        const {
+        const { registration_type, title, endereco, numero, bairro, complemento, description, status } = req.body;
+
+        // 1. Validação de Bairro (Backend Protection)
+        if (!bairro || !bairro.trim()) return res.status(400).send('Bairro é obrigatório.');
+
+        const district = await districtModel.findOne({ where: { name: bairro.trim() } });
+        if (!district) return res.status(400).send('Bairro inválido ou não cadastrado.');
+
+        // 2. Update
+        await denunciationsModel.update({
             registration_type,
             title,
             endereco,
             numero,
-            bairro,
-            complemento,
+            bairro: district.name, // Usa o nome exato do banco
+            complemento: complemento || null,
             description,
-            status
-        } = req.body;
-
-        await denunciationsModel.update(
-            {
-                registration_type,
-                title,
-                endereco,
-                numero,
-                bairro,
-                complemento,
-                description,
-                status
-            },
-            { where: { id } }
-        );
+            // Só atualiza o status se ele vier no formulário, senão mantém o atual
+            ...(status && { status }) 
+        }, { where: { id } });
 
         res.redirect(`/denuncia/${id}`);
     } catch (err) {
-        console.error('Erro ao atualizar denúncia:', err);
-        res.status(500).send('Erro ao atualizar denúncia.');
-    }
-});
-
-router.get('/denuncia/:id/edit', async (req, res) => {
-    try {
-        const denuncia = await denunciationsModel.findByPk(req.params.id);
-        
-        if (!denuncia) {
-            return res.status(404).send('Denúncia não encontrada');
-        }
-
-        res.render('denunciation/edit', {
-            denuncia: denuncia,
-            DENUNCIATION_SENDER: DENUNCIATION_SENDER,
-            DENUNCIATION_STATUS: DENUNCIATION_STATUS,
-            year: denuncia.year,
-            lastNumber: denuncia.number
-        });
-
-    } catch (error) {
-        console.error('Erro ao carregar denúncia para edição:', error);
-        res.status(500).send('Erro ao carregar formulário de edição');
+        console.error('Erro ao atualizar:', err);
+        res.status(500).send('Erro ao salvar alterações.');
     }
 });
 
@@ -304,27 +358,21 @@ router.post('/atribuir/:id', async (req, res) => {
 
 router.get('/buscar', async (req, res) => {
     try {
-        const users = await userModel.findAll({
-            order: [['name', 'ASC']]
-        });
+        const users = await userModel.findAll({ order: [['name', 'ASC']] });
+        const districts = await districtModel.findAll({ order: [['name', 'ASC']] });
 
         res.render('denunciation/search', {
             DENUNCIATION_STATUS,
             DENUNCIATION_SENDER,
             denuncias: [],
-            year: '',
-            number: '',
-            endereco: '',
-            numero: '',
-            bairro: '',
-            status: '',
-            registration_type: '',
-            userId: '',
+            districts,
+            year: '', number: '', endereco: '', numero: '', bairro: '',
+            status: '', registration_type: '', userId: '',
             users,
             scroll: false
         });
     } catch (error) {
-        console.error('Erro ao carregar usuários:', error);
+        console.error('Erro:', error);
         res.status(500).send('Erro ao carregar a página de busca');
     }
 });

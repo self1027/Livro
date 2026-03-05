@@ -1,152 +1,169 @@
 <%- include('../partials/header.ejs') %>
 <%- include('../partials/navbar.ejs') %>
+
 <div class="container">
-    <hr>
-    <div class="card">
-        <div class="card-header">
-            <h2>Cadastrar Denúncia</h2>
+  <hr>
+
+  <div class="card">
+    <div class="card-header">
+      <h2>Cadastrar Denúncia</h2>
+    </div>
+
+    <div class="card-body">
+
+      <% if (typeof message !== 'undefined' && message) { %>
+        <div class="alert alert-warning">
+          <h4 class="alert-heading">Aviso</h4>
+          <p><%- message %></p>
         </div>
-        <div class="card-body">
-            <!-- Exibe a mensagem de erro, caso exista -->
-            <% if (typeof message !== 'undefined' && message) { %>
-                <div class="alert alert-warning">
-                    <h4 class="alert-heading">Aviso</h4>
-                    <p><%- message %></p>
-                </div>
+      <% } %>
+
+      <form method="post" action="/denuncia/registrar" id="denunciaForm">
+
+        <div class="row mb-3">
+
+          <div class="col-md-6">
+            <label class="form-label">Ano</label>
+
+            <input
+              class="form-control"
+              type="number"
+              name="year"
+              value="<%= year %>"
+              readonly
+            >
+
+            <small class="form-text text-muted">
+              Ano em que a denúncia está sendo registrada.
+            </small>
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label">Número da Denúncia</label>
+
+            <input
+              class="form-control"
+              type="number"
+              name="number"
+              value="<%= lastNumber %>"
+              readonly
+            >
+
+            <small class="form-text text-muted">
+              Número sequencial gerado automaticamente.
+            </small>
+          </div>
+
+        </div>
+
+        <div class="mb-3">
+
+          <label class="form-label">Origem da Denúncia</label>
+
+          <select
+            class="form-control"
+            name="registration_type"
+            id="registration_type"
+            required
+          >
+
+            <% for (let key in DENUNCIATION_SENDER) { %>
+              <option value="<%= key %>">
+                <%= DENUNCIATION_SENDER[key] %>
+              </option>
             <% } %>
 
-            <form method="post" action="/denuncia/registrar">
+          </select>
 
-                <!-- Ano e Número -->
-                <div class="row mb-3">
-                    <div class="col-md-6">
-                        <label class="form-label">Ano</label>
-                        <input class="form-control" type="number" name="year" value="<%= year %>" readonly>
-                        <small class="form-text text-muted">Ano em que a denúncia está sendo registrada.</small>
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label">Número da Denúncia</label>
-                        <input class="form-control" type="number" name="number" value="<%= lastNumber %>" readonly>
-                        <small class="form-text text-muted">Número sequencial gerado automaticamente.</small>
-                    </div>
-                </div>
-            
-                <!-- Tipo de Registro -->
-                <div class="mb-3">
-                    <label class="form-label">Origem da Denúncia</label>
-                    <select class="form-control" name="registration_type" id="registration_type" required>
-                        <% for (let key in DENUNCIATION_SENDER) { %>
-                            <option value="<%= key %>"><%= DENUNCIATION_SENDER[key] %></option>
-                        <% } %>
-                    </select>
-                    <small class="form-text text-muted">Informe como a denúncia foi recebida (telefone, presencialmente ou ofício).</small>
-                </div>
-            
-                <!-- Título -->
-                <div class="mb-3">
-                    <label class="form-label">Título</label>
-                    <input class="form-control" type="text" name="title" placeholder="Ex: Galinhas na Mineira" required>
-                    <small class="form-text text-muted">Um título breve e descritivo para identificar a denúncia.</small>
-                </div>
-            
-                <!-- Endereço -->
-                <div class="mb-3">
-                    <label class="form-label">Endereço do Local</label>
+          <small class="form-text text-muted">
+            Informe como a denúncia foi recebida (telefone, presencialmente ou ofício).
+          </small>
 
-                    <input class="form-control mb-2" type="text" name="endereco"
-                        placeholder="Nome da Rua (sem 'Rua', 'Av.', etc.)"
-                        required>
+        </div>
 
-                    <input class="form-control mb-2" type="text" name="numero" placeholder="Número da Casa" required>
+        <div class="mb-3">
 
-                    <input class="form-control mb-2" type="text" name="complemento" placeholder="Complemento (opcional)">
+          <label class="form-label">Título</label>
 
-                    <input class="form-control" type="text" name="bairro" placeholder="Bairro" required>
+          <input
+            class="form-control"
+            type="text"
+            name="title"
+            placeholder="Ex: Galinhas na Mineira"
+            required
+          >
 
-                    <small class="form-text text-muted">
-                        Informe apenas o nome da rua ou avenida, <strong>sem prefixos</strong> como "Rua", "Av.", "Travessa", e
-                        <strong>evite abreviações</strong>. Isso ajuda a manter os registros padronizados, facilita buscas e comparações e evita repetições.
-                    </small>
-                </div>
-            
-                <!-- Descrição -->
-                <div class="mb-3">
-                    <label class="form-label">Descrição da Denúncia</label>
-                    <textarea class="form-control" name="description" placeholder="Descreva os detalhes da situação..." rows="4" required></textarea>
-                    <small class="form-text text-muted">Descreva com o máximo de detalhes possíveis o que está acontecendo no local.</small>
-                </div>
-            
-                <!-- Botão -->
-                <div class="d-flex justify-content-end">
-                    <button class="btn btn-success">
-                        <i class="fas fa-save"></i> Cadastrar Denúncia
-                    </button>
-                </div>
-            </form>            
-        </div>  
+          <small class="form-text text-muted">
+            Um título breve e descritivo para identificar a denúncia.
+          </small>
+
+        </div>
+
+        <div class="mb-3">
+
+          <label class="form-label">Endereço do Local</label>
+
+          <input
+            class="form-control mb-2"
+            type="text"
+            name="endereco"
+            placeholder="Nome da Rua (sem 'Rua', 'Av.', etc.)"
+            required
+          >
+
+          <input
+            class="form-control mb-2"
+            type="text"
+            name="numero"
+            placeholder="Número da Casa"
+            required
+          >
+
+          <input
+            class="form-control mb-2"
+            type="text"
+            name="complemento"
+            placeholder="Complemento (opcional)"
+          >
+
+          <%- include('../partials/districtAutocomplete', { districts }) %>
+
+          <small class="form-text text-muted">
+            Comece a digitar para ver sugestões de bairros cadastrados.
+          </small>
+
+        </div>
+
+        <div class="mb-3">
+
+          <label class="form-label">Descrição da Denúncia</label>
+
+          <textarea
+            class="form-control"
+            name="description"
+            placeholder="Descreva os detalhes da situação..."
+            rows="4"
+            required
+          ></textarea>
+
+          <small class="form-text text-muted">
+            Descreva com o máximo de detalhes possíveis o que está acontecendo no local.
+          </small>
+
+        </div>
+
+        <div class="d-flex justify-content-end">
+          <button class="btn btn-success">
+            <i class="fas fa-save"></i> Cadastrar Denúncia
+          </button>
+        </div>
+
+      </form>
+
     </div>
-    <br>
-</div>
-<br>
-<script>
-    function validateForm() {
-        const form = document.querySelector('form');
-        const requiredFields = form.querySelectorAll('[required]');
-        let isValid = true;
-    
-        requiredFields.forEach(field => {
-            if (!field.value.trim()) {
-                isValid = false;
-                field.style.border = '1px solid red'; // Destaca o campo vazio
-            } else {
-                field.style.border = ''; // Remove o destaque se preenchido
-            }
-        });
-    
-        if (!isValid) {
-            alert('Preencha todos os campos obrigatórios!');
-            return false; // Impede o envio do formulário
-        }
-        return true; // Permite o envio
-    }
+  </div>
 
-    const textFields = document.querySelectorAll('input[type="text"], textarea');
-    let capsWarningEl = null;
-  
-    function createCapsLockWarning() {
-      // Cria o elemento de aviso apenas uma vez
-      if (capsWarningEl) return;
-  
-      capsWarningEl = document.createElement('div');
-      capsWarningEl.className = 'alert alert-danger mt-3';
-      capsWarningEl.textContent = 'Caps Lock está ativado. Digitação bloqueada nos campos de texto.';
-      capsWarningEl.id = 'capsLockAlert';
-      document.querySelector('.card-body').prepend(capsWarningEl);
-    }
-  
-    function removeCapsLockWarning() {
-      if (capsWarningEl) {
-        capsWarningEl.remove();
-        capsWarningEl = null;
-      }
-    }
-  
-    // Aplica a lógica para cada campo
-    textFields.forEach(field => {
-      field.addEventListener('keydown', function(e) {
-        const capsOn = e.getModifierState && e.getModifierState('CapsLock');
-        if (capsOn && e.key.length === 1 && !e.ctrlKey && !e.metaKey) {
-          e.preventDefault();
-          createCapsLockWarning();
-        } else {
-          removeCapsLockWarning();
-        }
-      });
-  
-      field.addEventListener('keyup', function(e) {
-        const capsOn = e.getModifierState && e.getModifierState('CapsLock');
-        if (!capsOn) removeCapsLockWarning();
-      });
-    });
-</script>
+  <br>
+</div>
+
 <%- include('../partials/footer.ejs') %>

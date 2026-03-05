@@ -8,7 +8,6 @@
         </div>
         <div class="card-body">
             <form method="post" action="/denuncia/edit/<%= denuncia.id %>?_method=PUT">
-                <!-- Ano e Número -->
                 <div class="row mb-3">
                   <div class="col-md-6">
                     <label class="form-label" for="year">Ano</label>
@@ -22,7 +21,6 @@
                   </div>
                 </div>
               
-                <!-- Tipo de Registro -->
                 <div class="mb-3">
                   <label class="form-label" for="registration_type">Origem da Denúncia</label>
                   <select class="form-control" id="registration_type" name="registration_type" required>
@@ -35,14 +33,12 @@
                   <small class="form-text text-muted">Informe como a denúncia foi recebida (telefone, presencialmente ou ofício).</small>
                 </div>
               
-                <!-- Título -->
                 <div class="mb-3">
                   <label class="form-label" for="title">Título</label>
                   <input class="form-control" type="text" id="title" name="title" value="<%= denuncia.title %>" placeholder="Ex: Galinhas na Mineira" required>
                   <small class="form-text text-muted">Um título breve e descritivo para identificar a denúncia.</small>
                 </div>
               
-                <!-- Endereço -->
                 <div class="mb-3">
                   <label class="form-label">Endereço do Local</label>
               
@@ -55,15 +51,22 @@
               
                   <input class="form-control mb-2" type="text" name="complemento" value="<%= denuncia.complemento || '' %>" placeholder="Complemento (opcional)">
               
-                  <input class="form-control" type="text" name="bairro" value="<%= denuncia.bairro %>" placeholder="Bairro" required>
+                  <div class="mb-2">
+                    <%- include('../partials/districtAutocomplete', { 
+                        districts: districts, 
+                        id: 'bairro', 
+                        name: 'bairro', 
+                        value: denuncia.bairro,
+                        placeholder: 'Bairro'
+                    }) %>
+                  </div>
               
                   <small class="form-text text-muted">
                     Informe apenas o nome da rua ou avenida, <strong>sem prefixos</strong> como "Rua", "Av.", "Travessa", e
-                    <strong>evite abreviações</strong>. Isso ajuda a manter os registros padronizados, facilita buscas e comparações e evita repetições.
+                    <strong>evite abreviações</strong>. Isso ajuda a manter os registros padronizados.
                   </small>
                 </div>
               
-                <!-- Descrição -->
                 <div class="mb-3">
                   <label class="form-label" for="description">Descrição da Denúncia</label>
                   <textarea class="form-control" id="description" name="description" placeholder="Descreva os detalhes da situação..." rows="4" required><%= denuncia.description %></textarea>
@@ -78,6 +81,7 @@
                             
         </div>
     </div>
+    <br>
 </div>
 <br>
 <%- include ('../partials/footer.ejs') %>
