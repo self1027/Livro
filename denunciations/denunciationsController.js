@@ -73,10 +73,6 @@ router.post('/denuncia/registrar', async (req, res) => {
             description
         } = req.body;
 
-        /* ============================= */
-        /* VALIDAÇÃO DO BAIRRO NO BANCO  */
-        /* ============================= */
-
         if (!bairro || !bairro.trim()) {
             return res.status(400).render('denunciation/new', {
                 message: "Bairro é obrigatório.",
@@ -86,7 +82,7 @@ router.post('/denuncia/registrar', async (req, res) => {
             });
         }
 
-        const district = await require('../districts/districtModel').findOne({
+        const district = await districtModel.findOne({
             where: {
                 name: bairro.trim()
             }
@@ -101,9 +97,10 @@ router.post('/denuncia/registrar', async (req, res) => {
             });
         }
 
-        /* ============================= */
-        /* VERIFICAÇÃO DE DUPLICIDADE     */
-        /* ============================= */
+        const districts = await districtModel.findAll({
+            attributes: ['id', 'name'],
+            order: [['name', 'ASC']]
+        });
 
         const existingDenuncia = await denunciationsModel.findOne({
             where: {
@@ -122,14 +119,11 @@ router.post('/denuncia/registrar', async (req, res) => {
                 message: `Já existe uma denúncia registrada com este endereço. Você pode visualizar a denúncia em: <a href="/denuncia/${existingDenuncia.id}">Clique aqui para visualizar</a>.`,
                 year,
                 lastNumber: number,
+                districts,
                 DENUNCIATION_SENDER
             });
 
         }
-
-        /* ============================= */
-        /* CRIAÇÃO DA DENÚNCIA           */
-        /* ============================= */
 
         await denunciationsModel.create({
             year,
@@ -138,7 +132,7 @@ router.post('/denuncia/registrar', async (req, res) => {
             title,
             endereco,
             numero,
-            bairro: district.name, // garante que vem do banco
+            bairro: district.name,
             complemento: complemento || null,
             description,
             status: DENUNCIATION_STATUS.REGISTRADA.slug
@@ -211,7 +205,6 @@ router.get('/denuncia/edit/:id', async (req, res) => {
             districts,
             DENUNCIATION_SENDER,
             DENUNCIATION_STATUS,
-            // Garante que as variáveis do seu EJS existam
             year: denuncia.year,
             lastNumber: denuncia.number
         });
@@ -226,13 +219,11 @@ router.post('/denuncia/edit/:id', async (req, res) => {
         const { id } = req.params;
         const { registration_type, title, endereco, numero, bairro, complemento, description, status } = req.body;
 
-        // 1. Validação de Bairro (Backend Protection)
         if (!bairro || !bairro.trim()) return res.status(400).send('Bairro é obrigatório.');
 
         const district = await districtModel.findOne({ where: { name: bairro.trim() } });
         if (!district) return res.status(400).send('Bairro inválido ou não cadastrado.');
 
-        // 2. Update
         await denunciationsModel.update({
             registration_type,
             title,
