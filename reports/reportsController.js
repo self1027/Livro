@@ -129,7 +129,6 @@ router.post('/relatorio/:id/deletar', async (req, res) => {
 	try {
 		const report = await reportsModel.findByPk(reportId) 
 		if (!report) return res.status(404).send('Relatório não encontrado') 
-		ar
 		const denunciaId = report.denunciation_id 
 
 		await report.destroy() 
