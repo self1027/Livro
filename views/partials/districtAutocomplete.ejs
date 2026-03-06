@@ -1,5 +1,4 @@
 <% 
-  // Definição de valores padrão para flexibilidade
   const inputId = typeof id !== 'undefined' ? id : 'autocomplete-input';
   const inputName = typeof name !== 'undefined' ? name : 'bairro';
   const initialValue = typeof value !== 'undefined' ? value : '';
@@ -35,7 +34,6 @@
 
 <script>
 (function(){
-  // Dados vindos do servidor via EJS
   const dataList = <%- JSON.stringify(districts.map(d => d.name)) %>;
   
   const input = document.getElementById("<%= inputId %>");
@@ -55,7 +53,7 @@
       empty.className = "autocomplete-no-results";
       empty.innerHTML = `
         Nenhum item encontrado.<br>
-        <a href="/admin/districts" style="text-decoration:none; color:#007bff;">
+        <a href="/cadastro/bairro" style="text-decoration:none; color:#007bff;">
           Cadastrar novo →
         </a>
       `;
@@ -126,12 +124,10 @@
     }
   });
 
-  // Fechar ao clicar fora
   document.addEventListener("click", (e) => {
     if (!wrapper.contains(e.target)) closeList();
   });
 
-  // Validação no Submit do Form
   const form = input.closest("form");
   if(form) {
     form.addEventListener("submit", function(e) {
