@@ -3,6 +3,6 @@ const DENUNCIATION_SENDER = {
     PESSOA_TELEFONE: "Denuncia Anônima Realizada via Telefone",
     OUTRO_ORGÃO: "Denuncia Recebida de Outro Órgão",
     OFICIO: "Ofício Recebido"
-};
+}
 
-module.exports = DENUNCIATION_SENDER;
+module.exports = DENUNCIATION_SENDER

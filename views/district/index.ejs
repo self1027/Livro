@@ -1,153 +1,111 @@
 <%- include('../partials/header.ejs') %>
 <%- include('../partials/navbar.ejs') %>
-
 <div class="container">
-
-<hr>
-
-<div class="card">
-
-    <div class="card-header d-flex justify-content-between align-items-center">
-        <h2>Gerenciamento de Bairros</h2>
-    </div>
-
-    <div class="card-body">
-
-        <!-- CADASTRAR BAIRRO -->
-
-        <form method="post" action="/bairro/registrar" class="mb-4">
-
-            <div class="form-row">
-
-                <div class="col-md-10">
-                    <input 
-                        type="text" 
-                        class="form-control" 
-                        name="name"
-                        placeholder="Digite o nome do bairro"
-                        required
-                    >
-                </div>
-
-                <div class="col-md-2">
-                    <button class="btn btn-success btn-block">
-                        Cadastrar
-                    </button>
-                </div>
-
-            </div>
-
-        </form>
-
-        <!-- BUSCA -->
-
-        <div class="mb-3">
-
-            <input 
-                type="text"
-                id="searchDistrict"
-                class="form-control"
-                placeholder="Buscar bairro..."
-            >
-
-        </div>
-
-        <!-- LISTAGEM -->
-
-        <div class="table-responsive">
-
-            <table class="table table-striped table-hover" id="districtTable">
-
-                <thead class="thead-dark">
-                    <tr>
-                        <th>ID</th>
-                        <th>Bairro</th>
-                        <th>Slug</th>
-                        <th width="160">Ações</th>
-                    </tr>
-                </thead>
-
-                <tbody>
-
-                    <% districts.forEach(district => { %>
-
-                        <tr>
-
-                            <td>
-                                <%= district.id %>
-                            </td>
-
-                            <td>
-                                <strong><%= district.name %></strong>
-                            </td>
-
-                            <td>
-                                <code><%= district.slug %></code>
-                            </td>
-
-                            <td>
-
-                                <a 
-                                    href="/editar-bairro/<%= district.id %>"
-                                    class="btn btn-warning btn-sm"
-                                >
-                                    Editar
-                                </a>
-
-                                <form 
-                                    method="post"
-                                    action="/bairro/deletar/<%= district.id %>"
-                                    style="display:inline"
-                                >
-                                    <button 
-                                        class="btn btn-danger btn-sm"
-                                        onclick="return confirm('Deseja realmente deletar este bairro?')"
-                                    >
-                                        Excluir
-                                    </button>
-                                </form>
-
-                            </td>
-
-                        </tr>
-
-                    <% }) %>
-
-                </tbody>
-
-            </table>
-
-        </div>
-
-    </div>
-
+	<hr>
+	<div class="card">
+		<div class="card-header d-flex justify-content-between align-items-center">
+			<h2>Gerenciamento de Bairros</h2>
+		</div>
+		<div class="card-body">
+			<!-- CADASTRAR BAIRRO -->
+			<form method="post" action="/bairro/registrar" class="mb-4">
+				<div class="form-row">
+					<div class="col-md-10">
+						<input 
+							type="text" 
+							class="form-control" 
+							name="name"
+							placeholder="Digite o nome do bairro"
+							required
+							>
+					</div>
+					<div class="col-md-2">
+						<button class="btn btn-success btn-block">
+						Cadastrar
+						</button>
+					</div>
+				</div>
+			</form>
+			<!-- BUSCA -->
+			<div class="mb-3">
+				<input 
+					type="text"
+					id="searchDistrict"
+					class="form-control"
+					placeholder="Buscar bairro..."
+					>
+			</div>
+			<!-- LISTAGEM -->
+			<div class="table-responsive">
+				<table class="table table-striped table-hover" id="districtTable">
+					<thead class="thead-dark">
+						<tr>
+							<th>ID</th>
+							<th>Bairro</th>
+							<th>Slug</th>
+							<th width="160">Ações</th>
+						</tr>
+					</thead>
+					<tbody>
+						<% districts.forEach(district => { %>
+						<tr>
+							<td>
+								<%= district.id %>
+							</td>
+							<td>
+								<strong><%= district.name %></strong>
+							</td>
+							<td>
+								<code><%= district.slug %></code>
+							</td>
+							<td>
+								<a 
+									href="/editar-bairro/<%= district.id %>"
+									class="btn btn-warning btn-sm"
+									>
+								Editar
+								</a>
+								<form 
+									method="post"
+									action="/bairro/deletar/<%= district.id %>"
+									style="display:inline"
+									>
+									<button 
+										class="btn btn-danger btn-sm"
+										onclick="return confirm('Deseja realmente deletar este bairro?')"
+										>
+									Excluir
+									</button>
+								</form>
+							</td>
+						</tr>
+						<% }) %>
+					</tbody>
+				</table>
+			</div>
+		</div>
+	</div>
+	<br>
 </div>
 <br>
-
-</div>
-
-<br>
-
 <%- include('../partials/footer.ejs') %>
-
 <script>
-
-const search = document.getElementById('searchDistrict')
-
-search.addEventListener('keyup', function() {
-
-    const filter = search.value.toLowerCase()
-
-    const rows = document.querySelectorAll('#districtTable tbody tr')
-
-    rows.forEach(row => {
-
-        const text = row.innerText.toLowerCase()
-
-        row.style.display = text.includes(filter) ? '' : 'none'
-
-    })
-
-})
-
+	const search = document.getElementById('searchDistrict')
+	
+	search.addEventListener('keyup', function() {
+	
+	    const filter = search.value.toLowerCase()
+	
+	    const rows = document.querySelectorAll('#districtTable tbody tr')
+	
+	    rows.forEach(row => {
+	
+	        const text = row.innerText.toLowerCase()
+	
+	        row.style.display = text.includes(filter) ? '' : 'none'
+	
+	    })
+	
+	})
+	
 </script>

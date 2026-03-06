@@ -34,4 +34,4 @@ module.exports = DENUNCIATION_STATUS = {
         color: "#95a5a6", // Cinza
         slug: "FINALIZADA"
     }
-};
+}

@@ -1,143 +1,140 @@
 <% 
-  const inputId = typeof id !== 'undefined' ? id : 'autocomplete-input';
-  const inputName = typeof name !== 'undefined' ? name : 'bairro';
-  const initialValue = typeof value !== 'undefined' ? value : '';
-  const listId = inputId + 'Suggestions';
-%>
-
+	const inputId = typeof id !== 'undefined' ? id : 'autocomplete-input'
+	const inputName = typeof name !== 'undefined' ? name : 'bairro'
+	const initialValue = typeof value !== 'undefined' ? value : ''
+	const listId = inputId + 'Suggestions'
+	%>
 <div class="autocomplete-wrapper" id="wrapper-<%= inputId %>">
-  <input
-    class="form-control"
-    type="text"
-    id="<%= inputId %>"
-    name="<%= inputName %>"
-    placeholder="<%= typeof placeholder !== 'undefined' ? placeholder : 'Bairro...' %>"
-    autocomplete="off"
-    required
-    value="<%= initialValue %>"
-  >
-  <div id="<%= listId %>" class="autocomplete-list"></div>
+	<input
+		class="form-control"
+		type="text"
+		id="<%= inputId %>"
+		name="<%= inputName %>"
+		placeholder="<%= typeof placeholder !== 'undefined' ? placeholder : 'Bairro...' %>"
+		autocomplete="off"
+		required
+		value="<%= initialValue %>"
+		>
+	<div id="<%= listId %>" class="autocomplete-list"></div>
 </div>
-
 <style>
-  .autocomplete-wrapper { position: relative; width: 100%; }
-  .autocomplete-list {
-    position: absolute; top: 100%; left: 0; right: 0; z-index: 1050;
-    background: white; border: 1px solid #ced4da; border-top: none;
-    max-height: 220px; overflow-y: auto; border-radius: 0 0 6px 6px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-  }
-  .autocomplete-item { padding: 10px 15px; cursor: pointer; transition: background 0.2s; }
-  .autocomplete-item:hover { background: #f8f9fa; }
-  .autocomplete-no-results { padding: 10px 15px; color: #6c757d; font-size: 0.9em; }
+	.autocomplete-wrapper { position: relative; width: 100% }
+	.autocomplete-list {
+	position: absolute; top: 100%; left: 0; right: 0; z-index: 1050;
+	background: white; border: 1px solid #ced4da; border-top: none;
+	max-height: 220px; overflow-y: auto; border-radius: 0 0 6px 6px;
+	box-shadow: 0 4px 12px rgba(0,0,0,0.1)
+	}
+	.autocomplete-item { padding: 10px 15px; cursor: pointer; transition: background 0.2s }
+	.autocomplete-item:hover { background: #f8f9fa }
+	.autocomplete-no-results { padding: 10px 15px; color: #6c757d; font-size: 0.9em }
 </style>
-
 <script>
-(function(){
-  const dataList = <%- JSON.stringify(districts.map(d => d.name)) %>;
-  
-  const input = document.getElementById("<%= inputId %>");
-  const list = document.getElementById("<%= listId %>");
-  const wrapper = document.getElementById("wrapper-<%= inputId %>");
-
-  if(!input || !list) return;
-
-  let currentIndex = -1;
-  let filtered = [];
-
-  function renderList() {
-    list.innerHTML = "";
-
-    if(filtered.length === 0) {
-      const empty = document.createElement("div");
-      empty.className = "autocomplete-no-results";
-      empty.innerHTML = `
-        Nenhum item encontrado.<br>
-        <a href="/cadastro/bairro" style="text-decoration:none; color:#007bff;">
-          Cadastrar novo →
-        </a>
-      `;
-      list.appendChild(empty);
-      return;
-    }
-
-    filtered.forEach((item, index) => {
-      const div = document.createElement("div");
-      div.className = "autocomplete-item";
-      div.textContent = item;
-
-      if(index === currentIndex) {
-        div.style.background = "#e9ecef";
-      }
-
-      div.onclick = () => {
-        input.value = item;
-        closeList();
-      };
-
-      list.appendChild(div);
-    });
-  }
-
-  function closeList() {
-    list.innerHTML = "";
-    currentIndex = -1;
-  }
-
-  input.addEventListener("input", function() {
-    const val = this.value.toLowerCase().trim();
-    if(!val) {
-      closeList();
-      return;
-    }
-
-    filtered = dataList
-      .filter(item => item.toLowerCase().includes(val))
-      .slice(0, 8);
-
-    currentIndex = -1;
-    renderList();
-  });
-
-  input.addEventListener("keydown", function(e) {
-    if(!filtered.length) return;
-
-    if(e.key === "ArrowDown") {
-      e.preventDefault();
-      currentIndex = (currentIndex + 1) % filtered.length;
-      renderList();
-    } 
-    else if(e.key === "ArrowUp") {
-      e.preventDefault();
-      currentIndex = (currentIndex - 1 + filtered.length) % filtered.length;
-      renderList();
-    } 
-    else if(e.key === "Enter") {
-      if(currentIndex >= 0) {
-        e.preventDefault();
-        input.value = filtered[currentIndex];
-        closeList();
-      }
-    }
-    else if(e.key === "Escape") {
-      closeList();
-    }
-  });
-
-  document.addEventListener("click", (e) => {
-    if (!wrapper.contains(e.target)) closeList();
-  });
-
-  const form = input.closest("form");
-  if(form) {
-    form.addEventListener("submit", function(e) {
-      const typedValue = input.value.trim();
-      if(!dataList.includes(typedValue)) {
-        e.preventDefault();
-        alert("Por favor, selecione uma opção válida da lista.");
-        input.focus();
-      }
-    });
-  }
-})();
+	(function(){
+	  const dataList = <%- JSON.stringify(districts.map(d => d.name)) %>
+	  
+	  const input = document.getElementById("<%= inputId %>")
+	  const list = document.getElementById("<%= listId %>")
+	  const wrapper = document.getElementById("wrapper-<%= inputId %>")
+	
+	  if(!input || !list) return
+	
+	  let currentIndex = -1
+	  let filtered = []
+	
+	  function renderList() {
+	    list.innerHTML = ""
+	
+	    if(filtered.length === 0) {
+	      const empty = document.createElement("div")
+	      empty.className = "autocomplete-no-results"
+	      empty.innerHTML = `
+	        Nenhum item encontrado.<br>
+	        <a href="/cadastro/bairro" style="text-decoration:none; color:#007bff;">
+	          Cadastrar novo →
+	        </a>
+	      `
+	      list.appendChild(empty)
+	      return
+	    }
+	
+	    filtered.forEach((item, index) => {
+	      const div = document.createElement("div")
+	      div.className = "autocomplete-item"
+	      div.textContent = item
+	
+	      if(index === currentIndex) {
+	        div.style.background = "#e9ecef"
+	      }
+	
+	      div.onclick = () => {
+	        input.value = item
+	        closeList()
+	      }
+	
+	      list.appendChild(div)
+	    })
+	  }
+	
+	  function closeList() {
+	    list.innerHTML = ""
+	    currentIndex = -1
+	  }
+	
+	  input.addEventListener("input", function() {
+	    const val = this.value.toLowerCase().trim()
+	    if(!val) {
+	      closeList()
+	      return
+	    }
+	
+	    filtered = dataList
+	      .filter(item => item.toLowerCase().includes(val))
+	      .slice(0, 8)
+	
+	    currentIndex = -1
+	    renderList()
+	  })
+	
+	  input.addEventListener("keydown", function(e) {
+	    if(!filtered.length) return
+	
+	    if(e.key === "ArrowDown") {
+	      e.preventDefault()
+	      currentIndex = (currentIndex + 1) % filtered.length
+	      renderList()
+	    } 
+	    else if(e.key === "ArrowUp") {
+	      e.preventDefault()
+	      currentIndex = (currentIndex - 1 + filtered.length) % filtered.length
+	      renderList()
+	    } 
+	    else if(e.key === "Enter") {
+	      if(currentIndex >= 0) {
+	        e.preventDefault()
+	        input.value = filtered[currentIndex]
+	        closeList()
+	      }
+	    }
+	    else if(e.key === "Escape") {
+	      closeList()
+	    }
+	  })
+	
+	  document.addEventListener("click", (e) => {
+	    if (!wrapper.contains(e.target)) closeList()
+	  })
+	
+	  const form = input.closest("form")
+	  if(form) {
+	    form.addEventListener("submit", function(e) {
+	      const typedValue = input.value.trim()
+	      if(!dataList.includes(typedValue)) {
+	        e.preventDefault()
+	        alert("Por favor, selecione uma opção válida da lista.")
+	        input.focus()
+	      }
+	    })
+	  }
+	})()
 </script>

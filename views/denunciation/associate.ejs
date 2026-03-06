@@ -1,78 +1,75 @@
 <%- include ('../partials/header.ejs') %>
 <%- include ('../partials/navbar.ejs' ) %>
-
 <div class="container">
-    <hr>
-    <% if (locals.success) { %>
-        <div class="alert alert-success"><%= success %></div>
-    <% } %>
-    <% if (locals.error) { %>
-        <div class="alert alert-danger"><%= error %></div>
-    <% } %>
-
-    <div class="card">
-        <div class="card-header">
-            <h2>Atribuir Denúncias a Fiscais</h2>
-        </div>
-        <div class="card-body">
-            <% if (denuncias.length > 0) { %>
-                <div class="table-responsive">
-                    <table class="table table-striped align-middle">
-                        <thead>
-                            <tr>
-                                <th>Nº</th>
-                                <th>Título</th>
-                                <th>Endereço</th>
-                                <th>Data</th>
-                                <th>Tipo</th>
-                                <th>Ações</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <% denuncias.forEach(denuncia => { %>
-                                <tr>
-                                    <td><%= denuncia.year %>/<%= denuncia.number %></td>
-                                    <td>
-                                        <%= denuncia.title %>
-                                    </td>
-                                    <td>
-                                        <%= denuncia.endereco %>, <%= denuncia.numero %><br>
-                                        <%= denuncia.bairro %>
-                                    </td>
-                                    <td><%= new Date(denuncia.created_at).toLocaleDateString('pt-BR') %></td>
-                                    <td><%= DENUNCIATION_SENDER[denuncia.registration_type] %></td>
-                                    <td>
-                                        <a href="/atribuir/<%= denuncia.id %>" class="btn btn-sm btn-primary">
-                                            Atribuir Fiscal
-                                        </a>
-                                        <a href="/denuncia/<%= denuncia.id %>" class="btn btn-sm btn-secondary">
-                                            Ver
-                                        </a>
-                                        <i
-                                            class="ms-2 fas fa-info-circle text-info"
-                                            style="cursor: pointer;"
-                                            tabindex="0"
-                                            role="button"
-                                            data-toggle="popover"
-                                            data-trigger="focus"
-                                            data-placement="top"
-                                            title="Descrição"
-                                            data-content="<%= denuncia.description.replace(/"/g, '&quot;') %>"
-                                        ></i>
-                                    </td>
-                                </tr>
-                            <% }); %>
-                        </tbody>
-                    </table>                    
-                </div>
-            <% } else { %>
-                <div class="alert alert-info">
-                    Nenhuma denúncia pendente de atribuição.
-                </div>
-            <% } %>
-        </div>
-    </div>
-    <br>
+	<hr>
+	<% if (locals.success) { %>
+	<div class="alert alert-success"><%= success %></div>
+	<% } %>
+	<% if (locals.error) { %>
+	<div class="alert alert-danger"><%= error %></div>
+	<% } %>
+	<div class="card">
+		<div class="card-header">
+			<h2>Atribuir Denúncias a Fiscais</h2>
+		</div>
+		<div class="card-body">
+			<% if (denuncias.length > 0) { %>
+			<div class="table-responsive">
+				<table class="table table-striped align-middle">
+					<thead>
+						<tr>
+							<th>Nº</th>
+							<th>Título</th>
+							<th>Endereço</th>
+							<th>Data</th>
+							<th>Tipo</th>
+							<th>Ações</th>
+						</tr>
+					</thead>
+					<tbody>
+						<% denuncias.forEach(denuncia => { %>
+						<tr>
+							<td><%= denuncia.year %>/<%= denuncia.number %></td>
+							<td>
+								<%= denuncia.title %>
+							</td>
+							<td>
+								<%= denuncia.endereco %>, <%= denuncia.numero %><br>
+								<%= denuncia.bairro %>
+							</td>
+							<td><%= new Date(denuncia.created_at).toLocaleDateString('pt-BR') %></td>
+							<td><%= DENUNCIATION_SENDER[denuncia.registration_type] %></td>
+							<td>
+								<a href="/atribuir/<%= denuncia.id %>" class="btn btn-sm btn-primary">
+								Atribuir Fiscal
+								</a>
+								<a href="/denuncia/<%= denuncia.id %>" class="btn btn-sm btn-secondary">
+								Ver
+								</a>
+								<i
+									class="ms-2 fas fa-info-circle text-info"
+									style="cursor: pointer;"
+									tabindex="0"
+									role="button"
+									data-toggle="popover"
+									data-trigger="focus"
+									data-placement="top"
+									title="Descrição"
+									data-content="<%= denuncia.description.replace(/"/g, '&quot;') %>"
+									></i>
+							</td>
+						</tr>
+						<% }); %>
+					</tbody>
+				</table>
+			</div>
+			<% } else { %>
+			<div class="alert alert-info">
+				Nenhuma denúncia pendente de atribuição.
+			</div>
+			<% } %>
+		</div>
+	</div>
+	<br>
 </div>
-
 <%- include ('../partials/footer.ejs') %>

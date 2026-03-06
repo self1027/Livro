@@ -1,35 +1,36 @@
-const express = require('express');
-const router = express.Router();
-const denunciationsModel = require('../denunciations/denunciationsModel');
-const usersModel = require('../users/usersModel');
-const DENUNCIATION_SENDER = require('../constants/denunciationSenders')
+const express = require('express') 
+const router = express.Router() 
+const denunciationsModel = require('../denunciations/denunciationsModel') 
+const usersModel = require('../users/usersModel') 
 
 
 router.get('/api/denuncias', async (req, res) => {
-    const { limit = 50, offset = 0 } = req.query;
+	const {
+		limit = 50, offset = 0
+	} = req.query 
 
-    try {
-        const denuncias = await denunciationsModel.findAll({
-            limit: parseInt(limit),
-            offset: parseInt(offset),
-            include: [{
-                model: usersModel,
-                as: 'user',
-                attributes: ['name']
-            }],
-            order: [
-                ['year', 'DESC'],
-                ['number', 'DESC']
-            ]
-        });
+	try {
+		const denuncias = await denunciationsModel.findAll({
+			limit: parseInt(limit),
+			offset: parseInt(offset),
+			include: [{
+				model: usersModel,
+				as: 'user',
+				attributes: ['name']
+			}],
+			order: [
+				['year', 'DESC'],
+				['number', 'DESC']
+			]
+		}) 
 
-        res.json(denuncias);
-    } catch (error) {
-        console.error('Erro ao buscar denúncias:', error);
-        res.status(500).send('Erro ao carregar denúncias.');
-    }
-});
+		res.json(denuncias) 
+	} catch (error) {
+		console.error('Erro ao buscar denúncias:', error) 
+		res.status(500).send('Erro ao carregar denúncias.') 
+	}
+}) 
 
 
 
-module.exports = router;
+module.exports = router 
