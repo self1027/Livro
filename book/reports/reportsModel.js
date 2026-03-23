@@ -1,5 +1,5 @@
 const sequelize = require('sequelize') 
-const connection = require('../database/database.js') 
+const connection = require('../../database/database.js') 
 
 const report = connection.define('reports', {
 	description: {

@@ -3,7 +3,6 @@ const router = express.Router()
 
 const districtService = require('./districtService')
 
-// LISTAR
 router.get('/bairros', async (req, res) => {
 	try {
 		const districts = await districtService.getAll()
@@ -19,7 +18,6 @@ router.get('/bairros', async (req, res) => {
 	}
 })
 
-// CRIAR
 router.post('/bairros', async (req, res) => {
 	try {
 		const result = await districtService.create(req.body)
@@ -37,7 +35,6 @@ router.post('/bairros', async (req, res) => {
 	}
 })
 
-// UPDATE (inline)
 router.post('/bairros/:id', async (req, res) => {
 	try {
 		const result = await districtService.update(req.params.id, req.body)
@@ -55,7 +52,6 @@ router.post('/bairros/:id', async (req, res) => {
 	}
 })
 
-// DELETE
 router.post('/bairros/:id/delete', async (req, res) => {
 	try {
 		const result = await districtService.remove(req.params.id)

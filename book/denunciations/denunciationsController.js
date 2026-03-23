@@ -4,6 +4,7 @@ const router = express.Router()
 const DENUNCIATION_SENDER = require('../../constants/denunciationSenders')
 const DENUNCIATION_STATUS = require('../../constants/denunciationStatus')
 const denunciationsService = require('./denunciationsService')
+const usersService = require('../../users/usersService')
 
 
 router.get('/denuncias/new', async (req, res) => {
@@ -59,12 +60,16 @@ router.get('/denuncias/:id', async (req, res) => {
 			return res.status(result.status).send(result.message)
 		}
 
+		let fiscais = await usersService.getActiveUsers()
+		if (!Array.isArray(fiscais)) fiscais = []
+
 		const denuncia = result.data
 
 		res.render('book/denunciation/show', {
 			denuncia,
 			reports: denuncia.reports,
 			fiscal: denuncia.user,
+			fiscais,
 			DENUNCIATION_SENDER,
 			DENUNCIATION_STATUS
 		})
