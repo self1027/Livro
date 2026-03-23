@@ -1,5 +1,5 @@
 const sequelize = require('sequelize') 
-const connection = require('../database/database.js') 
+const connection = require('../../database/database.js') 
 
 const denunciation = connection.define('denunciations', {
 	year: {
