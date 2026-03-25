@@ -1,173 +1,212 @@
-<%- include ('../partials/header.ejs') %>
-<%- include ('../partials/navbar.ejs' ) %>
+<%- include('../partials/header.ejs') %>
+<%- include('../partials/navbar.ejs') %>
+
 <div class="container">
-	<hr>
-	<div class="card">
-		<div class="card-header">
-			<h2>Visualizar Denúncia</h2>
-		</div>
-		<div class="card-body">
-			<form>
-				<!-- Ano e Número -->
-				<div class="mb-3 row">
-					<div class="col-md-6">
-						<label class="form-label small text-muted">Ano do Registro</label>
-						<input class="form-control" type="number" value="<%= denuncia.year %>" readonly placeholder="Ano em que a denúncia foi registrada">
-					</div>
-					<div class="col-md-6">
-						<label class="form-label small text-muted">Número da Denúncia</label>
-						<input class="form-control" type="number" value="<%= denuncia.number %>" readonly placeholder="Número sequencial da denúncia">
-					</div>
-				</div>
-				<hr style="border-color: #ddd; margin: 1.5rem 0;">
-				<!-- Origem e Título -->
-				<div class="mb-3 row">
-					<div class="col-md-6">
-						<label class="form-label small text-muted">Origem da Denúncia</label>
-						<input class="form-control" value="<%= DENUNCIATION_SENDER[denuncia.registration_type] %>" readonly placeholder="Como a denúncia foi recebida">
-					</div>
-					<div class="col-md-6">
-						<label class="form-label small text-muted">Título da Denúncia</label>
-						<input class="form-control" type="text" value="<%= denuncia.title %>" readonly placeholder="Título resumido da denúncia">
-					</div>
-				</div>
-				<hr style="border-color: #ddd; margin: 1.5rem 0;">
-				<!-- Endereço -->
-				<div class="mb-3 row">
-					<div class="col-md-6 mb-2">
-						<label class="form-label small text-muted">Nome da Rua</label>
-						<input class="form-control" value="<%= denuncia.endereco %>" readonly placeholder="Nome da rua (sem prefixos e abreviações)">
-					</div>
-					<div class="col-md-3 mb-2">
-						<label class="form-label small text-muted">Número</label>
-						<input class="form-control" value="<%= denuncia.numero %>" readonly placeholder="Número do endereço">
-					</div>
-					<div class="col-md-3 mb-2">
-						<label class="form-label small text-muted">Complemento</label>
-						<input class="form-control" value="<%= denuncia.complemento || '' %>" readonly placeholder="Complemento (se houver)">
-					</div>
-				</div>
-				<div class="mb-3">
-					<label class="form-label small text-muted">Bairro</label>
-					<input class="form-control" value="<%= denuncia.bairro %>" readonly placeholder="Bairro">
-				</div>
-				<hr style="border-color: #ddd; margin: 1.5rem 0;">
-				<!-- Descrição -->
-				<div class="mb-3">
-					<label class="form-label small text-muted">Descrição Detalhada</label>
-					<textarea class="form-control" rows="5" readonly placeholder="Descrição completa da denúncia"><%= denuncia.description %></textarea>
-				</div>
-				<!-- Data e Status -->
-				<div class="mb-3">
-					<label class="form-label">Data de Registro</label>
-					<input class="form-control" value="<%= new Date(denuncia.created_at).toLocaleDateString('pt-BR') %>" readonly>
-				</div>
-				<td>
-					<% 
-						const statusInfo = DENUNCIATION_STATUS[denuncia.status?.trim()] || { label: 'Desconhecido', color: '#ccc' }; 
-						%>
-					<div style="display: flex; align-items: center;">
-						<div style="width: 5px; height: 25px; background-color: <%= statusInfo.color %>; margin-right: 8px; border-radius: 2px;"></div>
-						<span style="font-weight: bold; color: #000;">
-						<%= statusInfo.label %>
-						</span>
-					</div>
-				</td>
-				<!-- Fiscal -->
-				<div class="mb-3">
-					<label class="form-label">Fiscal Responsável</label><br>
-					<% if (denuncia.user) { %>
-					<span><i class="fas fa-user-check text-success"></i> <strong><%= denuncia.user.name %></strong></span>
-					<% } else { %>
-					<span class="text-muted"><i class="fas fa-user-slash"></i> Não atribuído</span>
-					<% } %>
-				</div>
-				<!-- Botões -->
-				<div class="d-flex justify-content-between mt-4">
-					<a href="/" class="btn btn-secondary">
-					<i class="fas fa-arrow-left"></i> Voltar
-					</a>
-					<div>
-						<a href="/denuncia/edit/<%= denuncia.id %>" class="btn btn-primary me-2">
-						<i class="fas fa-edit"></i> Editar
-						</a>
-						<a href="/atribuir/<%= denuncia.id %>" class="btn btn-warning me-2">
-						<i class="fas <%= denuncia.user_id ? 'fa-exchange-alt' : 'fa-user-plus' %>"></i>
-						<%= denuncia.user_id ? 'Trocar Fiscal' : 'Atribuir Fiscal' %>
-						</a>
-					</div>
-				</div>
-			</form>
-		</div>
-	</div>
-	<br>
-	<hr>
-	<!-- Novo Formulário de Relatórios -->
-	<div class="card">
-		<div class="card-header">
-			<h3>Relatórios Associados</h3>
-		</div>
-		<div class="card-body">
-			<form action="/denuncia/<%= denuncia.id %>/adicionar-relatorio" method="POST">
-				<input type="hidden" name="user_id" value="<%= denuncia.user_id %>">
-				<input type="hidden" name="status_atual" value="<%= denuncia.status %>"> <!-- Status atual da denúncia -->
-				<div class="mb-3">
-					<label for="description" class="form-label">Adicionar Relatório</label>
-					<textarea class="form-control shadow-sm rounded-3" name="description" id="description" placeholder="Digite o relatório..." rows="4"></textarea>
-				</div>
-				<div class="d-flex justify-content-between align-items-end mb-4">
-					<div class="me-3" style="min-width: 250px; flex-grow: 1;">
-						<label for="status" class="form-label">Atualizar Status</label>
-						<select class="form-control" style="width: auto; min-width: 200px;" name="status" id="status">
-							<% for (let key in DENUNCIATION_STATUS) { %>
-							<option value="<%= key %>" <%= denuncia.status === key ? 'selected' : '' %>>
-								<%= DENUNCIATION_STATUS[key].label %>
-							</option>
-							<% } %>
-						</select>
-					</div>
-					<button type="submit" class="btn btn-success rounded-3 px-4">Adicionar Relatório</button>
-				</div>
-			</form>
-			<hr>
-			<div class="mb-3">
-				<label class="form-label">Relatórios Existentes</label>
-				<ul class="list-group">
-					<% if (reports && reports.length > 0) { %>
-					<% reports.forEach(report => { %>
-					<li class="list-group-item d-flex justify-content-between align-items-center">
-						<!-- Descrição do relatório com quebras de linha e texto negrito no status alterado -->
-						<div class="report-description">
-							<%- report.description
-								.replace(/\n/g, '<br>')
-								.replace(/(Status alterado(?: de .+ para)? .+)/, '<strong>$1</strong>') 
-								%>
-						</div>
-						<!-- Condição para mostrar o botão de editar apenas se o conteúdo for editável -->
-						<% if (!report.description.includes("Denúncia atribuída ao fiscal")) { %>
-						<div class="d-flex justify-content-end" style="gap: 8px;">
-							<a href="/relatorio/<%= report.id %>" class="btn btn-warning btn-sm">
-							Editar
-							</a>
-							<form action="/relatorio/<%= report.id %>/deletar" method="POST" style="display:inline;">
-								<button type="submit" 
-									class="btn btn-danger btn-sm"
-									onclick="return confirm('Tem certeza que deseja excluir este relatório?');">
-								Apagar
-								</button>
-							</form>
-						</div>
-						<% } %>                                                                                                                                                
-					</li>
-					<br>
-					<% }) %>
-					<% } else { %>
-					<li class="list-group-item">Nenhum relatório disponível</li>
-					<% } %>
-				</ul>
-			</div>
-		</div>
-	</div>
-	<br>
+    <hr>
+
+    <!-- Mensagens de Sucesso / Erro -->
+    <% if (locals.successMessages && successMessages.length > 0) { %>
+        <% successMessages.forEach(msg => { %>
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                <%= msg %>
+                <button type="button" class="close" data-dismiss="alert" aria-label="Fechar">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+        <% }) %>
+    <% } %>
+
+    <% if (locals.error) { %>
+        <div class="alert alert-danger"><%= error %></div>
+    <% } %>
+
+    <div class="card mb-4">
+        <div class="card-header">
+            <h2>Visualizar Denúncia</h2>
+        </div>
+
+        <div class="card-body">
+            <!-- Dados principais -->
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label class="form-label small text-muted">Ano do Registro</label>
+                    <input class="form-control" type="number" value="<%= denuncia.year %>" readonly>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label small text-muted">Número da Denúncia</label>
+                    <input class="form-control" type="number" value="<%= denuncia.number %>" readonly>
+                </div>
+            </div>
+
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label class="form-label small text-muted">Origem da Denúncia</label>
+                    <input class="form-control" value="<%= DENUNCIATION_SENDER[denuncia.registration_type] %>" readonly>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label small text-muted">Título da Denúncia</label>
+                    <input class="form-control" type="text" value="<%= denuncia.title %>" readonly>
+                </div>
+            </div>
+
+            <div class="row mb-3">
+                <div class="col-md-6 mb-2">
+                    <label class="form-label small text-muted">Nome da Rua</label>
+                    <input class="form-control" value="<%= denuncia.endereco %>" readonly>
+                </div>
+                <div class="col-md-3 mb-2">
+                    <label class="form-label small text-muted">Número</label>
+                    <input class="form-control" value="<%= denuncia.numero %>" readonly>
+                </div>
+                <div class="col-md-3 mb-2">
+                    <label class="form-label small text-muted">Complemento</label>
+                    <input class="form-control" value="<%= denuncia.complemento || '' %>" readonly>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label small text-muted">Bairro</label>
+                <input class="form-control" value="<%= denuncia.bairro %>" readonly>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label small text-muted">Descrição Detalhada</label>
+                <textarea class="form-control" rows="5" readonly><%= denuncia.description %></textarea>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Data de Registro</label>
+                <input class="form-control" value="<%= new Date(denuncia.created_at).toLocaleDateString('pt-BR') %>" readonly>
+            </div>
+
+            <% const statusInfo = DENUNCIATION_STATUS[denuncia.status?.trim()] || { label: 'Desconhecido', color: '#ccc' }; %>
+            <div class="mb-3 d-flex align-items-center">
+                <div style="width: 5px; height: 25px; background-color: <%= statusInfo.color %>; margin-right: 8px; border-radius: 2px;"></div>
+                <span style="font-weight: bold; color: #000;"><%= statusInfo.label %></span>
+            </div>
+
+            <!-- Fiscal -->
+            <div class="mb-3">
+                <label class="form-label">Fiscal Responsável</label><br>
+                <% if (denuncia.user) { %>
+                    <span><i class="fas fa-user-check text-success"></i> <strong><%= denuncia.user.name %></strong></span>
+                <% } else { %>
+                    <span class="text-muted"><i class="fas fa-user-slash"></i> Não atribuído</span>
+                <% } %>
+            </div>
+
+            <!-- Botões principais -->
+            <div class="d-flex justify-content-between mt-4 mb-4">
+                <a href="/" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Voltar
+                </a>
+                <div>
+                    <a href="/denuncias/<%= denuncia.id %>/edit" class="btn btn-primary me-2">
+                        <i class="fas fa-edit"></i> Editar
+                    </a>
+                    <!-- Botão para abrir modal -->
+                    <button type="button" class="btn btn-warning" data-toggle="modal" data-target="#fiscalModal">
+                        <i class="fas <%= denuncia.user ? 'fa-exchange-alt' : 'fa-user-plus' %>"></i> <%= denuncia.user ? 'Trocar Fiscal' : 'Atribuir Fiscal' %>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Relatórios -->
+    <div class="card mb-4" id="reports-section">
+        <div class="card-header">
+            <h3>Relatórios Associados</h3>
+        </div>
+        <div class="card-body">
+            <form action="/denuncia/<%= denuncia.id %>/adicionar-relatorio" method="POST">
+                <input type="hidden" name="user_id" value="<%= denuncia.user_id %>">
+                <input type="hidden" name="status_atual" value="<%= denuncia.status %>">
+                <div class="mb-3">
+                    <label class="form-label">Adicionar Relatório</label>
+                    <textarea class="form-control shadow-sm rounded-3" name="description" placeholder="Digite o relatório..." rows="4"></textarea>
+                </div>
+                <div class="d-flex justify-content-between align-items-end mb-4">
+                    <div class="me-3" style="min-width: 250px; flex-grow: 1;">
+                        <label class="form-label">Atualizar Status</label>
+                        <select class="form-control" style="width:auto; min-width:200px;" name="status">
+                            <% for (let key in DENUNCIATION_STATUS) { %>
+                                <option value="<%= key %>" <%= denuncia.status === key ? 'selected' : '' %>>
+                                    <%= DENUNCIATION_STATUS[key].label %>
+                                </option>
+                            <% } %>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-success rounded-3 px-4">Adicionar Relatório</button>
+                </div>
+            </form>
+
+            <ul class="list-group mt-3">
+                <% if (reports && reports.length > 0) { %>
+                    <% reports.forEach(report => { %>
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <div class="report-description">
+                                <%- report.description.replace(/\n/g,'<br>').replace(/(Status alterado(?: de .+ para)? .+)/,'<strong>$1</strong>') %>
+                            </div>
+                            <% if (!report.description.includes("Denúncia atribuída ao fiscal")) { %>
+                                <div class="d-flex" style="gap: 8px;">
+                                    <a href="/relatorio/<%= report.id %>" class="btn btn-warning btn-sm">Editar</a>
+                                    <form action="/relatorio/<%= report.id %>/deletar" method="POST" style="display:inline;">
+                                        <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Tem certeza que deseja excluir este relatório?');">Apagar</button>
+                                    </form>
+                                </div>
+                            <% } %>
+                        </li>
+                    <% }) %>
+                <% } else { %>
+                    <li class="list-group-item">Nenhum relatório disponível</li>
+                <% } %>
+            </ul>
+        </div>
+    </div>
 </div>
-<%- include ('../partials/footer.ejs') %>
+
+<!-- Modal de Troca de Fiscal (Bootstrap 4) -->
+<div class="modal fade" id="fiscalModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <form action="/atribuir/<%= denuncia.id %>" method="POST">
+                <input type="hidden" name="redirectToShow" value="true">
+                <div class="modal-header">
+                    <h5 class="modal-title">Selecionar Fiscal</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Fechar">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <select name="userId" class="form-control shadow-sm" required>
+                        <% fiscais.forEach(user => { %>
+                            <option value="<%= user.id %>" <%= denuncia.user_id === user.id ? 'selected' : '' %>>
+                                <%= user.name %>
+                            </option>
+                        <% }) %>
+                    </select>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-warning">
+                        <i class="fas <%= denuncia.user_id ? 'fa-exchange-alt' : 'fa-user-plus' %>"></i>
+                        <%= denuncia.user_id ? 'Trocar Fiscal' : 'Atribuir Fiscal' %>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<%- include('../partials/footer.ejs') %>
+
+<script>
+    // Scroll para relatórios se houver sucesso
+    <% if (locals.successMessages && successMessages.length > 0) { %>
+        window.addEventListener('DOMContentLoaded', () => {
+            const reportsSection = document.getElementById('reports-section');
+            if (reportsSection) reportsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+    <% } %>
+</script>

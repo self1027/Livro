@@ -13,7 +13,7 @@
 				<p><%- message %></p>
 			</div>
 			<% } %>
-			<form method="get" action="/buscar/resultados" onsubmit="return validateForm()">
+			<form method="get" action="/buscar" onsubmit="return validateForm()">
 				<div class="mb-3">
 					<label class="form-label">Ano</label>
 					<input class="form-control" type="text" name="year" placeholder="Buscar por ano" value="<%= year %>" />

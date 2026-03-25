@@ -32,7 +32,7 @@ router.get('/denuncias/new', async (req, res) => {
 
 		const context = await denunciationsService.getCreateContext()
 
-		res.render('book/denunciation/new', {
+		res.render('denunciation/new', {
 			...context,
 			DENUNCIATION_SENDER
 		})
@@ -54,7 +54,7 @@ router.post('/denuncias', async (req, res) => {
 				body: req.body
 			})
 
-			return res.status(result.status).render('book/denunciation/new', {
+			return res.status(result.status).render('denunciation/new', {
 				...context,
 				message: result.meta?.id
 					? `${result.message} <a href="/denuncias/${result.meta.id}">Ver denúncia</a>`
@@ -85,7 +85,7 @@ router.get('/denuncias/:id', async (req, res) => {
 
 		const denuncia = result.data
 
-		res.render('book/denunciation/show', {
+		res.render('denunciation/show', {
 			denuncia,
 			reports: denuncia.reports,
 			fiscal: denuncia.user,
@@ -111,7 +111,7 @@ router.get('/denuncias/:id/edit', async (req, res) => {
 
 		const { denuncia, districts } = result.data
 
-		res.render('book/denunciation/edit', {
+		res.render('denunciation/edit', {
 			denuncia,
 			districts,
 			DENUNCIATION_SENDER,
@@ -153,7 +153,7 @@ router.get('/atribuir', async (req, res) => {
 		const { denuncias, fiscais, denunciaSelecionada } =
 			await denunciationsService.getAssignContext({ denunciaId })
 
-		res.render('book/denunciation/associate', {
+		res.render('denunciation/associate', {
 			denuncias,
 			fiscais,
 			denunciaSelecionada,
@@ -170,9 +170,8 @@ router.get('/atribuir', async (req, res) => {
 
 router.post('/atribuir/:denunciaId', async (req, res) => {
 	try {
-
 		const { denunciaId } = req.params
-		const { userId } = req.body
+		const { userId, redirectToShow } = req.body
 
 		const result = await denunciationsService.assignDenunciation(
 			denunciaId,
@@ -181,6 +180,10 @@ router.post('/atribuir/:denunciaId', async (req, res) => {
 
 		if (!result.ok) {
 			return res.redirect(`/atribuir?error=${encodeURIComponent(result.message)}`)
+		}
+
+		if (redirectToShow) {
+			return res.redirect(`/denuncias/${denunciaId}`)
 		}
 
 		res.redirect('/atribuir?success=Denúncia+atribuída+com+sucesso')
@@ -196,7 +199,7 @@ router.get('/buscar', async (req, res) => {
 
 		const context = await denunciationsService.getSearchContext(req.query)
 
-		res.render('book/denunciation/search', context)
+		res.render('denunciation/search', context)
 
 	} catch (error) {
 		console.error('Erro:', error)

@@ -32,7 +32,7 @@ router.get('/relatorio/:id', async (req, res) => {
 
     if (!result.ok) return res.status(result.status).send(result.message)
 
-    res.render('book/reports/show', result.data)
+    res.render('reports/show', result.data)
 })
 
 router.post('/relatorio/:id/editar', async (req, res) => {

@@ -183,7 +183,7 @@
 				</div>
 				<div class="mb-3">
 					<label class="form-label">Anotação</label>
-					<textarea id="inputAnotacao" class="form-control" rows="3" placeholder="Detalhes adicionais..."></textarea>
+					<textarea id="inputAnotacao" class="form-control" placeholder="Detalhes adicionais..." rows="5" style="min-height:120px;"></textarea>
 				</div>
 			</div>
 			<div class="modal-footer">
@@ -196,7 +196,8 @@
 <script>
 	let semanas = <%- JSON.stringify(semanas || []) %>
 	let dias = <%- JSON.stringify(dias || []) %>
-	let dataAtual = new Date(<%= ano %>, <%= mes %>)
+	let dataAtual = new Date(<%= ano %>, <%= mes %>);
+	document.getElementById('mesAtual').innerText = "<%= mesLabel %>";
 	let tipoEdicao = null
 	
 	const semanaMap = {}

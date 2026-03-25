@@ -1,0 +1,94 @@
+<%- include('../partials/foodstuffHeader.ejs') %>
+<%- include('../partials/foodstuffNavbar.ejs') %>
+
+<div class="container">
+	<hr>
+	<div class="card">
+		<div class="card-header">
+			<div class="d-flex justify-content-between align-items-center">
+				<h2>Listagem de Estabelecimentos</h2>
+				<a href="#" class="btn btn-success">Buscar Estabelecimentos</a>
+			</div>
+		</div>
+
+		<div class="card-body">
+			<div class="table-responsive">
+				<table class="table table-striped table-hover" id="tabela-denuncias">
+					<thead class="thead-dark">
+						<tr>
+							<th>Nome Fantasia</th>
+							<th>Razão Social</th>
+							<th>Atividade</th>
+							<th>Endereço</th>
+							<th>Status</th>
+							<th>Responsável</th>
+							<th>Fiscal</th>
+							<th>Ações</th>
+						</tr>
+					</thead>
+
+					<tbody>
+						<tr>
+							<td>Rei dos Salgados</td>
+							<td>Wu Shixiao LTDA</td>
+							<td>Lanchonete</td>
+							<td>Rua Feres Cury, 159<br>Passarelli</td>
+							<td>
+								<span class="badge badge-warning">Em regularização</span>
+							</td>
+							<td>Wu Shixiao</td>
+							<td>João Silva</td>
+							<td>
+								<a href="#" class="btn btn-sm btn-danger">
+									<i class="fas fa-eye"></i> Ver
+								</a>
+							</td>
+						</tr>
+
+						<tr>
+							<td>Padaria Central</td>
+							<td>Padaria Central ME</td>
+							<td>Panificação</td>
+							<td>Av. Guanabara, 450<br>Centro</td>
+							<td>
+								<span class="badge badge-success">Regular</span>
+							</td>
+							<td>Maria Oliveira</td>
+							<td>Maria Souza</td>
+							<td>
+								<a href="#" class="btn btn-sm btn-danger">
+									<i class="fas fa-eye"></i> Ver
+								</a>
+							</td>
+						</tr>
+
+						<tr>
+							<td>Mercado Bom Preço</td>
+							<td>Bom Preço LTDA</td>
+							<td>Mercado</td>
+							<td>Rua São Paulo, 890<br>Jardim Europa</td>
+							<td>
+								<span class="badge badge-danger">Irregular</span>
+							</td>
+							<td>Carlos Mendes</td>
+							<td><span class="text-muted">Não atribuído</span></td>
+							<td>
+								<a href="#" class="btn btn-sm btn-danger">
+									<i class="fas fa-eye"></i> Ver
+								</a>
+							</td>
+						</tr>
+
+					</tbody>
+				</table>
+			</div>
+
+			<div class="text-center mt-3">
+				<button class="btn btn-outline-danger">Carregar mais</button>
+			</div>
+		</div>
+	</div>
+	<br>
+</div>
+
+<%- include('../partials/footer.ejs') %>
