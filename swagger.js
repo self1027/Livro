@@ -1,14 +1,20 @@
-const swaggerUi = require('swagger-ui-express');
-const YAML = require('yamljs');
-const path = require('path');
+import swaggerUi from 'swagger-ui-express'
+import YAML from 'yamljs'
+import path from 'path'
+import os from 'os'
+import { fileURLToPath } from 'url'
 
-// Load all YAML documentation files
-const denunciationsDoc = YAML.load(path.join(__dirname, 'docs/denunciations.yaml'));
-const usersDoc = YAML.load(path.join(__dirname, 'docs/users.yaml'));
-const reportsDoc = YAML.load(path.join(__dirname, 'docs/reports.yaml'));
-const commonDoc = YAML.load(path.join(__dirname, 'docs/common.yaml'));
+// __dirname equivalente no ES Module
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
 
-// Merge all documents
+// Load YAMLs
+const denunciationsDoc = YAML.load(path.join(__dirname, 'docs/denunciations.yaml'))
+const usersDoc = YAML.load(path.join(__dirname, 'docs/users.yaml'))
+const reportsDoc = YAML.load(path.join(__dirname, 'docs/reports.yaml'))
+const commonDoc = YAML.load(path.join(__dirname, 'docs/common.yaml'))
+
+// Merge
 const mergedDoc = {
   openapi: '3.0.0',
   info: {
@@ -17,7 +23,7 @@ const mergedDoc = {
     description: 'Combined API documentation for Users, Denunciations, and Reports'
   },
   servers: [
-    { url: `http://${require('os').hostname()}`, description: 'Intranet server' }
+    { url: `http://${os.hostname()}`, description: 'Intranet server' }
   ],
   paths: {
     ...denunciationsDoc.paths,
@@ -25,14 +31,12 @@ const mergedDoc = {
     ...reportsDoc.paths
   },
   components: commonDoc.components
-};
+}
 
-module.exports = (app) => {
-  // Serve Swagger UI
-  app.use('/docs', swaggerUi.serve, swaggerUi.setup(mergedDoc));
-  
-  // Serve raw OpenAPI spec
+export default function setupSwagger(app) {
+  app.use('/docs', swaggerUi.serve, swaggerUi.setup(mergedDoc))
+
   app.get('/docs.json', (req, res) => {
-    res.json(mergedDoc);
-  });
-};
+    res.json(mergedDoc)
+  })
+}
