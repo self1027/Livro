@@ -82,4 +82,4 @@ Os módulos documentados incluem:
 
 ## Licença
 
-Este projeto está licenciado sob a Licença MIT - consulte o arquivo [LICENSE](LICENSE) para detalhes.
+Este projeto está licenciado sob a Licença MIT - consulte o arquivo [LICENCE](LICENCE) para detalhes.
