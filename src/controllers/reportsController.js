@@ -3,7 +3,7 @@ import reportsService from '../services/reportsService.js'
 
 const router = express.Router()
 
-router.post('/denuncia/:id/adicionar-relatorio', async (req, res) => {
+router.post('/denuncias/:id/adicionar-relatorio', async (req, res) => {
     const { id: denunciaId } = req.params
     const { description, status, user_id: userId } = req.body
 
