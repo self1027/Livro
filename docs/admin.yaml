@@ -1,0 +1,72 @@
+openapi: 3.0.0
+info:
+  title: Sistema Livro - Módulo de BI & Administração
+  version: 1.0.0
+  description: API de suporte ao Dashboard administrativo para monitoramento de métricas e produtividade.
+
+paths:
+  /admin:
+    get:
+      tags: [Business Intelligence]
+      summary: Carregar Painel Administrativo
+      description: Consolida estatísticas de denúncias, relatórios recentes e volumetria por bairro/mês.
+      parameters:
+        - name: year
+          in: query
+          description: Ano de referência para os dados. Se omitido, utiliza o ano mais recente com registros.
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: View 'admin/index' renderizada com sucesso.
+          content:
+            text/html:
+              schema:
+                type: string
+        '500':
+          description: Erro ao processar agregadores de dados (Sequelize/DB).
+
+components:
+  schemas:
+    AdminStats:
+      type: object
+      properties:
+        total:
+          type: integer
+          description: Total de denúncias no ano selecionado.
+        andamento:
+          type: integer
+          description: Denúncias com status que indicam trabalho de campo ativo.
+        resolvidas:
+          type: integer
+          description: Denúncias com status 'FINALIZADA'.
+        semFiscal:
+          type: integer
+          description: Denúncias que ainda não possuem user_id atribuído.
+
+    StatusMetric:
+      type: object
+      properties:
+        label:
+          type: string
+          example: "Notificada"
+        color:
+          type: string
+          example: "#2ecc71"
+        count:
+          type: integer
+
+    MonthlyVolume:
+      type: array
+      items:
+        type: integer
+      description: Array de 12 posições representando o total de denúncias de Janeiro a Dezembro.
+
+    BairroMetric:
+      type: object
+      properties:
+        bairro:
+          type: string
+        total:
+          type: integer
+          description: Quantidade de ocorrências naquele setor.

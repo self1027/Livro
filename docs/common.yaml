@@ -6,15 +6,15 @@ components:
         id:
           type: integer
           readOnly: true
-          description: Auto-generated user ID
+          description: ID do usuário gerado automaticamente
           example: 1
         name:
           type: string
-          description: Full name of the user
-          example: "John Doe"
+          description: Nome completo do usuário
+          example: "João Silva"
         ativo:
           type: boolean
-          description: Whether the user is active
+          description: Indica se o usuário está ativo
           default: true
       required:
         - name
@@ -26,60 +26,54 @@ components:
         id:
           type: integer
           readOnly: true
-          description: Auto-generated denunciation ID
+          description: ID da denúncia gerado automaticamente
         year:
           type: integer
-          description: Year of registration
+          description: Ano de registro
           example: 2023
         number:
           type: integer
-          description: Case number
+          description: Número do processo
           example: 123
         registration_type:
           type: string
-          description: Type of registration
+          description: Tipo de registro
           enum: [OFICIO, REQUERIMENTO, DENUNCIA]
-          x-enum-varnames: [OFFICIAL_LETTER, REQUEST, DENUNCIATION]
         status:
           $ref: '#/components/schemas/DenunciationStatusEnum'
-          description: Current status of the case
+          description: Status atual da denúncia
         title:
           type: string
-          description: Short title of the case
-          example: "Illegal construction"
+          description: Título curto da denúncia
+          example: "Construção irregular"
         description:
           type: string
-          description: Detailed description of the issue
-          example: "Detailed description of the issue"
+          description: Descrição detalhada da denúncia
         endereco:
           type: string
-          description: Street address
-          example: "Main Street"
+          description: Endereço (logradouro)
         numero:
           type: string
-          description: Address number
-          example: "123"
+          description: Número do endereço
         bairro:
           type: string
-          description: Neighborhood
-          example: "Downtown"
+          description: Bairro
         complemento:
           type: string
           nullable: true
-          description: Address complement
-          example: "Apartment 4B"
+          description: Complemento do endereço
         created_at:
           type: string
           format: date-time
           readOnly: true
-          description: Creation timestamp
+          description: Data de criação
         user_id:
           type: integer
           nullable: true
-          description: "Assigned fiscal ID"
+          description: ID do fiscal responsável
         sender:
           $ref: '#/components/schemas/DenunciationSender'
-          description: Source of the denunciation
+          description: Origem da denúncia
       required:
         - year
         - number
@@ -95,66 +89,104 @@ components:
         id:
           type: integer
           readOnly: true
-          description: Auto-generated report ID
+          description: ID do relatório gerado automaticamente
         description:
           type: string
-          description: Report content
-          example: "Status changed to 'In Progress'"
+          description: Conteúdo do relatório
         created_at:
           type: string
           format: date-time
           readOnly: true
-          description: Creation timestamp
+          description: Data de criação
         denunciation_id:
           type: integer
-          description: Related denunciation ID
-          example: 1
+          description: ID da denúncia relacionada
         user_id:
           type: integer
-          description: Author user ID
-          example: 1
+          description: ID do usuário autor
         type:
           $ref: '#/components/schemas/ReportType'
-          description: Type of report
+          description: Tipo do relatório
       required:
         - description
         - denunciation_id
         - user_id
         - type
 
-    # Constants schemas
+    District:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+          description: ID do bairro
+        name:
+          type: string
+          description: Nome do bairro
+        slug:
+          type: string
+          description: Identificador único (slug)
+      required:
+        - name
+
+    Schedule:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        week_key:
+          type: string
+          nullable: true
+          description: Identificador da semana
+        data:
+          type: string
+          format: date
+          nullable: true
+          description: Data específica
+        tipo:
+          type: string
+          enum: [semana, sobrescrito, feriado]
+          description: Tipo do agendamento
+        nome:
+          type: string
+          nullable: true
+          description: Nome do evento
+        anotacao:
+          type: string
+          nullable: true
+          description: Observações
+        created_at:
+          type: string
+          format: date-time
+      required:
+        - tipo
+
+    # ENUMS E CONSTANTES
+
     DenunciationStatusEnum:
       type: string
-      description: Available denunciation status values
+      description: Valores possíveis de status da denúncia
       enum:
         - REGISTRADA
         - EM_ANDAMENTO
         - NOTIFICADA
         - EM_PUBLICACAO
         - FEITO_AIF
+        - PENDENTE
         - FINALIZADA
-      x-enum-varnames:
-        - REGISTERED
-        - IN_PROGRESS
-        - NOTIFIED
-        - IN_PUBLICATION
-        - ADMINISTRATIVE_PROCESS
-        - FINISHED
 
     DenunciationStatus:
       type: object
-      description: Complete denunciation status configuration
+      description: Configuração completa do status
       properties:
         label:
           type: string
-          description: Human-readable status name
         color:
           type: string
-          description: Hex color code for UI representation
           format: hex-color
         slug:
           type: string
-          description: Machine-readable status identifier
       example:
         label: "Registrada"
         color: "#3498db"
@@ -162,28 +194,21 @@ components:
 
     DenunciationSender:
       type: string
-      description: Source of the denunciation
+      description: Origem da denúncia
       enum:
-        - "Denuncia Anônima Realizada Presencialmente"
+        - "Denuncia Realizada Presencialmente"
         - "Denuncia Anônima Realizada via Telefone"
+        - "Denuncia Recebida de Outro Órgão"
         - "Ofício Recebido"
-      example: "Denuncia Anônima Realizada Presencialmente"
-      x-enum-varnames:
-        - IN_PERSON_ANONYMOUS
-        - PHONE_ANONYMOUS
-        - OFFICIAL_LETTER
+      example: "Denuncia Realizada Presencialmente"
 
     ReportType:
       type: integer
-      description: Type of report entry
+      description: Tipo de relatório
       enum: [0, 1]
-      example: 1
       x-enum-descriptions:
-        - "Status change report"
-        - "Text report"
-      x-enum-varnames:
-        - STATUS_CHANGE
-        - TEXT
+        - "Relatório de mudança de status"
+        - "Relatório textual"
 
   parameters:
     userId:
@@ -192,25 +217,27 @@ components:
       required: true
       schema:
         type: integer
-      description: ID of the user
+      description: ID do usuário
+
     denunciationId:
       name: id
       in: path
       required: true
       schema:
         type: integer
-      description: ID of the denunciation
+      description: ID da denúncia
+
     reportId:
       name: id
       in: path
       required: true
       schema:
         type: integer
-      description: ID of the report
+      description: ID do relatório
 
   responses:
     NotFound:
-      description: The requested resource was not found
+      description: Recurso não encontrado
       content:
         application/json:
           schema:
@@ -218,9 +245,10 @@ components:
             properties:
               message:
                 type: string
-                example: "Resource not found"
+                example: "Recurso não encontrado"
+
     ServerError:
-      description: Internal server error
+      description: Erro interno do servidor
       content:
         application/json:
           schema:
@@ -228,9 +256,10 @@ components:
             properties:
               message:
                 type: string
-                example: "Internal server error"
+                example: "Erro interno do servidor"
+
     Unauthorized:
-      description: Unauthorized access
+      description: Acesso não autorizado
       content:
         application/json:
           schema:
@@ -238,18 +267,19 @@ components:
             properties:
               message:
                 type: string
-                example: "Unauthorized"
+                example: "Não autorizado"
 
   requestBodies:
     DenunciationUpdate:
-      description: Denunciation update data
+      description: Dados para atualização da denúncia
       required: true
       content:
         application/x-www-form-urlencoded:
           schema:
             $ref: '#/components/schemas/Denunciation'
+
     ReportCreate:
-      description: Report creation data
+      description: Dados para criação de relatório
       required: true
       content:
         application/x-www-form-urlencoded:

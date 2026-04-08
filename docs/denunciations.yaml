@@ -1,209 +1,167 @@
 openapi: 3.0.0
 info:
-  title: Denunciation Management API
-  description: API for managing denunciations and related operations
+  title: Sistema Livro - API de Denúncias
+  description: Gestão completa de denúncias, incluindo busca avançada, atribuição de fiscais e exportação.
   version: 1.0.0
+
 paths:
-  /cadastro/denuncia:
+  # --- Web Interface (denunciationsController.js) ---
+  /:
     get:
-      tags: [Denunciations]
-      summary: Get denunciation registration form
-      description: Retrieves the form for registering new denunciations with auto-generated number
+      tags: [Web Interface]
+      summary: Home - Listagem Geral
+      parameters:
+        - $ref: '#/components/parameters/limit'
+        - $ref: '#/components/parameters/offset'
       responses:
         '200':
-          description: Successfully loaded registration form
-          content:
-            text/html:
-              schema:
-                type: string
-        '500':
-          $ref: '#/components/responses/ServerError'
+          description: HTML da página inicial.
 
-  /denuncia/registrar:
+  /denuncias/new:
+    get:
+      tags: [Web Interface]
+      summary: Formulário de Cadastro
+      responses:
+        '200':
+          description: Retorna a view 'denunciation/new'.
+
+  /denuncias:
     post:
-      tags: [Denunciations]
-      summary: Register new denunciation
-      description: Creates a new denunciation with the provided data
+      tags: [Web Interface]
+      summary: Registrar Denúncia
+      description: Lógica via `denunciationsService.createDenunciation`. Valida bairro e gera número sequencial.
       requestBody:
-        $ref: '#/components/requestBodies/DenunciationUpdate'
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/DenunciationInput'
       responses:
         '302':
-          description: Redirects to home page on success
+          description: Redireciona para home.
         '400':
-          $ref: '#/components/responses/BadRequest'
-        '500':
-          $ref: '#/components/responses/ServerError'
+          description: Erro de validação (ex: Bairro não encontrado).
 
-  /denuncia/{id}:
+  /buscar/resultados:
     get:
-      tags: [Denunciations]
-      summary: Get denunciation details
-      description: Retrieves details of a specific denunciation including reports and assigned fiscal
+      tags: [Web Interface]
+      summary: Busca Avançada
+      description: Utiliza o `denunciationsQueryBuilder` para filtrar por múltiplos campos.
       parameters:
-        - $ref: '#/components/parameters/denunciationId'
+        - name: year
+          in: query
+          schema: { type: integer }
+        - name: number
+          in: query
+          schema: { type: integer }
+        - name: endereco
+          in: query
+          description: Limpa prefixos como 'Rua' ou 'Av' automaticamente.
+          schema: { type: string }
+        - name: bairro
+          in: query
+          schema: { type: string }
+        - name: status
+          in: query
+          schema: { $ref: '#/components/schemas/StatusEnum' }
       responses:
         '200':
-          description: Successfully retrieved denunciation
-          content:
-            text/html:
-              schema:
-                type: string
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/ServerError'
-
-  /denuncia/{id}/edit:
-    get:
-      tags: [Denunciations]
-      summary: Get denunciation edit form
-      description: Retrieves the form for editing a denunciation
-      parameters:
-        - $ref: '#/components/parameters/denunciationId'
-      responses:
-        '200':
-          description: Successfully loaded edit form
-          content:
-            text/html:
-              schema:
-                type: string
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/ServerError'
-
-    post:
-      tags: [Denunciations]
-      summary: Update denunciation
-      description: Updates denunciation information
-      parameters:
-        - $ref: '#/components/parameters/denunciationId'
-      requestBody:
-        $ref: '#/components/requestBodies/DenunciationUpdate'
-      responses:
-        '302':
-          description: Redirects to denunciation details page
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/ServerError'
-
-  /atribuir:
-    get:
-      tags: [Denunciations]
-      summary: Get assignment page
-      description: Retrieves page for assigning fiscals to denunciations
-      responses:
-        '200':
-          description: Successfully loaded assignment page
-          content:
-            text/html:
-              schema:
-                type: string
-        '500':
-          $ref: '#/components/responses/ServerError'
+          description: HTML com resultados filtrados.
 
   /atribuir/{denunciaId}:
     post:
-      tags: [Denunciations]
-      summary: Assign fiscal to denunciation
-      description: Assigns a fiscal to a denunciation and creates a report
+      tags: [Web Interface]
+      summary: Atribuir Fiscal
+      description: Vincula um usuário e altera o status para EM_ANDAMENTO.
       parameters:
-        - name: denunciaId
-          in: path
-          required: true
-          schema:
-            type: integer
-          description: ID of the denunciation to assign
+        - $ref: '#/components/parameters/denunciationId'
       requestBody:
-        required: true
         content:
           application/x-www-form-urlencoded:
             schema:
               type: object
               properties:
-                userId:
-                  type: integer
-                  description: ID of the fiscal to assign
-              required:
-                - userId
+                userId: { type: integer }
+                redirectToShow: { type: boolean }
       responses:
         '302':
-          description: Redirects to assignment page with success message
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '500':
-          $ref: '#/components/responses/ServerError'
+          description: Redireciona com mensagem de sucesso.
 
-  /buscar:
+  # --- Exportação (denunciationsExportController.js) ---
+  /denuncias/pdf:
     get:
-      tags: [Denunciations]
-      summary: Get search page
-      description: Retrieves the denunciation search page with empty results
-      responses:
-        '200':
-          description: Successfully loaded search page
-          content:
-            text/html:
-              schema:
-                type: string
-        '500':
-          $ref: '#/components/responses/ServerError'
-
-  /buscar/resultados:
-    get:
-      tags: [Denunciations]
-      summary: Search denunciations
-      description: Searches denunciations based on various criteria
+      tags: [Export]
+      summary: Gerar Relatório PDF
       parameters:
-        - name: year
+        - name: fiscalId
           in: query
-          schema:
-            type: integer
-          description: Year filter
-        - name: number
-          in: query
-          schema:
-            type: integer
-          description: Number filter
-        - name: endereco
-          in: query
-          schema:
-            type: string
-          description: Street address filter
-        - name: numero
-          in: query
-          schema:
-            type: string
-          description: Address number filter
-        - name: bairro
-          in: query
-          schema:
-            type: string
-          description: Neighborhood filter
+          required: true
+          schema: { type: integer }
         - name: status
           in: query
-          schema:
-            type: string
-            enum: [REGISTRADA, EM_ANDAMENTO, FINALIZADA]
-          description: Status filter
-        - name: registration_type
-          in: query
-          schema:
-            type: string
-            enum: [OFICIO, REQUERIMENTO, DENUNCIA]
-          description: Registration type filter
-        - name: userId
-          in: query
-          schema:
-            type: integer
-          description: Assigned fiscal ID filter
+          schema: { $ref: '#/components/schemas/StatusEnum' }
       responses:
         '200':
-          description: Successfully retrieved search results
           content:
-            text/html:
+            application/pdf:
+              schema: { type: string, format: binary }
+
+  # --- API JSON (denunciationsApiController.js) ---
+  /api/denuncias:
+    get:
+      tags: [API]
+      summary: Listar Denúncias (JSON)
+      responses:
+        '200':
+          content:
+            application/json:
               schema:
-                type: string
-        '500':
-          $ref: '#/components/responses/ServerError'
+                type: array
+                items:
+                  $ref: '#/components/schemas/DenunciationOutput'
+
+components:
+  parameters:
+    denunciationId:
+      name: id
+      in: path
+      required: true
+      schema: { type: integer }
+    limit:
+      name: limit
+      in: query
+      schema: { type: integer, default: 50 }
+    offset:
+      name: offset
+      in: query
+      schema: { type: integer, default: 0 }
+
+  schemas:
+    StatusEnum:
+      type: string
+      enum: [REGISTRADA, EM_ANDAMENTO, NOTIFICADA, EM_PUBLICACAO, FEITO_AIF, PENDENTE, FINALIZADA]
+
+    DenunciationInput:
+      type: object
+      required: [title, description, endereco, numero, bairro]
+      properties:
+        title: { type: string }
+        description: { type: string }
+        registration_type: { type: string, example: "Ofício Recebido" }
+        endereco: { type: string }
+        numero: { type: string }
+        bairro: { type: string }
+        complemento: { type: string }
+
+    DenunciationOutput:
+      allOf:
+        - $ref: '#/components/schemas/DenunciationInput'
+        - type: object
+          properties:
+            id: { type: integer }
+            year: { type: integer }
+            number: { type: integer }
+            status: { type: string }
+            user:
+              type: object
+              properties:
+                name: { type: string }
