@@ -1,0 +1,6 @@
+public/**/* linguist-vendored
+docs/**/* linguist-vendored
+
+views/**/*.ejs linguist-vendored
+
+src/**/*.js linguist-language=JavaScript
