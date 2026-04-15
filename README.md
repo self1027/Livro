@@ -1,0 +1,1 @@
+Recreating Livro Frontend in React + TypeScript + Vite with localstorage for portfolio demo purposes
