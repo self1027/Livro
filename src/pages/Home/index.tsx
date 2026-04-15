@@ -1,17 +1,17 @@
 import { useState, useEffect } from 'react';
-import { Container, Card, Table, Button } from 'react-bootstrap';
+import { Container, Card, Table, Button, Badge } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 import { denunciaRepository } from '../../repository/denunciationRepository';
+import { userRepository } from '../../repository/userRepository'; // Importado
 import { DENUNCIATION_STATUS, DenunciationSenderLabel } from '../../constants/denunciations';
 import type { Denunciation } from '../../types/denunciation';
 
 export default function Home() {
   const [denuncias, setDenuncias] = useState<Denunciation[]>([]);
-  const [visibleCount, setVisibleCount] = useState(10); // Simula o limit/offset
+  const [visibleCount, setVisibleCount] = useState(10);
   const step = 10;
 
   useEffect(() => {
-    // Busca todas do repositório
     const data = denunciaRepository.findAll();
     setDenuncias(data);
   }, []);
@@ -42,8 +42,7 @@ export default function Home() {
                 <Table striped hover id="tabela-denuncias" className="align-middle">
                   <thead className="table-dark">
                     <tr>
-                      <th>Ano</th>
-                      <th>Número</th>
+                      <th>Ano/Nº</th>
                       <th>Tipo</th>
                       <th>Título</th>
                       <th>Endereço</th>
@@ -55,15 +54,14 @@ export default function Home() {
                   </thead>
                   <tbody>
                     {denunciasVisiveis.map((denuncia) => {
-                      // Pegamos as infos de status das nossas constantes
                       const statusInfo = DENUNCIATION_STATUS[denuncia.status as keyof typeof DENUNCIATION_STATUS] || 
-                                       { label: 'Desconhecido', color: '#ccc' };
+                                         { label: 'Desconhecido', color: '#ccc' };
+                      const fiscal = denuncia.userId ? userRepository.findById(denuncia.userId) : null;
 
                       return (
                         <tr key={denuncia.id}>
-                          <td>{denuncia.year}</td>
-                          <td>{denuncia.number}</td>
-                          <td>{DenunciationSenderLabel[denuncia.registration_type]}</td>
+                          <td>{denuncia.year}/{denuncia.number}</td>
+                          <td>{DenunciationSenderLabel[denuncia.registration_type as keyof typeof DenunciationSenderLabel]}</td>
                           <td>{denuncia.title}</td>
                           <td>
                             <small>
@@ -83,13 +81,20 @@ export default function Home() {
                                   borderRadius: '2px' 
                                 }} 
                               />
-                              <span className="fw-bold" style={{ fontSize: '0.9rem' }}>
+                              <span className="fw-bold" style={{ fontSize: '0.85rem' }}>
                                 {statusInfo.label}
                               </span>
                             </div>
                           </td>
                           <td>
-                            <span className="text-muted">Não atribuído</span>
+                            {fiscal ? (
+                              <Badge bg="info" className="text-dark fw-normal">
+                                <i className="fas fa-user-tie me-1"></i>
+                                {fiscal.name}
+                              </Badge>
+                            ) : (
+                              <span className="text-muted small italic">Não atribuído</span>
+                            )}
                           </td>
                           <td>
                             <Link to={`/denuncias/${denuncia.id}`} className="btn btn-sm btn-primary text-nowrap">

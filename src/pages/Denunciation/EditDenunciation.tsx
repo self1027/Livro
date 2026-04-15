@@ -1,61 +1,51 @@
-import React, { useState } from 'react';
-import { Container, Card, Form, Button, Alert } from 'react-bootstrap';
-import { useNavigate } from 'react-router-dom';
-import { DenunciationSender, DenunciationSenderLabel } from '../../constants/denunciations';
+import React, { useState, useEffect } from 'react';
+import { Container, Card, Form, Row, Col, Button } from 'react-bootstrap';
+import { useParams, useNavigate } from 'react-router-dom';
 import { denunciaRepository } from '../../repository/denunciationRepository';
-import type { CreateDenunciationDTO } from '../../types/denunciation';
+import { DenunciationSender, DenunciationSenderLabel } from '../../constants/denunciations';
+import type { Denunciation } from '../../types/denunciation';
 
-export default function NewDenunciation() {
+export default function EditDenunciation() {
+  const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
 
-  const [formData, setFormData] = useState<CreateDenunciationDTO>({
-    registration_type: '',
-    title: '',
-    description: '',
-    location: {
-      street: '',
-      number: '',
-      complement: '',
-      district: '',
-      city: 'Andradina',
-      state: 'SP',
-    },
-  });
-
+  const [formData, setFormData] = useState<Denunciation | null>(null);
   const [validated, setValidated] = useState(false);
-  const [showCapsWarning, setShowCapsWarning] = useState(false);
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    const capsOn = e.getModifierState && e.getModifierState('CapsLock');
-    if (capsOn && e.key.length === 1 && !e.ctrlKey && !e.metaKey) {
-      e.preventDefault();
-      setShowCapsWarning(true);
-    } else {
-      setShowCapsWarning(false);
+  // Carrega os dados da denúncia ao iniciar
+  useEffect(() => {
+    if (id) {
+      const data = denunciaRepository.findById(id);
+      if (data) {
+        setFormData(data);
+      } else {
+        navigate('/');
+      }
     }
-  };
+  }, [id, navigate]);
+
+  if (!formData) return null;
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
 
-    // Lógica para atualizar campos aninhados (location.xxx)
     if (name.includes('.')) {
       const [parent, child] = name.split('.');
-      setFormData((prev) => ({
+      setFormData((prev) => prev ? ({
         ...prev,
         [parent]: {
-          ...(prev[parent as keyof CreateDenunciationDTO] as object),
+          ...(prev[parent as keyof Denunciation] as object),
           [child]: value,
         },
-      }));
+      }) : null);
     } else {
-      setFormData((prev) => ({ ...prev, [name]: value }));
+      setFormData((prev) => prev ? ({ ...prev, [name]: value }) : null);
     }
   };
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
-    const form = event.currentTarget;
     event.preventDefault();
+    const form = event.currentTarget;
 
     if (form.checkValidity() === false) {
       event.stopPropagation();
@@ -63,14 +53,10 @@ export default function NewDenunciation() {
       return;
     }
 
-    // SALVAMENTO VIA REPOSITORY
-    try {
-      denunciaRepository.save(formData);
-      alert('Denúncia cadastrada com sucesso!');
-      navigate('/'); // Redireciona para a listagem
-    } catch (error) {
-      console.error(error);
-      alert('Erro ao salvar a denúncia localmente.');
+    if (id && formData) {
+      denunciaRepository.update(id, formData);
+      alert('Alterações salvas com sucesso!');
+      navigate(`/denuncias/${id}`);
     }
   };
 
@@ -79,30 +65,52 @@ export default function NewDenunciation() {
       <hr />
       <Card className="shadow-sm">
         <Card.Header className="bg-light">
-          <h2 className="mb-0">Cadastrar Denúncia</h2>
+          <h2 className="mb-0">Editar Denúncia</h2>
         </Card.Header>
         
         <Card.Body>
-          {showCapsWarning && (
-            <Alert variant="danger" id="capsLockAlert">
-              Caps Lock está ativado. Digitação bloqueada nos campos de texto.
-            </Alert>
-          )}
+          <Form noValidate validated={validated} onSubmit={handleSubmit}>
+            {/* Ano e Número (Readonly) */}
+            <Row className="mb-3">
+              <Col md={6}>
+                <Form.Group>
+                  <Form.Label>Ano</Form.Label>
+                  <Form.Control
+                    type="number"
+                    value={formData.year}
+                    readOnly
+                    className="bg-light"
+                  />
+                  <Form.Text className="text-muted">
+                    Ano em que a denúncia está sendo registrada.
+                  </Form.Text>
+                </Form.Group>
+              </Col>
+              <Col md={6}>
+                <Form.Group>
+                  <Form.Label>Número da Denúncia</Form.Label>
+                  <Form.Control
+                    type="number"
+                    value={formData.number}
+                    readOnly
+                    className="bg-light"
+                  />
+                  <Form.Text className="text-muted">
+                    Número sequencial gerado automaticamente.
+                  </Form.Text>
+                </Form.Group>
+              </Col>
+            </Row>
 
-          <Form noValidate validated={validated} onSubmit={handleSubmit} id="denunciaForm">
-            
-            {/* Origem da Denúncia */}
+            {/* Origem */}
             <Form.Group className="mb-3">
-              <Form.Label className="fw-bold">Origem da Denúncia</Form.Label>
+              <Form.Label>Origem da Denúncia</Form.Label>
               <Form.Select
                 required
                 name="registration_type"
                 value={formData.registration_type}
                 onChange={handleInputChange}
               >
-
-                <option value="">Selecione a origem...</option>
-                
                 {Object.entries(DenunciationSender).map(([key, value]) => (
                   <option key={key} value={value}>
                     {DenunciationSenderLabel[value]}
@@ -116,13 +124,12 @@ export default function NewDenunciation() {
 
             {/* Título */}
             <Form.Group className="mb-3">
-              <Form.Label className="fw-bold">Título</Form.Label>
+              <Form.Label>Título</Form.Label>
               <Form.Control
                 required
                 type="text"
                 name="title"
-                placeholder="Ex: Galinhas na Mineira"
-                onKeyDown={handleKeyDown}
+                value={formData.title}
                 onChange={handleInputChange}
               />
               <Form.Text className="text-muted">
@@ -130,7 +137,7 @@ export default function NewDenunciation() {
               </Form.Text>
             </Form.Group>
 
-            {/* Endereço Estruturado */}
+            {/* Endereço */}
             <Form.Group className="mb-3">
               <Form.Label className="fw-bold">Endereço do Local</Form.Label>
               <Form.Control
@@ -138,47 +145,49 @@ export default function NewDenunciation() {
                 className="mb-2"
                 type="text"
                 name="location.street"
-                placeholder="Nome da Rua (sem 'Rua', 'Av.', etc.)"
-                onKeyDown={handleKeyDown}
+                value={formData.location.street}
                 onChange={handleInputChange}
+                placeholder="Nome da Rua"
               />
               <Form.Control
                 required
                 className="mb-2"
                 type="text"
                 name="location.number"
-                placeholder="Número da Casa"
+                value={formData.location.number}
                 onChange={handleInputChange}
+                placeholder="Número"
               />
               <Form.Control
                 className="mb-2"
                 type="text"
                 name="location.complement"
-                placeholder="Complemento (opcional)"
-                onKeyDown={handleKeyDown}
+                value={formData.location.complement || ''}
                 onChange={handleInputChange}
+                placeholder="Complemento"
               />
-              
               <Form.Control
                 required
                 type="text"
                 name="location.district"
-                placeholder="Bairro"
-                onKeyDown={handleKeyDown}
+                value={formData.location.district}
                 onChange={handleInputChange}
+                placeholder="Bairro"
               />
+              <Form.Text className="text-muted">
+                Informe apenas o nome da rua ou avenida, <strong>sem prefixos</strong> e <strong>evite abreviações</strong>.
+              </Form.Text>
             </Form.Group>
 
             {/* Descrição */}
             <Form.Group className="mb-3">
-              <Form.Label className="fw-bold">Descrição da Denúncia</Form.Label>
+              <Form.Label>Descrição da Denúncia</Form.Label>
               <Form.Control
                 required
                 as="textarea"
                 rows={4}
                 name="description"
-                placeholder="Descreva os detalhes da situação..."
-                onKeyDown={handleKeyDown}
+                value={formData.description}
                 onChange={handleInputChange}
               />
               <Form.Text className="text-muted">
@@ -186,12 +195,12 @@ export default function NewDenunciation() {
               </Form.Text>
             </Form.Group>
 
-            <div className="d-flex justify-content-end gap-2">
-              <Button variant="outline-secondary" onClick={() => navigate('/')}>
+            <div className="d-flex justify-content-between mt-4">
+              <Button variant="secondary" onClick={() => navigate(`/denuncias/${id}`)}>
                 Cancelar
               </Button>
-              <Button variant="success" type="submit">
-                <i className="fas fa-save me-2"></i> Cadastrar Denúncia
+              <Button variant="primary" type="submit">
+                Salvar Alterações
               </Button>
             </div>
           </Form>

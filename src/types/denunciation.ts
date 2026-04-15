@@ -24,6 +24,8 @@ export interface Denunciation {
   // Auditoria e Controle
   createdAt: string; // ISO Date
   updatedAt: string; // ISO Date
+
+  userId?: string;
 }
 
 export type CreateDenunciationDTO = Omit<

@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { Navbar, Nav, NavDropdown, Container, OverlayTrigger, Tooltip } from 'react-bootstrap'
+import { Navbar, Nav, NavDropdown, Container } from 'react-bootstrap'
 
 export default function MyNavbar() {
   return (
@@ -22,33 +22,15 @@ export default function MyNavbar() {
           </Nav>
 
           <Nav className="ms-auto">
-            <NavDropdown 
-              title={<span><i className="fas fa-user-shield me-1"></i> Fiscal</span>} 
-              id="nav-dropdown-fiscal"
-              className="mx-2"
-              align="end"
-            >
-              <NavDropdown.Item as={Link} to="/area-fiscal">
-                <i className="fas fa-user me-2"></i> Área do Fiscal
-              </NavDropdown.Item>
-              <NavDropdown.Item as={Link} to="/aif">
-                <i className="fas fa-file-alt me-2"></i> Lavrar AIF
-              </NavDropdown.Item>
-              <NavDropdown.Item as={Link} to="/escala">
-                <i className="fas fa-calendar-alt me-2"></i> Escala
-              </NavDropdown.Item>
-              
-              <NavDropdown.Divider />
-              
-              <OverlayTrigger
-                placement="left"
-                overlay={<Tooltip id="tooltip-em-breve">Em breve</Tooltip>}
+            <Nav className="ms-auto">
+              <Nav.Link 
+                as={Link} 
+                to="/area-fiscal" 
+                className="mx-2 d-flex align-items-center"
               >
-                <div className="dropdown-item text-muted" style={{ cursor: 'not-allowed' }}>
-                  <i className="fas fa-chart-bar me-2"></i> Números
-                </div>
-              </OverlayTrigger>
-            </NavDropdown>
+                <i className="fas fa-user-shield me-1"></i> Área do Fiscal
+              </Nav.Link>
+            </Nav>
 
             <NavDropdown 
               title={<span><i className="fas fa-cogs me-1"></i> Administrativo</span>} 
@@ -67,9 +49,6 @@ export default function MyNavbar() {
               </NavDropdown.Item>
               <NavDropdown.Item as={Link} to="/atribuir">
                 <i className="fas fa-tasks me-2"></i> Atribuir Fiscal
-              </NavDropdown.Item>
-              <NavDropdown.Item as={Link} to="/bairros">
-                <i className="fas fa-map-marker-alt me-2"></i> Gerenciar Bairros
               </NavDropdown.Item>
             </NavDropdown>
           </Nav>
