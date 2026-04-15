@@ -9,7 +9,8 @@ export default function NewDenunciation() {
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState<CreateDenunciationDTO>({
-    registration_type: '',
+    registration_type: DenunciationSender.TELEFONE,
+    year: new Date().getFullYear(),
     title: '',
     description: '',
     location: {
