@@ -8,22 +8,19 @@ export interface Denunciation {
   title: string;
   description: string;
   
-  // Endereço estruturado
   location: {
     street: string;
     number: string;
     complement?: string;
     district: string;
-    city: string; // Default: Andradina
-    state: string; // Default: SP
+    city: string;
+    state: string;
   };
 
-  // Status da denúncia (Slug do DENUNCIATION_STATUS)
   status: string;
 
-  // Auditoria e Controle
-  createdAt: string; // ISO Date
-  updatedAt: string; // ISO Date
+  createdAt: string;
+  updatedAt: string;
 
   userId?: string;
 }

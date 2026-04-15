@@ -3,16 +3,18 @@ import { Container, Card, Form, Row, Col, Button, Modal, ListGroup, Badge } from
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { denunciaRepository } from '../../repository/denunciationRepository';
 import { userRepository } from '../../repository/userRepository';
+import { reportRepository } from '../../repository/reportRepository';
+import { DENUNCIATION_STATUS, DenunciationSenderLabel } from '../../constants/denunciations';
 import type { Denunciation } from '../../types/denunciation';
 import type { User } from '../../types/user';
-import { DENUNCIATION_STATUS, DenunciationSenderLabel } from '../../constants/denunciations';
+import type { Report } from '../../types/report';
 
 export default function ViewDenunciation() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   
-  // Estados
   const [denuncia, setDenuncia] = useState<Denunciation | null>(null);
+  const [reports, setReports] = useState<Report[]>([]);
   const [showFiscalModal, setShowFiscalModal] = useState(false);
   const [newReport, setNewReport] = useState('');
   const [statusTemp, setStatusTemp] = useState('');
@@ -26,6 +28,8 @@ export default function ViewDenunciation() {
         setDenuncia(data);
         setStatusTemp(data.status);
         setSelectedFiscalId(data.userId || '');
+        const reportsData = reportRepository.findByDenunciation(id);
+        setReports(reportsData);
       } else {
         navigate('/');
       }
@@ -44,7 +48,6 @@ export default function ViewDenunciation() {
 
   const fiscalAtual = denuncia.userId ? userRepository.findById(denuncia.userId) : null;
 
-  // Handlers
   const handleAssignFiscal = () => {
     if (id && selectedFiscalId) {
       denunciaRepository.update(id, { userId: selectedFiscalId });
@@ -55,14 +58,49 @@ export default function ViewDenunciation() {
 
   const handleAddReport = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newReport.trim() || !id) return;
+    if (!id || !denuncia) return;
 
-    // Atualiza status e limpa o campo (simulando salvamento do relatório)
-    denunciaRepository.update(id, { status: statusTemp });
+    const statusAnterior = denuncia.status;
+    const houveMudancaStatus = statusTemp && statusAnterior !== statusTemp;
+    const userId = denuncia.userId || 'admin';
+
+    if (newReport.trim()) {
+      reportRepository.save({
+        description: newReport.trim(),
+        denunciation_id: id,
+        user_id: userId,
+        type: 1 
+      });
+    }
+
+    if (houveMudancaStatus) {
+      const labelAnterior = DENUNCIATION_STATUS[statusAnterior as keyof typeof DENUNCIATION_STATUS]?.label || statusAnterior;
+      const labelNovo = DENUNCIATION_STATUS[statusTemp as keyof typeof DENUNCIATION_STATUS]?.label || statusTemp;
+
+      reportRepository.save({
+        description: `Status alterado de "${labelAnterior}" para "${labelNovo}"`,
+        denunciation_id: id,
+        user_id: userId,
+        type: 2 
+      });
+
+      denunciaRepository.update(id, { status: statusTemp });
+    }
+
+    if (!newReport.trim() && !houveMudancaStatus) {
+      alert("Nada para atualizar");
+      return;
+    }
     
-    alert('Relatório adicionado e status atualizado!');
     setNewReport('');
     loadData();
+  };
+
+  const handleDeleteReport = (reportId: string) => {
+    if (window.confirm('Deseja realmente excluir este relatório?')) {
+      reportRepository.delete(reportId);
+      loadData();
+    }
   };
 
   return (
@@ -75,7 +113,6 @@ export default function ViewDenunciation() {
         </Card.Header>
 
         <Card.Body>
-          {/* Dados principais */}
           <Row className="mb-3">
             <Col md={6}>
               <Form.Label className="small text-muted">Ano do Registro</Form.Label>
@@ -90,7 +127,7 @@ export default function ViewDenunciation() {
           <Row className="mb-3">
             <Col md={6}>
               <Form.Label className="small text-muted">Origem da Denúncia</Form.Label>
-              <Form.Control value={DenunciationSenderLabel[denuncia.registration_type]} readOnly className="bg-light" />
+              <Form.Control value={DenunciationSenderLabel[denuncia.registration_type as keyof typeof DenunciationSenderLabel]} readOnly className="bg-light" />
             </Col>
             <Col md={6}>
               <Form.Label className="small text-muted">Título da Denúncia</Form.Label>
@@ -144,7 +181,6 @@ export default function ViewDenunciation() {
             )}
           </div>
 
-          {/* Botões principais */}
           <div className="d-flex justify-content-between mt-4 mb-2">
             <Button variant="secondary" onClick={() => navigate('/')}>
               <i className="fas fa-arrow-left me-2"></i> Voltar
@@ -161,7 +197,6 @@ export default function ViewDenunciation() {
         </Card.Body>
       </Card>
 
-      {/* Seção de Relatórios */}
       <Card className="mb-4 shadow-sm" id="reports-section">
         <Card.Header>
           <h3 className="mb-0">Relatórios Associados</h3>
@@ -190,20 +225,59 @@ export default function ViewDenunciation() {
                 </Form.Select>
               </div>
               <Button type="submit" variant="success" className="px-4">
-                Adicionar Relatório
+                Salvar Alterações
               </Button>
             </div>
           </Form>
 
           <ListGroup variant="flush" className="border-top">
-            <ListGroup.Item className="text-muted italic">
-              Nenhum relatório disponível no momento (Simulação).
-            </ListGroup.Item>
+            {reports.length > 0 ? (
+              /* .slice().reverse() garante que a lista exiba do mais antigo (baixo da pilha) para o mais novo */
+              reports.slice().reverse().map(report => (
+                <ListGroup.Item key={report.id} className={`py-3 mb-2 rounded border ${report.type === 2 ? 'bg-white italic' : 'bg-light'}`}>
+                  <div className="d-flex justify-content-between mb-2">
+                    <div>
+                      <Badge bg={report.type === 2 ? "info" : "secondary"} className="fw-normal me-2">
+                        {report.type === 2 ? 'SISTEMA' : new Date(report.createdAt).toLocaleString('pt-BR')}
+                      </Badge>
+                      <small className="text-muted">
+                        <b>Fiscal:</b> {userRepository.findById(report.user_id)?.name || 'Desconhecido'}
+                      </small>
+                    </div>
+                    <div>
+                      <Button 
+                        variant="link" 
+                        size="sm" 
+                        className="text-primary p-0 me-3"
+                        onClick={() => navigate(`/relatorio/${report.id}/edit`)}
+                      >
+                        <i className="fas fa-edit"></i> Editar
+                      </Button>
+                      <Button 
+                        variant="link" 
+                        size="sm" 
+                        className="text-danger p-0"
+                        onClick={() => handleDeleteReport(report.id)}
+                      >
+                        <i className="fas fa-trash"></i> Excluir
+                      </Button>
+                    </div>
+                  </div>
+                  <p className={`mb-0 ${report.type === 2 ? 'text-muted small' : ''}`} style={{ whiteSpace: 'pre-wrap' }}>
+                    {report.type === 2 && <i className="fas fa-history me-2"></i>}
+                    {report.description}
+                  </p>
+                </ListGroup.Item>
+              ))
+            ) : (
+              <ListGroup.Item className="text-muted italic border-0">
+                Nenhum relatório registrado para esta denúncia.
+              </ListGroup.Item>
+            )}
           </ListGroup>
         </Card.Body>
       </Card>
 
-      {/* Modal de Fiscal */}
       <Modal show={showFiscalModal} onHide={() => setShowFiscalModal(false)}>
         <Modal.Header closeButton>
           <Modal.Title>Selecionar Fiscal</Modal.Title>

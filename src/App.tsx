@@ -7,6 +7,7 @@ import NewDenunciation from './pages/Denunciation/NewDenunciation'
 import ViewDenunciation from './pages/Denunciation/ViewDenunciation'
 import EditDenunciation from './pages/Denunciation/EditDenunciation'
 import SearchDenunciation from './pages/Denunciation/SearchDenunciation'
+import EditReport from './pages/Report/EditReport'
 
 import NewUser from './pages/User/NewUser'
 import EditUser from './pages/User/EditUser'
@@ -23,10 +24,9 @@ export default function App() {
 
       <main className="container mt-4 mb-5">
         <Routes>
-          {/* Página Inicial */}
+
           <Route path="/" element={<Home />} />
 
-          {/* Rota de Denúncias */}
           <Route path="/denuncias/new" element={<NewDenunciation />} />
 
           <Route path="/buscar" element={<SearchDenunciation />} />
@@ -35,9 +35,9 @@ export default function App() {
 
           <Route path="/denuncias/:id/edit" element={<EditDenunciation />} />
 
-          <Route path="/atribuir" element={<AssignUser />} />
+          <Route path="/relatorio/:id/edit" element={<EditReport />} />
 
-          {/* Rota de Usuários */}
+          <Route path="/atribuir" element={<AssignUser />} />
 
           <Route path="/cadastro/usuario" element={<NewUser />} />
 

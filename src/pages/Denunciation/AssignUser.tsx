@@ -18,16 +18,21 @@ export default function AssignUser() {
   const [denunciaSelecionada, setDenunciaSelecionada] = useState<Denunciation | null>(null);
 
   useEffect(() => {
-    // Carrega dados iniciais
     const todasDenuncias = denunciaRepository.findAll();
-    // Filtra apenas as que não possuem fiscal (userId)
-    setDenuncias(todasDenuncias.filter(d => !d.userId));
+    const pendentes = todasDenuncias.filter(d => 
+      !d.userId && d.status !== 'FINALIZADA'
+    );
+
+    setDenuncias(pendentes);
     setFiscais(userRepository.findActive());
 
-    // Se houver um ID na URL, busca a denúncia específica
     if (denunciaId) {
       const encontrada = denunciaRepository.findById(denunciaId);
-      setDenunciaSelecionada(encontrada || null);
+      if (encontrada && encontrada.status !== 'FINALIZADA') {
+        setDenunciaSelecionada(encontrada);
+      } else {
+        setDenunciaSelecionada(null);
+      }
     } else {
       setDenunciaSelecionada(null);
     }

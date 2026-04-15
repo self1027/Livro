@@ -15,7 +15,7 @@ export default function Footer() {
           <a href="https://github.com/self1027" target="_blank" rel="noopener noreferrer" className="text-light text-decoration-none mx-2" aria-label="GitHub">
             <i className="fab fa-github fa-lg"></i>
           </a>
-          <a href="https://www.linkedin.com/in/murilo-dias-chossani-640ba0320/" target="_blank" rel="noopener noreferrer" className="text-light text-decoration-none mx-2" aria-label="LinkedIn">
+          <a href="https://www.linkedin.com/in/murilo-dias-dev/" target="_blank" rel="noopener noreferrer" className="text-light text-decoration-none mx-2" aria-label="LinkedIn">
             <i className="fab fa-linkedin fa-lg"></i>
           </a>
           <a href="https://www.murilod.dev/" target="_blank" rel="noopener noreferrer" className="text-light mx-2" aria-label="Portfólio">
