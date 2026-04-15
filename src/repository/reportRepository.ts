@@ -1,6 +1,6 @@
 import type { Report, CreateReportDTO } from '../types/report';
 
-const LOCAL_STORAGE_KEY = 'reports_data';
+const LOCAL_STORAGE_KEY = '@visa-andradina:reports';
 
 export const reportRepository = {
   findAll(): Report[] {

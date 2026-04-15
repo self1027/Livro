@@ -5,7 +5,14 @@ const KEY = 'denuncias';
 
 export const denunciaRepository = {
   findAll(): Denunciation[] {
-    return storage.get<Denunciation>(KEY);
+    const denuncias = storage.get<Denunciation>(KEY) || [];
+
+    return denuncias.sort((a, b) => {
+      if (b.year !== a.year) {
+        return b.year - a.year;
+      }
+      return b.number - a.number;
+    });
   },
 
   // Busca uma denúncia específica pelo ID

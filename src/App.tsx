@@ -16,10 +16,12 @@ import ListUser from './pages/User/ListUser'
 import PannelUser from './pages/User/PannelUser'
 
 import AdminDashboard from './pages/Admin/AdminDashboard'
+import IntroModal from './components/IntroModal'
 
 export default function App() {
   return (
     <>
+      <IntroModal />
       <Navbar />
 
       <main className="container mt-4 mb-5">

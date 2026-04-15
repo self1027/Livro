@@ -39,12 +39,28 @@ export default function AdminDashboard() {
   }, [denuncias, selectedYear]);
 
   // 3. ESTATÍSTICAS (CARDS)
-  const stats = useMemo(() => ({
-    total: filteredData.length,
-    andamento: filteredData.filter(d => d.status === 'EM_ANDAMENTO').length,
-    resolvidas: filteredData.filter(d => d.status === 'RESOLVIDA').length,
-    semFiscal: filteredData.filter(d => !d.userId).length,
-  }), [filteredData]);
+  const stats = useMemo(() => {
+    type ValidStatus = "REGISTRADA" | "PENDENTE" | "FINALIZADA";
+
+    const statusEmAndamento: ValidStatus[] = [
+      DENUNCIATION_STATUS.REGISTRADA.slug as ValidStatus,
+      DENUNCIATION_STATUS.PENDENTE.slug as ValidStatus,
+      DENUNCIATION_STATUS.FINALIZADA.slug as ValidStatus
+    ];
+
+    return {
+      total: filteredData.length,
+      andamento: filteredData.filter(d => 
+        statusEmAndamento.includes(d.status as ValidStatus)
+      ).length,
+      
+      resolvidas: filteredData.filter(d => 
+        d.status === (DENUNCIATION_STATUS.FINALIZADA.slug as ValidStatus)
+      ).length,
+      
+      semFiscal: filteredData.filter(d => !d.userId).length,
+    };
+  }, [filteredData]);
 
   // 4. DADOS PARA OS GRÁFICOS
   const chartsData = useMemo(() => {
@@ -186,7 +202,7 @@ export default function AdminDashboard() {
             <div className="table-responsive">
               <Table striped hover className="mb-0">
                 <tbody>
-                  {filteredData.slice(-5).reverse().map(d => (
+                  {filteredData.slice(0, 5).map(d => (
                     <tr key={d.id}>
                       <td className="ps-3">
                         <b>{d.number}/{d.year}</b><br />
