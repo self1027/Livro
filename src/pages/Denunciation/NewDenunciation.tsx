@@ -39,7 +39,6 @@ export default function NewDenunciation() {
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
 
-    // Lógica para atualizar campos aninhados (location.xxx)
     if (name.includes('.')) {
       const [parent, child] = name.split('.');
       setFormData((prev) => ({
@@ -64,11 +63,10 @@ export default function NewDenunciation() {
       return;
     }
 
-    // SALVAMENTO VIA REPOSITORY
     try {
       denunciaRepository.save(formData);
       alert('Denúncia cadastrada com sucesso!');
-      navigate('/'); // Redireciona para a listagem
+      navigate('/');
     } catch (error) {
       console.error(error);
       alert('Erro ao salvar a denúncia localmente.');
@@ -92,7 +90,6 @@ export default function NewDenunciation() {
 
           <Form noValidate validated={validated} onSubmit={handleSubmit} id="denunciaForm">
             
-            {/* Origem da Denúncia */}
             <Form.Group className="mb-3">
               <Form.Label className="fw-bold">Origem da Denúncia</Form.Label>
               <Form.Select
@@ -115,7 +112,6 @@ export default function NewDenunciation() {
               </Form.Text>
             </Form.Group>
 
-            {/* Título */}
             <Form.Group className="mb-3">
               <Form.Label className="fw-bold">Título</Form.Label>
               <Form.Control
@@ -131,7 +127,6 @@ export default function NewDenunciation() {
               </Form.Text>
             </Form.Group>
 
-            {/* Endereço Estruturado */}
             <Form.Group className="mb-3">
               <Form.Label className="fw-bold">Endereço do Local</Form.Label>
               <Form.Control
@@ -170,7 +165,6 @@ export default function NewDenunciation() {
               />
             </Form.Group>
 
-            {/* Descrição */}
             <Form.Group className="mb-3">
               <Form.Label className="fw-bold">Descrição da Denúncia</Form.Label>
               <Form.Control

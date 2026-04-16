@@ -8,7 +8,6 @@ export default function NewUser() {
   const [userName, setUserName] = useState('');
   const [users, setUsers] = useState<User[]>([]);
 
-  // Carrega a lista inicial
   useEffect(() => {
     loadUsers();
   }, []);
@@ -28,11 +27,11 @@ export default function NewUser() {
 
     userRepository.save({
       name: userName,
-      isActive: true // Por padrão, novos usuários são ativos
+      isActive: true
     });
 
-    setUserName(''); // Limpa o input
-    loadUsers(); // Atualiza a lista
+    setUserName('');
+    loadUsers();
     alert('Usuário cadastrado com sucesso!');
   };
 
@@ -40,7 +39,6 @@ export default function NewUser() {
     <Container className="mt-4">
       <hr />
       
-      {/* Card de Cadastro */}
       <Card className="shadow-sm mb-4">
         <Card.Header className="bg-light">
           <h2 className="mb-0">Novo Usuário</h2>
@@ -62,7 +60,6 @@ export default function NewUser() {
         </Card.Body>
       </Card>
 
-      {/* Card de Listagem */}
       <Card className="shadow-sm">
         <Card.Header className="bg-light">
           <h2 className="mb-0">Listagem de Usuários</h2>
@@ -77,7 +74,6 @@ export default function NewUser() {
                 className="d-flex align-items-center mb-2 p-2 border rounded bg-light shadow-sm"
               >
                 <div className="d-flex align-items-center flex-grow-1">
-                  {/* Status Indicator */}
                   <span
                     className="rounded-circle"
                     style={{

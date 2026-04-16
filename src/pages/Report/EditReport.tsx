@@ -27,7 +27,7 @@ export default function EditReport() {
         const denunciationData = denunciaRepository.findById(reportData.denunciation_id);
         if (denunciationData) {
           setDenuncia(denunciationData);
-          setStatus(denunciationData.status); // Inicializa com o status atual da denúncia
+          setStatus(denunciationData.status);
         }
       } else {
         navigate('/');
@@ -42,18 +42,15 @@ export default function EditReport() {
     try {
       let finalDescription = description;
 
-      // Lógica do Service: Se for mudança de status, gera a descrição automática
       if (report.type === 2) {
         const labelNew = DENUNCIATION_STATUS[status as keyof typeof DENUNCIATION_STATUS]?.label || status;
         finalDescription = `Status alterado para "${labelNew}"`;
       }
 
-      // 1. Atualiza o relatório
       reportRepository.update(report.id, { 
         description: finalDescription 
       });
 
-      // 2. Se mudou o status no Select, atualiza a denúncia pai (conforme seu editReport service)
       if (status !== denuncia.status) {
         denunciaRepository.update(denuncia.id, { status });
       }
@@ -83,7 +80,6 @@ export default function EditReport() {
           </div>
 
           <Form onSubmit={handleSave}>
-            {/* Se o tipo for 1 (TEXTO LIBRE) */}
             {report.type === 1 && (
               <Form.Group className="mb-3">
                 <Form.Label className="fw-bold">Descrição do Relatório</Form.Label>
@@ -97,7 +93,6 @@ export default function EditReport() {
               </Form.Group>
             )}
 
-            {/* Se o tipo for 2 (ALTERAÇÃO DE STATUS) */}
             {report.type === 2 && (
               <>
                 <Form.Group className="mb-3">

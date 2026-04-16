@@ -9,13 +9,11 @@ export default function FiscalList() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Carrega os fiscais do repositório ao montar a tela
     const data = userRepository.findAll();
     setFiscais(data);
   }, []);
 
   const handleEntrar = (id: string) => {
-    // Navega para a área específica do fiscal com o status inicial filtrado
     navigate(`/area-fiscal/${id}?status=REGISTRADA`);
   };
 

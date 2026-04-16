@@ -12,7 +12,6 @@ export default function EditDenunciation() {
   const [formData, setFormData] = useState<Denunciation | null>(null);
   const [validated, setValidated] = useState(false);
 
-  // Carrega os dados da denúncia ao iniciar
   useEffect(() => {
     if (id) {
       const data = denunciaRepository.findById(id);
@@ -70,7 +69,6 @@ export default function EditDenunciation() {
         
         <Card.Body>
           <Form noValidate validated={validated} onSubmit={handleSubmit}>
-            {/* Ano e Número (Readonly) */}
             <Row className="mb-3">
               <Col md={6}>
                 <Form.Group>
@@ -102,7 +100,6 @@ export default function EditDenunciation() {
               </Col>
             </Row>
 
-            {/* Origem */}
             <Form.Group className="mb-3">
               <Form.Label>Origem da Denúncia</Form.Label>
               <Form.Select
@@ -122,7 +119,6 @@ export default function EditDenunciation() {
               </Form.Text>
             </Form.Group>
 
-            {/* Título */}
             <Form.Group className="mb-3">
               <Form.Label>Título</Form.Label>
               <Form.Control
@@ -137,7 +133,6 @@ export default function EditDenunciation() {
               </Form.Text>
             </Form.Group>
 
-            {/* Endereço */}
             <Form.Group className="mb-3">
               <Form.Label className="fw-bold">Endereço do Local</Form.Label>
               <Form.Control
@@ -179,7 +174,6 @@ export default function EditDenunciation() {
               </Form.Text>
             </Form.Group>
 
-            {/* Descrição */}
             <Form.Group className="mb-3">
               <Form.Label>Descrição da Denúncia</Form.Label>
               <Form.Control

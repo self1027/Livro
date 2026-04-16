@@ -17,7 +17,6 @@ import { Line, Pie, Bar } from 'react-chartjs-2';
 import { denunciaRepository } from '../../repository/denunciationRepository';
 import { DENUNCIATION_STATUS } from '../../constants/denunciations';
 
-// Registrar componentes do Chart.js
 ChartJS.register(
   CategoryScale, LinearScale, PointElement, LineElement, 
   BarElement, ArcElement, Title, Tooltip, Legend
@@ -27,18 +26,15 @@ export default function AdminDashboard() {
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [denuncias] = useState(denunciaRepository.findAll());
 
-  // 1. ANOS DISPONÍVEIS (Extraídos das denúncias)
   const availableYears = useMemo(() => {
     const years = Array.from(new Set(denuncias.map(d => d.year)));
     return years.length > 0 ? years.sort((a, b) => b - a) : [new Date().getFullYear()];
   }, [denuncias]);
 
-  // 2. FILTRAR DADOS PELO ANO
   const filteredData = useMemo(() => {
     return denuncias.filter(d => d.year === selectedYear);
   }, [denuncias, selectedYear]);
 
-  // 3. ESTATÍSTICAS (CARDS)
   const stats = useMemo(() => {
     type ValidStatus = "REGISTRADA" | "PENDENTE" | "FINALIZADA";
 
@@ -62,23 +58,19 @@ export default function AdminDashboard() {
     };
   }, [filteredData]);
 
-  // 4. DADOS PARA OS GRÁFICOS
   const chartsData = useMemo(() => {
-    // Meses
     const months = new Array(12).fill(0);
     filteredData.forEach(d => {
       const month = new Date(d.createdAt).getMonth();
       months[month]++;
     });
 
-    // Status
     const statusCounts = Object.keys(DENUNCIATION_STATUS).map(key => ({
       label: DENUNCIATION_STATUS[key as keyof typeof DENUNCIATION_STATUS].label,
       count: filteredData.filter(d => d.status === key).length,
       color: DENUNCIATION_STATUS[key as keyof typeof DENUNCIATION_STATUS].color
     }));
 
-    // Bairros (Top 5)
     const bairroMap: Record<string, number> = {};
     filteredData.forEach(d => {
       const b = d.location.district;
@@ -100,7 +92,6 @@ export default function AdminDashboard() {
         </Card.Header>
         <Card.Body>
           
-          {/* FILTRO ANO */}
           <div className="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
             <h4 className="mb-0">Visão Geral das Denúncias</h4>
             <div className="d-flex align-items-center gap-2">
@@ -115,7 +106,6 @@ export default function AdminDashboard() {
             </div>
           </div>
 
-          {/* CARDS */}
           <Row className="mb-4 g-3">
             {[
               { label: 'Total de Denúncias', val: stats.total, color: 'primary' },
@@ -134,7 +124,6 @@ export default function AdminDashboard() {
             ))}
           </Row>
 
-          {/* GRÁFICO MÊS (LINE) */}
           <Card className="mb-4 shadow-sm">
             <Card.Header><h5>Denúncias por Mês</h5></Card.Header>
             <Card.Body style={{ height: '300px' }}>
@@ -156,7 +145,6 @@ export default function AdminDashboard() {
           </Card>
 
           <Row className="mb-4">
-            {/* STATUS (PIE) */}
             <Col md={6}>
               <Card className="h-100 shadow-sm">
                 <Card.Header><h5>Denúncias por Status</h5></Card.Header>
@@ -175,7 +163,6 @@ export default function AdminDashboard() {
               </Card>
             </Col>
 
-            {/* BAIRROS (BAR) */}
             <Col md={6}>
               <Card className="h-100 shadow-sm">
                 <Card.Header><h5>Top Bairros</h5></Card.Header>
@@ -196,7 +183,7 @@ export default function AdminDashboard() {
             </Col>
           </Row>
 
-          {/* ÚLTIMAS DENÚNCIAS (Substituindo a tabela de relatórios para maior utilidade) */}
+          {/* Últimas Denúncias (Substituindo a tabela de relatórios para maior utilidade) */}
           <Card className="shadow-sm">
             <Card.Header><h5>Últimas Denúncias Registradas</h5></Card.Header>
             <div className="table-responsive">

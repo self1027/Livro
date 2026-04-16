@@ -42,11 +42,10 @@ export default function AssignUser() {
     e.preventDefault();
     if (!denunciaId || !selectedFiscal) return;
 
-    // No seu repositório, criamos o assignUser anteriormente
     denunciaRepository.update(denunciaId, { userId: selectedFiscal });
     
     alert('Fiscal atribuído com sucesso!');
-    navigate('/atribuir'); // Volta para a lista
+    navigate('/atribuir');
   };
 
   return (
@@ -61,7 +60,6 @@ export default function AssignUser() {
 
         <Card.Body>
           {denunciaSelecionada ? (
-            /* --- MODO FORMULÁRIO --- */
             <Form onSubmit={handleConfirmarAtribuicao}>
               <div className="mb-3">
                 <p><strong>Denúncia:</strong> {denunciaSelecionada.year}/{denunciaSelecionada.number} - {denunciaSelecionada.title}</p>
@@ -95,7 +93,6 @@ export default function AssignUser() {
               </div>
             </Form>
           ) : (
-            /* --- MODO LISTA --- */
             <>
               {denuncias.length > 0 ? (
                 <div className="table-responsive">

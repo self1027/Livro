@@ -2,14 +2,14 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Container, Card, Form, Row, Col, Button, Table, Alert, Badge } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 import { denunciaRepository } from '../../repository/denunciationRepository';
-import { userRepository } from '../../repository/userRepository'; // Importado
+import { userRepository } from '../../repository/userRepository';
 import type { Denunciation } from '../../types/denunciation';
-import type { User } from '../../types/user'; // Importado
+import type { User } from '../../types/user';
 import { DENUNCIATION_STATUS, DenunciationSender, DenunciationSenderLabel } from '../../constants/denunciations';
 
 export default function SearchDenunciation() {
   const [results, setResults] = useState<Denunciation[] | null>(null);
-  const [fiscais, setFiscais] = useState<User[]>([]); // Estado para os fiscais
+  const [fiscais, setFiscais] = useState<User[]>([]);
   const resultsRef = useRef<HTMLDivElement>(null);
 
   const [filters, setFilters] = useState({
@@ -23,7 +23,6 @@ export default function SearchDenunciation() {
     userId: ''
   });
 
-  // Carrega os fiscais ao montar o componente
   useEffect(() => {
     setFiscais(userRepository.findAll());
   }, []);
@@ -50,6 +49,7 @@ export default function SearchDenunciation() {
     const data = denunciaRepository.search(filters);
     setResults(data);
 
+    // Timeout necessário para garantir que o DOM renderizou os resultados antes do scroll
     setTimeout(() => {
       resultsRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, 100);
@@ -149,7 +149,8 @@ export default function SearchDenunciation() {
                 <tbody>
                   {results.map(denuncia => {
                     const statusInfo = DENUNCIATION_STATUS[denuncia.status as keyof typeof DENUNCIATION_STATUS] || { label: 'Desconhecido', color: '#ccc' };
-                    // Busca o nome do fiscal para cada linha
+                    
+                    // Busca o nome do fiscal para cada linha (necessário pois o objeto denúncia contém apenas o ID)
                     const fiscal = denuncia.userId ? userRepository.findById(denuncia.userId) : null;
 
                     return (
