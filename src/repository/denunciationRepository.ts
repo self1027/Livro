@@ -15,13 +15,11 @@ export const denunciaRepository = {
     });
   },
 
-  // Busca uma denúncia específica pelo ID
   findById(id: string): Denunciation | undefined {
     const all = this.findAll();
     return all.find(d => d.id === id);
   },
 
-  // Útil para mostrar na UI antes de salvar
   getNextNumber(year: number): number {
     const all = this.findAll();
     const yearlyDenunciations = all.filter(d => d.year === year);
@@ -83,8 +81,8 @@ export const denunciaRepository = {
       (!filters.houseNumber || d.location.number === filters.houseNumber) &&
       (!filters.district || d.location.district.toLowerCase().includes(filters.district.toLowerCase())) &&
       (!filters.status || d.status === filters.status) &&
-      (!filters.registration_type || d.registration_type === filters.registration_type)
-      // Adicione filtro de userId aqui se tiver a relação
+      (!filters.registration_type || d.registration_type === filters.registration_type) &&
+      (!filters.userId || d.userId === filters.userId)
     );
   });
 },

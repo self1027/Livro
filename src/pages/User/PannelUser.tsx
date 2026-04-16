@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Card, Form, Table, Button, Alert } from 'react-bootstrap';
+import { Container, Card, Form, Table, Alert } from 'react-bootstrap';
 import { useParams, useSearchParams, Link } from 'react-router-dom';
 import { denunciaRepository } from '../../repository/denunciationRepository';
 import { userRepository } from '../../repository/userRepository';
@@ -14,7 +14,6 @@ export default function FiscalArea() {
   const [fiscal, setFiscal] = useState<User | null>(null);
   const [denuncias, setDenuncias] = useState<Denunciation[]>([]);
   
-  // Obtém o status da URL ou define 'REGISTRADA' como padrão conforme seu EJS
   const selectedStatus = searchParams.get('status') || 'REGISTRADA';
 
   useEffect(() => {
@@ -22,7 +21,6 @@ export default function FiscalArea() {
       const fiscalData = userRepository.findById(id);
       setFiscal(fiscalData || null);
       
-      // Busca denúncias filtradas por fiscal e status
       const allDenuncias = denunciaRepository.search({ 
         userId: id,
         status: selectedStatus === 'ALL' ? '' : selectedStatus 
@@ -33,11 +31,6 @@ export default function FiscalArea() {
 
   const handleStatusChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setSearchParams({ status: e.target.value });
-  };
-
-  const handlePrint = () => {
-    // Simulação do endpoint de PDF
-    window.open(`/api/denuncias/pdf?fiscalId=${id}&status=${selectedStatus}`, '_blank');
   };
 
   if (!fiscal) return <Container className="mt-4"><Alert variant="danger">Fiscal não encontrado.</Alert></Container>;
@@ -65,10 +58,6 @@ export default function FiscalArea() {
                 ))}
                 <option value="ALL">Todos</option>
               </Form.Select>
-              
-              <Button variant="success" size="sm" onClick={handlePrint} title="Gerar PDF">
-                <i className="fas fa-print"></i>
-              </Button>
             </div>
           </div>
 
