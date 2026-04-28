@@ -6,7 +6,7 @@
 	position: fixed;
 	right: 20px;
 	top: 100px;
-	width: 260px;
+	width: 200px;
 	z-index: 999;
 	box-shadow: 0 4px 12px rgba(0,0,0,0.15);
 	border-radius: 8px;
@@ -16,6 +16,30 @@
 .attendance-badge .card-body {
 	text-align: center;
 	font-size: 14px;
+}
+
+@media (max-width: 1600px) {
+	.attendance-badge {
+		width: 180px;
+		right: 15px;
+		top: 90px;
+	}
+
+	.attendance-badge .card-body {
+		font-size: 13px;
+	}
+}
+
+@media (max-width: 1200px) {
+	.attendance-badge {
+		width: 160px;
+		right: 10px;
+		top: 80px;
+	}
+
+	.attendance-badge .card-body {
+		font-size: 12px;
+	}
 }
 </style>
 
