@@ -1,10 +1,13 @@
 import express from 'express'
 import adminService from '../services/adminService.js'
+import attendanceService from '../services/attendanceService.js'
 
 const router = express.Router()
 
 router.get('/admin', async (req, res) => {
     try {
+        const attendance = await attendanceService.get()
+
         const years = await adminService.getYears()
 
         if (years.length === 0) {
@@ -37,12 +40,30 @@ router.get('/admin', async (req, res) => {
             statusStats,
             meses,
             bairros,
-            reports
+            reports,
+            attendance
         })
 
     } catch (error) {
         console.error('Erro ao carregar painel administrativo:', error)
         res.status(500).send("Erro ao carregar painel administrativo")
+    }
+})
+
+router.post('/admin/attendance', async (req, res) => {
+    try {
+        const { weekdays, paused } = req.body
+
+        await attendanceService.update({
+            weekdays: Array.isArray(weekdays) ? weekdays : [weekdays].filter(Boolean),
+            paused: paused === 'on'
+        })
+
+        res.redirect('/admin')
+
+    } catch (error) {
+        console.error(error)
+        res.redirect('/admin')
     }
 })
 

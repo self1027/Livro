@@ -3,11 +3,14 @@ import DENUNCIATION_SENDER from '../constants/denunciationSenders.js'
 import DENUNCIATION_STATUS from '../constants/denunciationStatus.js'
 import denunciationsService from '../services/denunciationsService.js'
 import usersService from '../services/usersService.js'
+import attendanceService from '../services/attendanceService.js'
 
 const router = express.Router()
 
 router.get('/', async (req, res) => {
 	try {
+		const attendance = await attendanceService.get()
+
 		const limit = parseInt(req.query.limit) || 50
 		const offset = parseInt(req.query.offset) || 0
 
@@ -19,7 +22,8 @@ router.get('/', async (req, res) => {
 			DENUNCIATION_SENDER,
 			DENUNCIATION_STATUS,
 			offset: offset + limit,
-			limit
+			limit,
+			attendance
 		})
 	} catch (error) {
 		console.error('Erro ao carregar denúncias na home:', error)
