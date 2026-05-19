@@ -75,7 +75,11 @@ router.post('/denuncias', async (req, res) => {
 	}
 })
 
-router.get('/denuncias/:id', async (req, res) => {
+router.get('/denuncias/:id', async (req, res, next) => {
+	if (!/^\d+$/.test(req.params.id)) {
+    	return next()
+    }
+
 	try {
 
 		const result = await denunciationsService.getById(req.params.id)

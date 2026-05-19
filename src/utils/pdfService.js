@@ -1,7 +1,7 @@
 import PDFDocument from 'pdfkit'
 import DENUNCIATION_STATUS from '../constants/denunciationStatus.js'
 
-export default function generateDenunciasPdf(res, { fiscal, denuncias, status }) {
+function generateDenunciasPdf(res, { fiscal, denuncias, status }) {
 
     const doc = new PDFDocument({ margin: 50 })
     doc.pipe(res)
@@ -52,4 +52,8 @@ export default function generateDenunciasPdf(res, { fiscal, denuncias, status })
     })
 
     doc.end()
+}
+
+export default {
+    generateDenunciasPdf
 }
