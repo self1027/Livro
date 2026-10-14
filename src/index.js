@@ -93,10 +93,6 @@ app.get('/aif', (req, res) => {
 	res.render('aif_helper/index.ejs')
 })
 
-app.get('/GA', (req, res) => {
-	res.render('foodstuff/index.ejs')
-})
-
 app.listen(80, () => {
 	console.log('Swagger UI available at http://localhost/api-docs') 
 })
