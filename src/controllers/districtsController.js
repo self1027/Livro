@@ -3,19 +3,12 @@ import districtService from '../services/districtsService.js'
 
 const router = express.Router()
 
-router.get('/bairros', async (req, res) => {
-	try {
-		const districts = await districtService.getAll()
-
-		res.render('district/index', {
-			districts,
-			success: req.query.success,
-			error: req.query.error
-		})
-	} catch (error) {
-		console.error(error)
-		res.status(500).send('Erro ao carregar bairros')
-	}
+router.get('/bairros', (req, res) => {
+    const query = new URLSearchParams({kind:'district'})
+    for (const key of ['success','error']) {
+        if (typeof req.query[key] === 'string') query.set(key,req.query[key])
+    }
+    res.redirect(`/admin/catalogs?${query}`)
 })
 
 router.post('/bairros', async (req, res) => {
@@ -24,14 +17,14 @@ router.post('/bairros', async (req, res) => {
 
 		if (!result.ok) {
 			return res.redirect(
-				`/bairros?error=${encodeURIComponent(result.message)}`
+				`/admin/catalogs?kind=district&error=${encodeURIComponent(result.message)}`
 			)
 		}
 
-		res.redirect('/bairros?success=Bairro criado com sucesso')
+		res.redirect('/admin/catalogs?kind=district&success=Bairro criado com sucesso')
 	} catch (error) {
 		console.error(error)
-		res.redirect('/bairros?error=Erro interno ao criar bairro')
+		res.redirect('/admin/catalogs?kind=district&error=Erro interno ao criar bairro')
 	}
 })
 
@@ -41,14 +34,14 @@ router.post('/bairros/:id', async (req, res) => {
 
 		if (!result.ok) {
 			return res.redirect(
-				`/bairros?error=${encodeURIComponent(result.message)}`
+				`/admin/catalogs?kind=district&error=${encodeURIComponent(result.message)}`
 			)
 		}
 
-		res.redirect('/bairros?success=Bairro atualizado com sucesso')
+		res.redirect('/admin/catalogs?kind=district&success=Bairro atualizado com sucesso')
 	} catch (error) {
 		console.error(error)
-		res.redirect('/bairros?error=Erro interno ao atualizar bairro')
+		res.redirect('/admin/catalogs?kind=district&error=Erro interno ao atualizar bairro')
 	}
 })
 
@@ -58,14 +51,14 @@ router.post('/bairros/:id/delete', async (req, res) => {
 
 		if (!result.ok) {
 			return res.redirect(
-				`/bairros?error=${encodeURIComponent(result.message)}`
+				`/admin/catalogs?kind=district&error=${encodeURIComponent(result.message)}`
 			)
 		}
 
-		res.redirect('/bairros?success=Bairro removido com sucesso')
+		res.redirect('/admin/catalogs?kind=district&success=Bairro removido com sucesso')
 	} catch (error) {
 		console.error(error)
-		res.redirect('/bairros?error=Erro interno ao deletar bairro')
+		res.redirect('/admin/catalogs?kind=district&error=Erro interno ao deletar bairro')
 	}
 })
 

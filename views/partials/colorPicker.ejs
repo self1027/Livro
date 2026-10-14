@@ -1,0 +1,13 @@
+<div class="ui-color-picker" data-color-picker>
+    <label for="<%= pickerId %>"><%= label %></label>
+    <div class="ui-color-square" tabindex="0" role="slider" aria-label="<%= label %>: saturação e brilho. Use as setas para ajustar." aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+        <span class="ui-color-cursor" aria-hidden="true"></span>
+    </div>
+    <label class="ui-color-caption">Matiz <input data-hue type="range" min="0" max="359" value="0" aria-label="<%= label %>: matiz"></label>
+    <div class="ui-color-rgb">
+        <% ['R','G','B'].forEach((channel, index) => { %>
+        <label><%= channel %><input data-rgb="<%= index %>" class="form-control" type="number" min="0" max="255" step="1" value="0" aria-label="<%= label %>: canal <%= channel %>"></label>
+        <% }) %>
+    </div>
+    <div class="ui-color-hex"><span class="ui-color-swatch" aria-hidden="true"></span><input id="<%= pickerId %>" data-hex name="<%= name %>" class="form-control" value="<%= value %>" pattern="#[0-9a-fA-F]{6}" maxlength="7" required aria-label="<%= label %>: hexadecimal"></div>
+</div>

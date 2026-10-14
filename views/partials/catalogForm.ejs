@@ -1,0 +1,19 @@
+<% const current = {label:'',color:'#28526d',backgroundColor:'#e6eef5',behavior:'progress', ...entry, ...form};
+const behaviorLocked = entry && kind === 'status' && ['REGISTRADA','FINALIZADA'].includes(entry.slug);
+const classifications = {registered:'Registro inicial',pending:'Pendente',progress:'Em andamento',closed:'Finalizada'}; %>
+<form class="catalog-form" method="POST" action="/admin/catalogs/<%= kind %><%= entry ? '/' + entry.id : '' %>">
+    <div class="form-group"><label for="<%= prefix %>-label">Nome</label><input class="form-control" id="<%= prefix %>-label" name="label" value="<%= current.label %>" maxlength="120" required></div>
+    <% if (entry) { %><p class="small text-muted">Identificador: <code><%= entry.slug %></code></p><% } else { %><p class="small text-muted">O identificador é criado automaticamente pelo nome e preservado ao renomear.</p><% } %>
+    <% if (kind !== 'sender') { %>
+    <div class="form-group"><label for="<%= prefix %>-behavior">Classificação</label>
+        <% if (behaviorLocked) { %><input id="<%= prefix %>-behavior" class="form-control" value="<%= classifications[entry.behavior] %>" readonly><input type="hidden" name="behavior" value="<%= entry.behavior %>"><small class="text-muted">Esta opção é usada automaticamente pelo sistema.</small>
+        <% } else { %><select id="<%= prefix %>-behavior" name="behavior" class="form-control"><% ['pending','progress','closed'].forEach(value => { %><option value="<%= value %>" <%= current.behavior === value ? 'selected' : '' %>><%= classifications[value] %></option><% }) %></select><small class="text-muted">Define como a opção é contabilizada nos indicadores.</small><% } %>
+    </div>
+    <% } %>
+    <div class="catalog-color-grid">
+        <%- include('colorPicker.ejs', {pickerId:prefix+'-color', name:'color', label:'Cor do texto', value:current.color}) %>
+        <%- include('colorPicker.ejs', {pickerId:prefix+'-background', name:'backgroundColor', label:'Cor do fundo', value:current.backgroundColor}) %>
+    </div>
+    <div class="catalog-preview"><span class="ui-status" data-catalog-preview>Prévia</span><span class="small text-muted" data-color-contrast></span></div>
+    <button class="btn btn-primary" type="submit"><%= entry ? 'Salvar alterações' : 'Adicionar opção' %></button>
+</form>

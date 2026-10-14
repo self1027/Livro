@@ -1,0 +1,86 @@
+[
+  {
+    "label": "Registrada",
+    "color": "#28526d",
+    "backgroundColor": "#e6eef5",
+    "slug": "REGISTRADA",
+    "kind": "status",
+    "behavior": "registered"
+  },
+  {
+    "label": "Em Andamento",
+    "color": "#795116",
+    "backgroundColor": "#fff0d6",
+    "slug": "EM_ANDAMENTO",
+    "kind": "status",
+    "behavior": "progress"
+  },
+  {
+    "label": "Notificada",
+    "color": "#245d45",
+    "backgroundColor": "#e1eee7",
+    "slug": "NOTIFICADA",
+    "kind": "status",
+    "behavior": "progress"
+  },
+  {
+    "label": "Em Publicação",
+    "color": "#66487c",
+    "backgroundColor": "#eee7f4",
+    "slug": "EM_PUBLICACAO",
+    "kind": "status",
+    "behavior": "progress"
+  },
+  {
+    "label": "Em Processo Administrativo",
+    "color": "#175f62",
+    "backgroundColor": "#dff0ef",
+    "slug": "FEITO_AIF",
+    "kind": "status",
+    "behavior": "progress"
+  },
+  {
+    "label": "Pendente",
+    "color": "#963b38",
+    "backgroundColor": "#fbe6e3",
+    "slug": "PENDENTE",
+    "kind": "status",
+    "behavior": "pending"
+  },
+  {
+    "label": "Finalizada",
+    "color": "#46564d",
+    "backgroundColor": "#edf0ed",
+    "slug": "FINALIZADA",
+    "kind": "status",
+    "behavior": "closed"
+  },
+  {
+    "kind": "sender",
+    "slug": "PESSOA_PRESENCIAL",
+    "label": "Denuncia Realizada Presencialmente",
+    "color": "#28526d",
+    "backgroundColor": "#e6eef5"
+  },
+  {
+    "kind": "sender",
+    "slug": "PESSOA_TELEFONE",
+    "label": "Denuncia Anônima Realizada via Telefone",
+    "color": "#28526d",
+    "backgroundColor": "#e6eef5"
+  },
+  {
+    "kind": "sender",
+    "slug": "OUTRO_ORGÃO",
+    "label": "Denuncia Recebida de Outro Órgão",
+    "color": "#28526d",
+    "backgroundColor": "#e6eef5"
+  },
+  {
+    "kind": "sender",
+    "slug": "OFICIO",
+    "label": "Ofício Recebido",
+    "color": "#28526d",
+    "backgroundColor": "#e6eef5"
+  }
+]

@@ -1,0 +1,37 @@
+<%- include('../partials/header.ejs') %>
+<%- include('../partials/navbar.ejs') %>
+<link rel="stylesheet" href="/css/admin.css">
+<link rel="stylesheet" href="/css/color-picker.css">
+<main class="container admin-panel">
+    <%- include('../partials/pageHeading.ejs', {eyebrow:'ADMINISTRATIVO', title:'Cadastros e cores', description:'Gerencie os bairros e personalize os status e as origens das denúncias.', actionHref:'/admin', actionLabel:'Voltar ao painel'}) %>
+    <%- include('../partials/adminTabs.ejs', {activeTab:'catalogs'}) %>
+    <% if (notice) { %><div class="alert alert-success" role="status"><%= notice %></div><% } %>
+    <% if (error) { %><div class="alert alert-danger" role="alert"><%= error %></div><% } %>
+    <nav class="catalog-categories" aria-label="Categoria de cadastro">
+        <% Object.entries(catalogKinds).forEach(([key, title]) => { %><a class="btn <%= key === kind ? 'btn-primary' : 'btn-outline-secondary' %>" href="/admin/catalogs?kind=<%= key %>" <%- key === kind ? 'aria-current="page"' : '' %>><%= title %></a><% }) %>
+        <a class="btn <%= kind === 'district' ? 'btn-primary' : 'btn-outline-secondary' %>" href="/admin/catalogs?kind=district" <%- kind === 'district' ? 'aria-current="page"' : '' %>>Bairros</a>
+    </nav>
+    <% if (kind === 'district') { %>
+    <%- include('../partials/districtPanel.ejs', {districts}) %>
+    <% } else { %>
+    <div class="catalog-layout">
+        <section class="card catalog-create">
+            <div class="card-header"><h2 class="ui-section-title">Adicionar opção</h2></div>
+            <div class="card-body">
+                <%- include('../partials/catalogForm.ejs', {kind, entry:null, form: !editId ? form : {}, prefix:'new'}) %>
+            </div>
+        </section>
+        <section aria-label="Opções cadastradas">
+            <h2 class="ui-section-title mb-3"><%= catalogKinds[kind] %></h2>
+            <% entries.filter(entry => entry.kind === kind).forEach(entry => { const editing = String(entry.id) === String(editId); %>
+            <details class="card catalog-entry mb-3" <%= editing ? 'open' : '' %>>
+                <summary><%- include('../partials/statusBadge.ejs', {status:entry}) %><span>Editar</span></summary>
+                <div class="card-body"><%- include('../partials/catalogForm.ejs', {kind, entry, form:editing ? form : {}, prefix:'entry-' + entry.id}) %></div>
+            </details>
+            <% }) %>
+        </section>
+    </div>
+    <% } %>
+</main>
+<% if (kind === 'district') { %><script src="/js/districts.js" defer></script><% } else { %><script src="/js/color-picker.js" type="module"></script><% } %>
+<%- include('../partials/footer.ejs') %>
