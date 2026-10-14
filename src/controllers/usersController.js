@@ -5,28 +5,9 @@ import DENUNCIATION_STATUS from '../constants/denunciationStatus.js'
 
 const router = express.Router()
 
-router.get('/cadastro/usuario', async (req, res) => {
-  try {
-    const users = await userService.getAllOrdered()
-    res.render('users/new', { username: users })
-  } catch (error) {
-    console.error('Erro ao buscar usuários:', error)
-    res.status(500).render('error', { message: 'Erro ao carregar usuários.' })
-  }
-})
+router.get('/cadastro/usuario',(req,res)=>res.redirect('/admin/fiscais'))
 
-router.post('/usuario/registrar', async (req, res) => {
-  const username = req.body.username
-  if (!username) return res.redirect('/')
-
-  try {
-    await userService.create({ name: username })
-    res.redirect('/cadastro/usuario')
-  } catch (error) {
-    console.error('Erro ao criar usuário:', error)
-    res.status(500).render('error', { message: 'Erro ao criar usuário.' })
-  }
-})
+router.post('/usuario/registrar',(req,res)=>res.redirect(307,'/admin/fiscais'))
 
 router.get('/area-fiscal', async (req, res) => {
   try {
@@ -41,19 +22,19 @@ router.get('/area-fiscal', async (req, res) => {
 router.get('/area-fiscal/:id', async (req, res) => {
   try {
     const fiscalId = req.params.id
-    const selectedStatus = req.query.status || 'REGISTRADA'
-    const page = parseInt(req.query.page) || 1
+    const selectedStatus = req.query.status == null || req.query.status === '' ? 'ALL' : req.query.status
+    if (!/^\d+$/.test(fiscalId) || (selectedStatus !== 'ALL' && !Object.hasOwn(DENUNCIATION_STATUS, selectedStatus)) || typeof selectedStatus !== 'string') return res.status(400).send('Fiscal ou status inválido.')
+    if (req.query.page != null && (typeof req.query.page !== 'string' || !/^[1-9]\d*$/.test(req.query.page))) return res.status(400).send('Página inválida.')
+    const page = Number(req.query.page || 1)
+    if (!Number.isSafeInteger(page) || page > Math.floor(Number.MAX_SAFE_INTEGER / 50)) return res.status(400).send('Página inválida.')
     const limit = 50
     const offset = (page - 1) * limit
 
     const fiscal = await userService.findByPk(fiscalId)
-    if (!fiscal) return res.status(404).render('error', { message: 'Fiscal não encontrado.' })
+    if (!fiscal) return res.status(404).send('Fiscal não encontrado.')
 
     const result = await denunciationService.findAllByFiscal(fiscalId, selectedStatus, limit, offset)
     if (!result.ok) throw new Error('Erro ao buscar denúncias')
-
-    const countResult = await denunciationService.countByFiscal(fiscalId, selectedStatus)
-    if (!countResult.ok) throw new Error('Erro ao contar denúncias')
 
     res.render('users/home', {
       fiscal,
@@ -61,40 +42,17 @@ router.get('/area-fiscal/:id', async (req, res) => {
       selectedStatus,
       hasMore: result.data.hasMore,
       DENUNCIATION_STATUS,
-      nextPage: result.data.nextPage
+      nextPage: result.data.nextPage,
+      total: result.data.total
     })
   } catch (error) {
     console.error(error)
-    res.status(500).render('error', { message: 'Erro ao carregar os dados do fiscal.' })
+    res.status(500).send('Erro ao carregar os dados do fiscal.')
   }
 })
 
-router.get('/editar-usuario/:id', async (req, res) => {
-  try {
-    const user = await userService.findByPk(req.params.id)
-    if (!user) return res.status(404).render('error', { message: 'Usuário não encontrado.' })
-    res.render('users/edit', { user })
-  } catch (error) {
-    console.error('Erro ao carregar o usuário para edição:', error)
-    res.status(500).render('error', { message: 'Erro ao carregar usuário para edição.' })
-  }
-})
+router.get('/editar-usuario/:id',(req,res)=>res.redirect(`/admin/fiscais/${encodeURIComponent(req.params.id)}/edit`))
 
-router.post('/usuario/atualizar/:id', async (req, res) => {
-  const { id } = req.params
-  const { name } = req.body
-  const ativoCheckbox = req.body.active !== undefined
-
-  try {
-    const user = await userService.findByPk(id)
-    if (!user) return res.status(404).render('error', { message: 'Usuário não encontrado.' })
-
-    await userService.update(id, { name, toggleActive: ativoCheckbox })
-    res.redirect('/cadastro/usuario')
-  } catch (error) {
-    console.error('Erro ao atualizar usuário:', error)
-    res.status(500).render('error', { message: 'Erro ao atualizar o usuário.' })
-  }
-})
+router.post('/usuario/atualizar/:id',(req,res)=>res.redirect(307,`/admin/fiscais/${encodeURIComponent(req.params.id)}`))
 
 export default router

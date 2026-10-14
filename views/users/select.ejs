@@ -1,44 +1,18 @@
-<%- include('../partials/header.ejs') %>
+﻿<%- include('../partials/header.ejs') %>
 <%- include('../partials/navbar.ejs') %>
-<div class="container">
-	<hr>
-	<div class="card">
-		<div class="card-header">
-			<h2>Listagem de Fiscais</h2>
-		</div>
-		<div class="card-body">
-			<% if (fiscais && fiscais.length > 0) { %>
-			<div class="table-responsive">
-				<table class="table table-striped table-hover">
-					<thead class="thead-dark">
-						<tr>
-							<th>ID</th>
-							<th>Nome</th>
-							<th>Actions</th>
-						</tr>
-					</thead>
-					<tbody>
-						<% fiscais.forEach(fiscal => { %>
-						<tr>
-							<td><%= fiscal.id %></td>
-							<td><%= fiscal.name %></td>
-							<td>
-								<a href="/area-fiscal/<%= fiscal.id %>?status=REGISTRADA" class="btn btn-sm btn-success">
-								<i class="fas fa-sign-in-alt"></i> Entrar
-								</a>
-							</td>
-						</tr>
-						<% }); %>
-					</tbody>
-				</table>
-			</div>
-			<% } else { %>
-			<div class="alert alert-info">
-				Nenhum fiscal encontrado.
-			</div>
-			<% } %>
-		</div>
-	</div>
-	<br>
-</div>
+<link rel="stylesheet" href="/css/fiscal.css">
+<main class="container fiscal-page">
+    <%- include('../partials/pageHeading.ejs', {eyebrow:'FISCALIZAÇÃO', title:'Área do fiscal', description:'Selecione um fiscal para consultar suas denúncias e acompanhar a fiscalização.', actionHref:'/', actionLabel:'Voltar à listagem'}) %>
+    <section class="card" aria-labelledby="fiscal-directory-title">
+        <div class="card-header fiscal-section-heading"><h2 id="fiscal-directory-title" class="ui-section-title">Fiscais ativos</h2><span class="small text-muted"><%= fiscais.length %> <%= fiscais.length === 1 ? 'fiscal disponível' : 'fiscais disponíveis' %></span></div>
+        <div class="card-body">
+            <% if (fiscais.length) { %>
+            <div class="form-group fiscal-directory-search"><label for="fiscal-search">Buscar fiscal</label><input id="fiscal-search" class="form-control" type="search" placeholder="Digite o nome ou o número do fiscal" aria-describedby="fiscal-search-feedback"></div>
+            <p id="fiscal-search-feedback" class="small text-muted" role="status" aria-live="polite"></p>
+            <div class="fiscal-directory"><% fiscais.forEach(fiscal => { %><a class="fiscal-entry" href="/area-fiscal/<%= fiscal.id %>?status=ALL" data-fiscal-entry><span class="small text-muted">Fiscal #<%= fiscal.id %></span><h3><%= fiscal.name %></h3><span class="fiscal-entry-action">Abrir área <span aria-hidden="true">↗</span></span></a><% }) %></div>
+            <% } else { %><div class="fiscal-empty"><h3>Nenhum fiscal ativo disponível</h3><p class="text-muted">Cadastre um fiscal ou revise sua situação para acessar a área de acompanhamento.</p><a class="btn btn-outline-primary" href="/admin/fiscais">Gerenciar fiscais</a></div><% } %>
+        </div>
+    </section>
+</main>
+<script src="/js/fiscal.js" defer></script>
 <%- include('../partials/footer.ejs') %>
