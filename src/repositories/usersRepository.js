@@ -20,12 +20,13 @@ function create(data) {
   return User.create(data)
 }
 
-async function update(id, { name, toggleActive } = {}) {
+async function update(id, { name, toggleActive, ativo } = {}) {
   const user = await User.findByPk(id)
   if (!user) return null
 
   if (name !== undefined) user.name = name
-  if (toggleActive) user.ativo = !user.ativo
+  if (typeof ativo === 'boolean') user.ativo = ativo
+  else if (toggleActive) user.ativo = !user.ativo
 
   return user.save()
 }

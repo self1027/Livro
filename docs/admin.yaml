@@ -1,72 +1,255 @@
 openapi: 3.0.0
 info:
-  title: Sistema Livro - Módulo de BI & Administração
-  version: 1.0.0
-  description: API de suporte ao Dashboard administrativo para monitoramento de métricas e produtividade.
-
+  title: Sistema Livro - Administração
+  version: 1.1.0
+  description: Acompanhamento das denúncias, filas de atenção e distribuição por fiscal.
 paths:
   /admin:
     get:
-      tags: [Business Intelligence]
-      summary: Carregar Painel Administrativo
-      description: Consolida estatísticas de denúncias, relatórios recentes e volumetria por bairro/mês.
+      tags: [Administração]
+      summary: Carregar painel administrativo
+      description: Indicadores refletem os filtros gerais e o status atual. As filas filtram somente a lista paginada (25 registros) e suas exportações. Todos os anos são incluídos por padrão. Idade e inatividade são alertas de acompanhamento, não prazos legais.
       parameters:
-        - name: year
-          in: query
-          description: Ano de referência para os dados. Se omitido, utiliza o ano mais recente com registros.
-          schema:
-            type: integer
+        - {name: year, in: query, description: Ano do protocolo (omitido inclui todos os anos), schema: {type: integer}}
+        - {name: start, in: query, description: Data inicial de registro em São Paulo, schema: {type: string, format: date}}
+        - {name: end, in: query, description: Data final de registro inclusiva em São Paulo, schema: {type: string, format: date}}
+        - {name: scope, in: query, schema: {type: string, enum: [all, open], default: all}}
+        - {name: userId, in: query, description: ID do fiscal ou unassigned para denúncias sem fiscal, schema: {type: string}}
+        - {name: bairro, in: query, description: Nome exato do bairro, schema: {type: string}}
+        - {name: status, in: query, description: Slug de status cadastrado no banco, schema: {type: string}}
+        - {name: registration_type, in: query, description: Slug de origem cadastrado no banco, schema: {type: string}}
+        - {name: inactivityDays, in: query, description: Dias desde o último relatório ou desde o registro quando não há histórico, schema: {type: integer, enum: [7, 15, 30, 60], default: 30}}
+        - {name: queue, in: query, schema: {type: string, enum: [unassigned, inactive, old, closed, open, progress, age0, age1, age2, age3]}}
+        - {name: page, in: query, schema: {type: integer, minimum: 1, default: 1}}
+        - {name: tab, in: query, schema: {type: string, enum: [overview, attendance], default: overview}}
       responses:
         '200':
-          description: View 'admin/index' renderizada com sucesso.
+          description: Painel ou configuração de atendimento renderizado.
           content:
             text/html:
-              schema:
-                type: string
-        '500':
-          description: Erro ao processar agregadores de dados (Sequelize/DB).
-
+              schema: {type: string}
+        '400': {description: Data inicial posterior à data final.}
+        '500': {description: Erro ao carregar os dados.}
+  /admin/export/{format}:
+    get:
+      tags: [Administração]
+      summary: Exportar as denúncias filtradas
+      description: Aceita os mesmos filtros gerais e queue de /admin. Exporta todas as páginas da fila escolhida. O CSV contém a lista; o PDF contém indicadores dos filtros gerais e a lista da fila.
+      parameters:
+        - name: format
+          in: path
+          required: true
+          schema: {type: string, enum: [csv, pdf]}
+      responses:
+        '200':
+          description: Arquivo para download.
+          content:
+            text/csv:
+              schema: {type: string}
+            application/pdf:
+              schema: {type: string, format: binary}
+        '400': {description: Intervalo de datas inválido.}
+        '404': {description: Formato não suportado.}
+        '500': {description: Erro na exportação.}
+  /admin/attendance:
+    post:
+      tags: [Administração]
+      summary: Configurar atendimento de denúncias
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                weekdays:
+                  type: array
+                  items: {type: string, enum: [SEG, TER, QUA, QUI, SEX]}
+                paused: {type: string, enum: [on]}
+                module_disabled: {type: string, enum: [on], description: Desabilita o módulo na home e preserva os dias e a pausa configurados.}
+      responses:
+        '302': {description: Retorna à aba Atendimento com notice=saved ou notice=error.}
+  /admin/catalogs:
+    get:
+      tags: [Administração]
+      summary: Gerenciar status, origens de denúncias e bairros
+      parameters:
+        - {name: kind, in: query, schema: {type: string, enum: [status, sender, district], default: status}}
+      responses:
+        '200': {description: Cadastros e seletores de cor renderizados.}
+        '503': {description: Não foi possível carregar os cadastros.}
+  /admin/catalogs/{kind}:
+    post:
+      tags: [Administração]
+      summary: Adicionar opção com slug automático
+      parameters:
+        - {name: kind, in: path, required: true, schema: {type: string, enum: [status, sender]}}
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema: {$ref: '#/components/schemas/CatalogInput'}
+      responses:
+        '302': {description: Opção adicionada; retorna ao cadastro.}
+        '400': {description: Dados inválidos; apresenta o formulário preenchido.}
+  /admin/catalogs/{kind}/{id}:
+    post:
+      tags: [Administração]
+      summary: Editar nome, cores e classificação mantendo slug e código
+      parameters:
+        - {name: kind, in: path, required: true, schema: {type: string, enum: [status, sender]}}
+        - {name: id, in: path, required: true, schema: {type: integer, minimum: 1}}
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema: {$ref: '#/components/schemas/CatalogInput'}
+      responses:
+        '302': {description: Opção atualizada; retorna ao cadastro.}
+        '400': {description: Dados inválidos.}
+        '404': {description: Opção não encontrada.}
+  /admin/schedule:
+    get:
+      tags: [Administração]
+      summary: Editar a escala no painel administrativo
+      description: Abre o mês atual em São Paulo quando ano e mês são omitidos.
+      parameters:
+        - {name: ano, in: query, schema: {type: integer, minimum: 1000, maximum: 9999}}
+        - {name: mes, in: query, description: Mês de 0 a 11, schema: {type: integer, minimum: 0, maximum: 11}}
+      responses:
+        '200': {description: Escala com controles de edição.}
+        '400': {description: Ano ou mês inválido.}
+  /admin/schedule/week:
+    post:
+      tags: [Administração]
+      summary: Configurar responsável e anotação de uma semana
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [week_key, nome]
+              properties:
+                week_key: {type: string, example: '42-2026'}
+                nome: {type: string, maxLength: 255}
+                anotacao: {type: string, maxLength: 10000}
+      responses:
+        '200': {description: Semana atualizada.}
+        '400': {description: Dados inválidos.}
+  /admin/schedule/day:
+    post:
+      tags: [Administração]
+      summary: Configurar alteração diária ou feriado
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [data, tipo]
+              properties:
+                data: {type: string, format: date}
+                tipo: {type: string, enum: [sobrescrito, feriado, remover]}
+                nome: {type: string, maxLength: 255}
+                anotacao: {type: string, maxLength: 10000}
+      responses:
+        '200': {description: Dia atualizado.}
+        '400': {description: Dados inválidos.}
+  /admin/fiscais:
+    get:
+      tags: [Administração]
+      summary: Gerenciar fiscais no painel
+      responses:
+        '200': {description: Cadastro e listagem de fiscais.}
+    post:
+      tags: [Administração]
+      summary: Cadastrar fiscal ativo
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name: {type: string, maxLength: 255}
+      responses:
+        '302': {description: Fiscal cadastrado; retorna ao painel.}
+        '400': {description: Nome inválido; mantém o formulário.}
+  /admin/fiscais/{id}/edit:
+    get:
+      tags: [Administração]
+      summary: Editar nome e situação do fiscal
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: integer, minimum: 1}}
+      responses:
+        '200': {description: Formulário de edição.}
+        '404': {description: Fiscal não encontrado.}
+  /admin/fiscais/{id}:
+    post:
+      tags: [Administração]
+      summary: Salvar nome e estado ativo explícito
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: integer, minimum: 1}}
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required: [name, activeState]
+              properties:
+                name: {type: string, maxLength: 255}
+                activeState: {type: string, enum: [explicit]}
+                ativo: {type: string, enum: [on], description: Omitido indica fiscal inativo.}
+      responses:
+        '302': {description: Fiscal atualizado; retorna ao painel.}
+        '400': {description: Dados inválidos.}
+  /admin/assignments:
+    get:
+      tags: [Administração]
+      summary: Fila paginada de denúncias sem fiscal ou seleção de responsável
+      parameters:
+        - {name: page, in: query, schema: {type: integer, minimum: 1, default: 1}}
+        - {name: denunciaId, in: query, schema: {type: integer, minimum: 1}}
+      responses:
+        '200': {description: Fila de 25 denúncias por página ou formulário de atribuição.}
+        '404': {description: Denúncia não encontrada.}
+  /admin/assignments/{denunciaId}:
+    post:
+      tags: [Administração]
+      summary: Atribuir fiscal ativo à denúncia
+      parameters:
+        - {name: denunciaId, in: path, required: true, schema: {type: integer, minimum: 1}}
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required: [userId]
+              properties:
+                userId: {type: integer, minimum: 1}
+                redirectToShow: {type: string, enum: ['true']}
+      responses:
+        '302': {description: Retorna ao painel ou ao detalhe da denúncia com o resultado.}
 components:
   schemas:
+    CatalogInput:
+      type: object
+      required: [label, color, backgroundColor]
+      properties:
+        label: {type: string, maxLength: 120}
+        color: {type: string, pattern: '^#[0-9a-fA-F]{6}$'}
+        backgroundColor: {type: string, pattern: '^#[0-9a-fA-F]{6}$'}
+        behavior: {type: string, description: Classificação dos status; classificações automáticas são preservadas.}
     AdminStats:
       type: object
       properties:
-        total:
-          type: integer
-          description: Total de denúncias no ano selecionado.
-        andamento:
-          type: integer
-          description: Denúncias com status que indicam trabalho de campo ativo.
-        resolvidas:
-          type: integer
-          description: Denúncias com status 'FINALIZADA'.
-        semFiscal:
-          type: integer
-          description: Denúncias que ainda não possuem user_id atribuído.
-
-    StatusMetric:
-      type: object
-      properties:
-        label:
-          type: string
-          example: "Notificada"
-        color:
-          type: string
-          example: "#2ecc71"
-        count:
-          type: integer
-
-    MonthlyVolume:
-      type: array
-      items:
-        type: integer
-      description: Array de 12 posições representando o total de denúncias de Janeiro a Dezembro.
-
-    BairroMetric:
-      type: object
-      properties:
-        bairro:
-          type: string
-        total:
-          type: integer
-          description: Quantidade de ocorrências naquele setor.
+        total: {type: integer, description: Todas as denúncias nos filtros gerais.}
+        open: {type: integer, description: Denúncias não finalizadas.}
+        progress: {type: integer, description: Denúncias com status classificado como em andamento.}
+        closed: {type: integer, description: Denúncias com status classificado como finalizado.}
+        unassigned: {type: integer, description: Denúncias abertas sem fiscal.}
+        inactive: {type: integer, description: Denúncias abertas sem relatório pelo intervalo escolhido.}
+        old: {type: integer, description: Denúncias abertas há mais de 60 dias.}
