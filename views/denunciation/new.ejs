@@ -1,185 +1,48 @@
-<%- include('../partials/header.ejs') %>
+﻿<%- include('../partials/header.ejs') %>
 <%- include('../partials/navbar.ejs') %>
-<div class="container">
-	<hr>
-	<div class="card">
-		<div class="card-header">
-			<h2>Cadastrar Denúncia</h2>
-		</div>
-		<div class="card-body">
-			<% if (typeof message !== 'undefined' && message) { %>
-			<div class="alert alert-warning">
-				<h4 class="alert-heading">Aviso</h4>
-				<p><%- message %></p>
-			</div>
-			<% } %>
-			<form method="post" action="/denuncias" id="denunciaForm">
-				<div class="row mb-3">
-					<div class="col-md-6">
-						<label class="form-label">Ano</label>
-						<input
-							class="form-control"
-							type="number"
-							name="year"
-							value="<%= year %>"
-							readonly
-							>
-						<small class="form-text text-muted">
-						Ano em que a denúncia está sendo registrada.
-						</small>
-					</div>
-					<div class="col-md-6">
-						<label class="form-label">Número da Denúncia</label>
-						<input
-							class="form-control"
-							type="number"
-							name="number"
-							value="<%= lastNumber %>"
-							readonly
-							>
-						<small class="form-text text-muted">
-						Número sequencial gerado automaticamente.
-						</small>
-					</div>
-				</div>
-				<div class="mb-3">
-					<label class="form-label">Origem da Denúncia</label>
-					<select
-						class="form-control"
-						name="registration_type"
-						id="registration_type"
-						required
-						>
-						<% for (let key in DENUNCIATION_SENDER) { %>
-						<option value="<%= key %>">
-							<%= DENUNCIATION_SENDER[key] %>
-						</option>
-						<% } %>
-					</select>
-					<small class="form-text text-muted">
-					Informe como a denúncia foi recebida (telefone, presencialmente ou ofício).
-					</small>
-				</div>
-				<div class="mb-3">
-					<label class="form-label">Título</label>
-					<input
-						class="form-control"
-						type="text"
-						name="title"
-						placeholder="Ex: Galinhas na Mineira"
-						required
-						>
-					<small class="form-text text-muted">
-					Um título breve e descritivo para identificar a denúncia.
-					</small>
-				</div>
-				<div class="mb-3">
-					<label class="form-label">Endereço do Local</label>
-					<input
-						class="form-control mb-2"
-						type="text"
-						name="endereco"
-						placeholder="Nome da Rua (sem 'Rua', 'Av.', etc.)"
-						required
-						>
-					<input
-						class="form-control mb-2"
-						type="text"
-						name="numero"
-						placeholder="Número da Casa"
-						required
-						>
-					<input
-						class="form-control mb-2"
-						type="text"
-						name="complemento"
-						placeholder="Complemento (opcional)"
-						>
-					<%- include('../partials/districtAutocomplete', { districts }) %>
-					<small class="form-text text-muted">
-					Comece a digitar para ver sugestões de bairros cadastrados.
-					</small>
-				</div>
-				<div class="mb-3">
-					<label class="form-label">Descrição da Denúncia</label>
-					<textarea
-						class="form-control"
-						name="description"
-						placeholder="Descreva os detalhes da situação..."
-						rows="4"
-						required
-						></textarea>
-					<small class="form-text text-muted">
-					Descreva com o máximo de detalhes possíveis o que está acontecendo no local.
-					</small>
-				</div>
-				<div class="d-flex justify-content-end">
-					<button class="btn btn-success">
-					<i class="fas fa-save"></i> Cadastrar Denúncia
-					</button>
-				</div>
-			</form>
-		</div>
-	</div>
-	<br>
-</div>
-<script>
-	function validateForm() {
-	    const form = document.querySelector('#denunciaForm')
-	    const requiredFields = form.querySelectorAll('[required]')
-	    let isValid = true
-	
-	    requiredFields.forEach(field => {
-	        if (!field.value.trim()) {
-	            isValid = false
-	            field.style.border = '1px solid red'
-	        } else {
-	            field.style.border = ''
-	        }
-	    })
-	
-	    if (!isValid) {
-	        alert('Preencha todos os campos obrigatórios!')
-	        return false
-	    }
-	    return true
-	}
-	
-	const textFields = document.querySelectorAll('#denunciaForm input[type="text"], #denunciaForm textarea')
-	let capsWarningEl = null
-	
-	function createCapsLockWarning() {
-	  if (capsWarningEl) return
-	
-	  capsWarningEl = document.createElement('div')
-	  capsWarningEl.className = 'alert alert-danger mt-3'
-	  capsWarningEl.textContent = 'Caps Lock está ativado. Digitação bloqueada nos campos de texto.'
-	  capsWarningEl.id = 'capsLockAlert'
-	  document.querySelector('.card-body').prepend(capsWarningEl)
-	}
-	
-	function removeCapsLockWarning() {
-	  if (capsWarningEl) {
-	    capsWarningEl.remove()
-	    capsWarningEl = null
-	  }
-	}
-	
-	textFields.forEach(field => {
-	  field.addEventListener('keydown', function(e) {
-	    const capsOn = e.getModifierState && e.getModifierState('CapsLock')
-	    if (capsOn && e.key.length === 1 && !e.ctrlKey && !e.metaKey) {
-	      e.preventDefault()
-	      createCapsLockWarning()
-	    } else {
-	      removeCapsLockWarning()
-	    }
-	  })
-	
-	  field.addEventListener('keyup', function(e) {
-	    const capsOn = e.getModifierState && e.getModifierState('CapsLock')
-	    if (!capsOn) removeCapsLockWarning()
-	  })
-	})
-</script>
+<link rel="stylesheet" href="/css/denunciation-form.css">
+<main class="container denunciation-create">
+    <%- include('../partials/pageHeading.ejs', {eyebrow:'REGISTRO', title:'Cadastrar denúncia', description:'Registre a situação e a localização para iniciar o acompanhamento.', actionHref:'/', actionLabel:'Voltar à listagem'}) %>
+    <section class="registration-protocol" aria-label="Protocolo automático">
+        <div><span class="small text-muted">Protocolo previsto</span><strong><%= lastNumber %>/<%= year %></strong></div>
+        <p>O ano e o número são preenchidos automaticamente.</p>
+    </section>
+    <div id="registration-feedback" class="alert <%= existingId ? 'alert-warning' : 'alert-danger' %>" role="alert" tabindex="-1" <%= typeof message !== 'undefined' && message ? '' : 'hidden' %>>
+        <% if (typeof message !== 'undefined' && message) { %><p class="mb-0"><%= message %></p><% if (existingId) { %><a class="btn btn-outline-secondary mt-3" href="/denuncias/<%= existingId %>">Ver denúncia existente</a><% } %><% } %>
+    </div>
+    <form method="POST" action="/denuncias" id="denunciaForm" novalidate>
+        <input type="hidden" name="year" value="<%= year %>"><input type="hidden" name="number" value="<%= lastNumber %>">
+        <p class="small text-muted registration-required-note">Os campos marcados com * são obrigatórios.</p>
+        <div class="registration-layout">
+            <div class="registration-main">
+                <section class="card mb-4" aria-labelledby="registration-identification">
+                    <div class="card-header"><h2 id="registration-identification" class="ui-section-title">Identificação da denúncia</h2><p class="small text-muted mt-2 mb-0">Informe como a denúncia foi recebida e um título que facilite encontrá-la.</p></div>
+                    <div class="card-body">
+                        <div class="form-group"><label for="registration_type">Origem da denúncia *</label><select id="registration_type" name="registration_type" class="form-control <%= fieldErrors.registration_type ? 'is-invalid' : '' %>" required aria-describedby="registration_type-error"><option value="">Selecione a origem</option><% Object.entries(DENUNCIATION_SENDER).forEach(([slug,label]) => { %><option value="<%= slug %>" <%= form.registration_type === slug ? 'selected' : '' %>><%= label %></option><% }) %></select><div id="registration_type-error" class="invalid-feedback" data-field-error="registration_type"><%= fieldErrors.registration_type || '' %></div></div>
+                        <div class="form-group mb-0"><label for="registration-title">Título *</label><input id="registration-title" class="form-control <%= fieldErrors.title ? 'is-invalid' : '' %>" type="text" name="title" maxlength="255" required placeholder="Ex.: Acúmulo de resíduos em terreno" value="<%= form.title %>" aria-describedby="title-help title-error"><small id="title-help" class="form-text text-muted">Resuma a situação em uma frase.</small><div id="title-error" class="invalid-feedback" data-field-error="title"><%= fieldErrors.title || '' %></div></div>
+                    </div>
+                </section>
+                <section class="card mb-4" aria-labelledby="registration-location">
+                    <div class="card-header"><h2 id="registration-location" class="ui-section-title">Localização</h2><p class="small text-muted mt-2 mb-0">Dados do local onde ocorre a situação denunciada.</p></div>
+                    <div class="card-body">
+                        <div class="registration-address-grid">
+                            <div class="form-group"><label for="registration-address">Logradouro *</label><input id="registration-address" class="form-control <%= fieldErrors.endereco ? 'is-invalid' : '' %>" name="endereco" maxlength="255" value="<%= form.endereco %>" required placeholder="Ex.: das Flores" aria-describedby="address-help endereco-error"><small id="address-help" class="form-text text-muted">Use o nome completo, sem “Rua” ou “Av.”.</small><div id="endereco-error" class="invalid-feedback" data-field-error="endereco"><%= fieldErrors.endereco || '' %></div></div>
+                            <div class="form-group"><label for="registration-number">Número *</label><input id="registration-number" class="form-control <%= fieldErrors.numero ? 'is-invalid' : '' %>" name="numero" maxlength="255" value="<%= form.numero %>" required placeholder="Ex.: 45 ou s/n" aria-describedby="numero-error"><div id="numero-error" class="invalid-feedback" data-field-error="numero"><%= fieldErrors.numero || '' %></div></div>
+                        </div>
+                        <div class="registration-field-pair">
+                            <div class="form-group"><label for="registration-district">Bairro *</label><%- include('../partials/districtAutocomplete.ejs', {districts,id:'registration-district',value:form.bairro,describedBy:'district-help bairro-error',invalid:!!fieldErrors.bairro}) %><small id="district-help" class="form-text text-muted">Digite e selecione um bairro cadastrado.</small><div id="bairro-error" class="invalid-feedback <%= fieldErrors.bairro ? 'd-block' : '' %>" data-field-error="bairro"><%= fieldErrors.bairro || '' %></div></div>
+                            <div class="form-group"><label for="registration-complement">Complemento <span class="text-muted font-weight-normal">(opcional)</span></label><input id="registration-complement" class="form-control <%= fieldErrors.complemento ? 'is-invalid' : '' %>" name="complemento" maxlength="255" value="<%= form.complemento %>" placeholder="Bloco, lote ou ponto de referência" aria-describedby="complemento-error"><div id="complemento-error" class="invalid-feedback" data-field-error="complemento"><%= fieldErrors.complemento || '' %></div></div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+            <section class="card registration-description" aria-labelledby="registration-details">
+                <div class="card-header"><h2 id="registration-details" class="ui-section-title">Descrição da situação</h2><p class="small text-muted mt-2 mb-0">Inclua os detalhes necessários para orientar a fiscalização.</p></div>
+                <div class="card-body"><label for="registration-description">Descrição *</label><textarea id="registration-description" class="form-control <%= fieldErrors.description ? 'is-invalid' : '' %>" name="description" rows="9" required placeholder="O que está acontecendo no local?" aria-describedby="description-help description-error"><%= form.description %></textarea><div id="description-error" class="invalid-feedback" data-field-error="description"><%= fieldErrors.description || '' %></div><p id="description-help" class="small text-muted mt-3">Descreva o que foi observado, há quanto tempo ocorre e quais referências ajudam a localizar o problema.</p></div>
+            </section>
+        </div>
+        <div class="registration-actions"><p class="small text-muted mb-0" data-registration-progress role="status" aria-live="polite">Revise as informações antes de cadastrar.</p><div><a href="/" class="btn btn-outline-secondary">Cancelar</a><button class="btn btn-primary" type="submit" data-registration-submit>Cadastrar denúncia</button></div></div>
+    </form>
+</main>
+<script src="/js/denunciation-form.js" defer></script>
 <%- include('../partials/footer.ejs') %>

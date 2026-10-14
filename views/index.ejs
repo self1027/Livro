@@ -1,213 +1,40 @@
 <%- include('partials/header.ejs') %>
 <%- include('partials/navbar.ejs') %>
-
-<style>
-.attendance-badge {
-	position: fixed;
-	right: 20px;
-	top: 100px;
-	width: 200px;
-	z-index: 999;
-	box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-	border-radius: 8px;
-	overflow: hidden;
-}
-
-.attendance-badge .card-body {
-	text-align: center;
-	font-size: 14px;
-}
-
-@media (max-width: 1600px) {
-	.attendance-badge {
-		width: 180px;
-		right: 15px;
-		top: 90px;
-	}
-
-	.attendance-badge .card-body {
-		font-size: 13px;
-	}
-}
-
-@media (max-width: 1200px) {
-	.attendance-badge {
-		width: 160px;
-		right: 10px;
-		top: 80px;
-	}
-
-	.attendance-badge .card-body {
-		font-size: 12px;
-	}
-}
-</style>
-
-<div class="container">
-	<hr>
-
-	<div class="card">
-		<div class="card-header">
-			<div class="d-flex justify-content-between align-items-center">
-				<h2>Listagem de Denúncias</h2>
-				<a href="/buscar" class="btn btn-success">Buscar Denúncias</a>
-			</div>
-		</div>
-
-		<div class="card-body">
-			<% if (denuncias && denuncias.length > 0) { %>
-
-			<div class="table-responsive">
-				<table class="table table-striped table-hover" id="tabela-denuncias">
-					<thead class="thead-dark">
-						<tr>
-							<th>Ano</th>
-							<th>Número</th>
-							<th>Tipo</th>
-							<th>Título</th>
-							<th>Endereço</th>
-							<th>Data</th>
-							<th>Status</th>
-							<th>Fiscal</th>
-							<th>Ações</th>
-						</tr>
-					</thead>
-					<tbody>
-						<% denuncias.forEach(denuncia => { %>
-						<tr>
-							<td><%= denuncia.year %></td>
-							<td><%= denuncia.number %></td>
-							<td><%= DENUNCIATION_SENDER[denuncia.registration_type] %></td>
-							<td><%= denuncia.title %></td>
-							<td>
-								<%= denuncia.endereco %>, <%= denuncia.numero %><br>
-								<%= denuncia.bairro %>
-							</td>
-							<td><%= new Date(denuncia.created_at).toLocaleDateString('pt-BR') %></td>
-							<td>
-								<% const statusInfo = DENUNCIATION_STATUS[denuncia.status?.trim()] || { label: 'Desconhecido', color: '#ccc' }; %>
-								<div style="display: flex; align-items: flex-start;">
-									<div style="width: 5px; height: 25px; background-color: <%= statusInfo.color %>; margin-right: 8px;"></div>
-									<b><%= statusInfo.label %></b>
-								</div>
-							</td>
-							<td>
-								<% if (denuncia.user) { %>
-									<%= denuncia.user.name %>
-								<% } else { %>
-									<span class="text-muted">Não atribuído</span>
-								<% } %>
-							</td>
-							<td>
-								<a href="/denuncias/<%= denuncia.id %>" class="btn btn-sm btn-primary">
-									Ver
-								</a>
-							</td>
-						</tr>
-						<% }); %>
-					</tbody>
-				</table>
-			</div>
-
-			<div class="text-center mt-3">
-				<button id="carregarMais" class="btn btn-outline-primary">Carregar mais</button>
-			</div>
-
-			<% } else { %>
-			<div class="alert alert-info">
-				Nenhuma denúncia encontrada.
-			</div>
-			<% } %>
-		</div>
-	</div>
-
-	<br>
-</div>
-
-<div class="attendance-badge">
-	<div class="card">
-
-		<div class="card-header text-center">
-			<b>Atendimento de Denúncias</b>
-		</div>
-
-		<div class="card-body">
-
-			<% if (attendance?.paused) { %>
-
-				<div class="alert alert-danger mb-0">
-					Atendimento<br><b>PAUSADO</b>
-				</div>
-
-			<% } else if (!attendance || attendance.weekdays.length === 0) { %>
-
-				<div class="alert alert-secondary mb-0">
-					Nenhum dia definido
-				</div>
-
-			<% } else { %>
-
-				<div class="alert alert-info mb-0">
-					Atendimento em:<br>
-					<b><%= attendance.weekdays.join(' e ') %></b>
-				</div>
-
-			<% } %>
-
-		</div>
-
-	</div>
-</div>
-
-<script>
-const DENUNCIATION_STATUS = <%- JSON.stringify(DENUNCIATION_STATUS) %>
-const DENUNCIATION_SENDER = <%- JSON.stringify(DENUNCIATION_SENDER) %>
-
-let offset = <%= offset %>
-const limit = <%= limit %>
-
-async function carregarMais() {
-	const res = await fetch(`/api/denuncias?limit=${limit}&offset=${offset}`)
-	const novas = await res.json()
-
-	if (novas.length === 0) {
-		const btn = document.getElementById('carregarMais')
-		btn.disabled = true
-		btn.innerText = 'Todas carregadas'
-		return
-	}
-
-	const tbody = document.querySelector('#tabela-denuncias tbody')
-
-	novas.forEach(denuncia => {
-		const statusInfo = denuncia.status && DENUNCIATION_STATUS[denuncia.status.trim()] || { label: 'Desconhecido', color: '#ccc' }
-
-		const tr = document.createElement('tr')
-		tr.innerHTML = `
-			<td>${denuncia.year}</td>
-			<td>${denuncia.number}</td>
-			<td>${DENUNCIATION_SENDER[denuncia.registration_type]}</td>
-			<td>${denuncia.title}</td>
-			<td>${denuncia.endereco}, ${denuncia.numero}<br>${denuncia.bairro}</td>
-			<td>${new Date(denuncia.created_at).toLocaleDateString()}</td>
-			<td>
-				<div style="display:flex;align-items:center;">
-					<div style="width:5px;height:25px;background:${statusInfo.color};margin-right:8px;"></div>
-					${statusInfo.label}
-				</div>
-			</td>
-			<td>${denuncia.user?.name || 'Não atribuído'}</td>
-			<td>
-				<a href="/denuncias/${denuncia.id}" class="btn btn-sm btn-primary">Ver</a>
-			</td>
-		`
-		tbody.appendChild(tr)
-	})
-
-	offset += limit
-}
-
-document.getElementById('carregarMais')?.addEventListener('click', carregarMais)
-</script>
-
+    <main id="home-content" class="home-content">
+        <%- include('partials/pageHeading.ejs', {eyebrow: 'ACOMPANHAMENTO', title: 'Listagem de Denúncias', description: 'Consulte os registros e acompanhe a fiscalização.', actionHref: '/buscar', actionLabel: 'Buscar Denúncias'}) %>
+        <% if (attendance?.enabled !== false) { %>
+        <section class="home-attendance" aria-label="Atendimento de Denúncias">
+            <strong>Atendimento de Denúncias</strong>
+            <% if (attendance?.paused) { %><span class="attendance-paused">Atendimento pausado</span>
+            <% } else if (!attendance || !attendance.weekdays.length) { %><span>Nenhum dia definido</span>
+            <% } else { %><span>Atendimento em: <b><%= attendance.weekdays.join(' e ') %></b></span><% } %>
+        </section>
+        <% } %>
+        <section class="home-registers" aria-label="Denúncias registradas">
+            <% if (denuncias && denuncias.length) { %>
+            <div class="home-table-wrap"><table class="home-table" id="tabela-denuncias">
+                <caption>Registros de denúncias e responsáveis</caption>
+                <thead><tr><% ['Ano','Número','Tipo','Título','Endereço','Data','Status','Fiscal','Ações'].forEach(label => { %><th scope="col"><%= label %></th><% }) %></tr></thead>
+                <tbody>
+                <% denuncias.forEach(denuncia => { const status = DENUNCIATION_STATUS[denuncia.status?.trim()] || {label:'Desconhecido', slug:'UNKNOWN'}; %>
+                    <tr>
+                        <td data-label="Ano"><%= denuncia.year %></td>
+                        <td data-label="Número" class="home-protocol"><%= denuncia.number %></td>
+                        <td data-label="Tipo"><%- include('partials/statusBadge.ejs', {status:SENDER_DETAILS[denuncia.registration_type] || {label:denuncia.registration_type || 'Não informado'}}) %></td>
+                        <td data-label="Título" class="home-title"><%= denuncia.title %></td>
+                        <td data-label="Endereço"><%= denuncia.endereco %>, <%= denuncia.numero %><br><span class="home-muted"><%= denuncia.bairro %></span></td>
+                        <td data-label="Data"><%= new Date(denuncia.created_at).toLocaleDateString('pt-BR', {timeZone:'America/Sao_Paulo'}) %></td>
+                        <td data-label="Status"><%- include('partials/statusBadge.ejs', {status}) %></td>
+                        <td data-label="Fiscal"><%= denuncia.user?.name || 'Não atribuído' %></td>
+                        <td data-label="Ações"><a href="/denuncias/<%= denuncia.id %>" class="home-view" aria-label="Ver denúncia <%= denuncia.number %>/<%= denuncia.year %>">Ver <span aria-hidden="true">↗</span></a></td>
+                    </tr>
+                <% }) %>
+                </tbody>
+            </table></div>
+            <div class="home-load"><p id="load-feedback" role="status" aria-live="polite"></p><button id="carregarMais" class="home-button secondary" type="button">Carregar mais</button></div>
+            <% } else { %><div class="home-empty"><h2>Nenhuma denúncia encontrada.</h2><p>Você pode buscar outros registros ou cadastrar uma nova denúncia.</p><a href="/denuncias/new" class="home-button">Nova Denúncia</a></div><% } %>
+        </section>
+    </main>
+<script id="home-data" type="application/json"><%- JSON.stringify({statuses:DENUNCIATION_STATUS, senders:DENUNCIATION_SENDER, senderDetails:SENDER_DETAILS, offset, limit}).replace(/</g, '\\u003c') %></script>
+<script src="/js/home.js" defer></script>
 <%- include('partials/footer.ejs') %>

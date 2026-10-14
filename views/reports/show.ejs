@@ -18,13 +18,13 @@
 			<p><strong>Data da Denúncia:</strong> <%= new Date(denuncia.created_at).toLocaleDateString('pt-BR') %></p>
 			<form action="/relatorio/<%= report.id %>/editar" method="POST">
 				<input type="hidden" name="oldDescription" value="<%= report.description %>">
-				<% if (report.type === 1) { %>
+				<% if (REPORT_DETAILS[report.type]?.behavior !== 'status') { %>
 				<!-- Texto Livre -->
 				<div class="mb-3">
 					<label for="description" class="form-label">Descrição do Relatório</label>
 					<textarea class="form-control" name="description" id="description" rows="4" required><%= report.description %></textarea>
 				</div>
-				<% } else if (report.type === 0) { %>
+				<% } else { %>
 				<!-- Alteração de Status -->
 				<div class="mb-3">
 					<label for="oldDescription" class="form-label">Descrição Anterior</label>

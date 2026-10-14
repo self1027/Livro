@@ -1,174 +1,67 @@
-<%- include('../partials/header.ejs') %>
+﻿<%- include('../partials/header.ejs') %>
 <%- include('../partials/navbar.ejs') %>
-<div class="container">
-	<hr>
-	<div class="card">
-		<div class="card-header">
-			<h2>Buscar Denúncias</h2>
-		</div>
-		<div class="card-body">
-			<% if (typeof message !== 'undefined' && message) { %>
-			<div class="alert alert-warning">
-				<h4 class="alert-heading">Aviso</h4>
-				<p><%- message %></p>
-			</div>
-			<% } %>
-			<form method="get" action="/buscar" onsubmit="return validateForm()">
-				<div class="mb-3">
-					<label class="form-label">Ano</label>
-					<input class="form-control" type="text" name="year" placeholder="Buscar por ano" value="<%= year %>" />
-				</div>
-				<div class="mb-3">
-					<label class="form-label">Número</label>
-					<input class="form-control" type="text" name="number" placeholder="Buscar por número" value="<%= number %>" />
-				</div>
-				<div class="mb-3">
-					<label class="form-label">Endereço</label>
-					<input class="form-control" type="text" name="endereco" placeholder="Buscar por endereço (rua, avenida, etc.)" value="<%= endereco %>" />
-				</div>
-				<div class="mb-3">
-					<label class="form-label">Número do Endereço</label>
-					<input class="form-control" type="text" name="numero" placeholder="Buscar por número do endereço" value="<%= numero %>" />
-				</div>
-				<div class="mb-3">
-					<label class="form-label">Bairro</label>
-					<input class="form-control" type="text" name="bairro" placeholder="Buscar por bairro" value="<%= bairro %>" />
-				</div>
-				<div class="mb-3">
-					<label class="form-label">Status</label>
-					<select class="form-control" name="status" id="status">
-						<option value="">Selecione</option>
-						<% for (let key in DENUNCIATION_STATUS) { %>
-						<option value="<%= key %>" <%= status === key ? 'selected' : '' %>><%= DENUNCIATION_STATUS[key].label %></option>
-						<% } %>
-					</select>
-				</div>
-				<div class="mb-3">
-					<label class="form-label">Tipo de Registro</label>
-					<select class="form-control" name="registration_type" id="registration_type">
-						<option value="">Selecione</option>
-						<% for (let key in DENUNCIATION_SENDER) { %>
-						<option value="<%= key %>" <%= registration_type === key ? 'selected' : '' %>><%= DENUNCIATION_SENDER[key] %></option>
-						<% } %>
-					</select>
-				</div>
-				<div class="mb-3">
-					<label class="form-label">Fiscal Responsável</label>
-					<select class="form-control" name="userId" id="userId">
-						<option value="">Selecione</option>
-						<% users.forEach(user => { %>
-						<option value="<%= user.id %>" <%= userId == user.id ? 'selected' : '' %>><%= user.name %></option>
-						<% }); %>
-					</select>
-				</div>
-				<button type="submit" class="btn btn-success">Buscar</button>
-			</form>
-			<p class="text-muted mt-3">
-				<small>Por favor, preencha ao menos um campo para realizar a busca.</small>
-			</p>
-		</div>
-	</div>
-	<br>
-	<hr>
-	<% if (denuncias && denuncias.length > 0) { %>
-	<div class="card mt-4" id="search-results">
-		<div class="card-header">
-			<h3>Resultados da Busca</h3>
-		</div>
-		<div class="card-body">
-			<div class="table-responsive">
-				<table class="table table-striped table-hover">
-					<thead class="thead-dark">
-						<tr>
-							<th>Ano</th>
-							<th>Número</th>
-							<th>Tipo</th>
-							<th>Título</th>
-							<th>Endereço</th>
-							<th>Data</th>
-							<th>Status</th>
-							<th>Fiscal</th>
-							<th>Ações</th>
-						</tr>
-					</thead>
-					<tbody>
-						<% denuncias.forEach(denuncia => { %>
-						<tr>
-							<td><%= denuncia.year %></td>
-							<td><%= denuncia.number %></td>
-							<td><%= DENUNCIATION_SENDER[denuncia.registration_type] %></td>
-							<td><%= denuncia.title %></td>
-							<td>
-								<%= denuncia.endereco %>, <%= denuncia.numero %><br>
-								<%= denuncia.bairro %>
-							</td>
-							<td><%= new Date(denuncia.created_at).toLocaleDateString('pt-BR') %></td>
-							<td>
-								<% 
-									const statusInfo = DENUNCIATION_STATUS[denuncia.status?.trim()] || { label: 'Desconhecido', color: '#ccc' }; 
-									%>
-								<div style="display: flex; align-items: flex-start;">
-									<div style="width: 5px; height: 25px; background-color: <%= statusInfo.color %>; margin-right: 8px; border-radius: 2px;"></div>
-									<span style="font-weight: bold; color: #000; display: inline-block; max-width: calc(100% - 13px); word-wrap: break-word;">
-									<%= statusInfo.label %>
-									</span>
-								</div>
-							</td>
-							<td>
-								<% if (denuncia.user) { %>
-								<%= denuncia.user.name %>
-								<% } else { %>
-								<span class="text-muted">Não atribuído</span>
-								<% } %>
-							</td>
-							<td>
-								<a href="/denuncias/<%= denuncia.id %>" class="btn btn-sm btn-primary">
-								<i class="fas fa-eye"></i> Ver
-								</a>
-							</td>
-						</tr>
-						<% }) %>
-					</tbody>
-				</table>
-			</div>
-		</div>
-	</div>
-    <br>
-	<% } else if (denuncias && denuncias.length === 0) { %>
-	<div class="alert alert-info mt-4">
-		Nenhuma denúncia encontrada com os critérios especificados.
-	</div>
-	<% } %>
-</div>
-<br>
-<script>
-	if (scroll) { 
-	    window.onload = function() {
-	        const resultsSection = document.getElementById('search-results')
-	        if (resultsSection) {
-	            resultsSection.scrollIntoView({ behavior: 'smooth' })
-	        }
-	    }
-	}
-	
-	function validateForm() {
-	    const form = document.querySelector('form');
-	    const fields = form.querySelectorAll('input, select');
-	    let isValid = false; // Pelo menos um campo precisa ser preenchido para permitir a busca
-	
-	    // Verifica se algum campo foi preenchido
-	    fields.forEach(field => {
-	        if (field.value.trim() !== '') {
-	            isValid = true;
-	        }
-	    })
-	
-	    if (!isValid) {
-	        alert('Por favor, preencha ao menos um campo para buscar.');
-	        return false; // Impede o envio do formulário
-	    }
-	
-	    return true; // Permite o envio
-	}
-</script>
+<link rel="stylesheet" href="/css/search.css">
+<main class="container search-page">
+    <%- include('../partials/pageHeading.ejs', {eyebrow:'CONSULTA', title:'Buscar denúncias', description:'Combine os filtros para encontrar um protocolo e acompanhar seu andamento.', actionHref:'/', actionLabel:'Voltar à listagem'}) %>
+    <section class="card mb-4" aria-labelledby="search-filter-title">
+        <div class="card-header"><h2 id="search-filter-title" class="ui-section-title">Filtros de busca</h2><p class="small text-muted mb-0 mt-2">Preencha pelo menos um campo. Todos os filtros preenchidos são combinados.</p></div>
+        <div class="card-body">
+            <div id="search-feedback" class="alert alert-danger" role="alert" tabindex="-1" <%= searchErrors.length ? '' : 'hidden' %>>
+                <% if (searchErrors.length) { %><strong>Revise os filtros para continuar.</strong><ul class="mb-0"><% searchErrors.forEach(error => { %><li><%= error %></li><% }) %></ul><% } %>
+            </div>
+            <form method="GET" action="/buscar" data-search-form>
+                <div class="search-filter-groups">
+                    <fieldset class="search-filter-group"><legend>Protocolo</legend>
+                        <div class="search-field-pair">
+                            <div class="form-group"><label for="search-year">Ano</label><input id="search-year" class="form-control" type="text" inputmode="numeric" pattern="[1-9][0-9]{3}" maxlength="4" name="year" placeholder="Ex.: 2026" value="<%= year %>"></div>
+                            <div class="form-group"><label for="search-number">Número</label><input id="search-number" class="form-control" type="text" inputmode="numeric" pattern="[0-9]+" name="number" placeholder="Ex.: 123" value="<%= number %>"></div>
+                        </div>
+                        <p class="small text-muted">O número pode se repetir em anos diferentes. Combine os dois campos para localizar um protocolo.</p>
+                    </fieldset>
+                    <fieldset class="search-filter-group"><legend>Localização</legend>
+                        <div class="form-group"><label for="search-address">Endereço</label><input id="search-address" class="form-control" name="endereco" maxlength="255" placeholder="Nome ou parte da rua" value="<%= endereco %>"></div>
+                        <div class="search-field-pair">
+                            <div class="form-group"><label for="search-address-number">Número do endereço</label><input id="search-address-number" class="form-control" name="numero" maxlength="255" placeholder="Ex.: 45 ou s/n" value="<%= numero %>"></div>
+                            <div class="form-group"><label for="search-district">Bairro</label><input id="search-district" class="form-control" name="bairro" maxlength="255" list="search-district-options" placeholder="Nome ou parte do bairro" value="<%= bairro %>"><datalist id="search-district-options"><% districts.forEach(district => { %><option value="<%= district.name %>"></option><% }) %></datalist></div>
+                        </div>
+                    </fieldset>
+                    <fieldset class="search-filter-group"><legend>Acompanhamento</legend>
+                        <div class="form-group"><label for="search-status">Status</label><select id="search-status" class="form-control" name="status"><option value="">Todos os status</option><% Object.entries(DENUNCIATION_STATUS).forEach(([slug,item]) => { %><option value="<%= slug %>" <%= status === slug ? 'selected' : '' %>><%= item.label %></option><% }) %></select></div>
+                        <div class="form-group"><label for="search-origin">Origem</label><select id="search-origin" class="form-control" name="registration_type"><option value="">Todas as origens</option><% Object.entries(DENUNCIATION_SENDER).forEach(([slug,label]) => { %><option value="<%= slug %>" <%= registration_type === slug ? 'selected' : '' %>><%= label %></option><% }) %></select></div>
+                        <div class="form-group"><label for="search-user">Fiscal responsável</label><select id="search-user" class="form-control" name="userId"><option value="">Todos os fiscais</option><option value="unassigned" <%= userId === 'unassigned' ? 'selected' : '' %>>Não atribuído</option><% users.forEach(user => { %><option value="<%= user.id %>" <%= String(userId) === String(user.id) ? 'selected' : '' %>><%= user.name %><%= user.ativo === false || user.ativo === 0 ? ' (inativo)' : '' %></option><% }) %></select></div>
+                    </fieldset>
+                </div>
+                <div class="search-form-actions"><button type="submit" class="btn btn-primary" data-search-submit>Buscar denúncias</button><a href="/buscar" class="btn btn-outline-secondary">Limpar filtros</a><span class="small text-muted" data-search-progress role="status" aria-live="polite"></span></div>
+            </form>
+        </div>
+    </section>
+    <% if (searchPerformed) { %>
+    <% const filters = {year,number,endereco,numero,bairro,status,registration_type,userId}; %>
+    <section class="card search-results" id="search-results" aria-labelledby="search-results-title">
+        <div class="card-header">
+            <div class="search-results-heading"><h2 id="search-results-title" class="ui-section-title">Resultados da busca</h2><span class="search-result-count"><%= denuncias.length %> <%= denuncias.length === 1 ? 'denúncia encontrada' : 'denúncias encontradas' %></span></div>
+            <div class="search-active-filters" aria-label="Filtros aplicados"><% activeFilters.forEach(filter => { %><a href="<%= searchUrl(filters,{[filter.key]:''}) %>" class="search-filter-chip" aria-label="Remover filtro <%= filter.label %>: <%= filter.value %>"><span><%= filter.label %>: <b><%= filter.value %></b></span><span aria-hidden="true">×</span></a><% }) %></div>
+        </div>
+        <% if (denuncias.length) { %>
+        <div class="table-responsive">
+            <table class="table table-hover ui-responsive-table search-table mb-0">
+                <caption class="sr-only">Denúncias encontradas pelos filtros aplicados</caption>
+                <thead><tr><% ['Protocolo','Denúncia','Endereço','Status','Fiscal','Origem','Registro','Ações'].forEach(label => { %><th scope="col"><%= label %></th><% }) %></tr></thead>
+                <tbody><% denuncias.forEach(denuncia => { %><tr>
+                    <td data-label="Protocolo"><strong><%= denuncia.number %>/<%= denuncia.year %></strong></td>
+                    <td data-label="Denúncia"><a class="search-result-title" href="/denuncias/<%= denuncia.id %>"><%= denuncia.title %></a></td>
+                    <td data-label="Endereço"><%= denuncia.endereco %>, <%= denuncia.numero %><br><span class="text-muted"><%= denuncia.bairro %></span></td>
+                    <td data-label="Status"><%- include('../partials/statusBadge.ejs', {status:DENUNCIATION_STATUS[denuncia.status?.trim()] || {label:'Desconhecido'}}) %></td>
+                    <td data-label="Fiscal"><%= denuncia.user?.name || 'Não atribuído' %></td>
+                    <td data-label="Origem"><%- include('../partials/statusBadge.ejs', {status:SENDER_DETAILS[denuncia.registration_type] || {label:denuncia.registration_type || 'Não informado'}}) %></td>
+                    <td data-label="Registro"><%= new Date(denuncia.created_at).toLocaleDateString('pt-BR', {timeZone:'America/Sao_Paulo'}) %></td>
+                    <td data-label="Ações"><a href="/denuncias/<%= denuncia.id %>" class="btn btn-sm btn-outline-primary" aria-label="Ver denúncia <%= denuncia.number %>/<%= denuncia.year %>">Ver</a></td>
+                </tr><% }) %></tbody>
+            </table>
+        </div>
+        <% } else { %><div class="search-empty"><h3>Nenhuma denúncia encontrada.</h3><p class="text-muted">Remova um dos filtros acima ou revise os dados para ampliar a busca.</p><a href="/buscar" class="btn btn-outline-secondary">Limpar filtros</a></div><% } %>
+    </section>
+    <% } else if (!searchErrors.length) { %><section class="search-initial" aria-label="Como buscar"><h2 class="ui-section-title">Encontre a denúncia que procura</h2><p class="text-muted">Use o protocolo, a localização ou o acompanhamento. Os resultados aparecerão aqui.</p></section><% } %>
+</main>
+<script src="/js/search.js" defer></script>
 <%- include('../partials/footer.ejs') %>

@@ -3,8 +3,10 @@ import DENUNCIATION_STATUS from '../constants/denunciationStatus.js'
 import DENUNCIATION_SENDER from '../constants/denunciationSenders.js'
 import userService from '../services/usersService.js'
 import districtService from '../services/districtsService.js'
-import Report from '../models/reportsModel.js'
 import { buildSearchWhere } from '../utils/denunciationsQueryBuilder.js'
+import { closedStatusSlugs } from '../utils/catalogRegistry.js'
+import { normalizeSearchFilters, describeSearchFilters, searchUrl } from '../utils/searchFilters.js'
+import {normalizeDenunciationForm, validateDenunciationForm} from '../utils/denunciationForm.js'
 
 async function getNextNumber() {
     const currentYear = new Date().getFullYear()
@@ -22,6 +24,9 @@ async function getNextNumber() {
 }
 
 async function createDenunciation(data) {
+    const form = normalizeDenunciationForm(data)
+    const fieldErrors = validateDenunciationForm(form,DENUNCIATION_SENDER)
+    if (Object.keys(fieldErrors).length) return {status:400,message:'Revise os campos indicados para cadastrar a denúncia.',fieldErrors}
     const {
         year,
         number,
@@ -32,7 +37,7 @@ async function createDenunciation(data) {
         bairro,
         complemento,
         description
-    } = data
+    } = {...data,...form}
 
     if (!bairro || !bairro.trim()) {
         return {
@@ -46,7 +51,8 @@ async function createDenunciation(data) {
     if (!district) {
         return {
             status: 400,
-            message: 'Bairro inválido.'
+            message: 'Selecione um bairro cadastrado.',
+            fieldErrors: {bairro:'Selecione um bairro cadastrado.'}
         }
     }
 
@@ -54,7 +60,7 @@ async function createDenunciation(data) {
         endereco,
         numero,
         bairro,
-        statusFinalizado: DENUNCIATION_STATUS.FINALIZADA.slug
+        closedStatuses: closedStatusSlugs()
     })
 
     if (existing) {
@@ -107,6 +113,9 @@ async function getCreateContext({ body } = {}) {
 
     return {
         districts,
+        form: normalizeDenunciationForm(body),
+        fieldErrors: {},
+        existingId: null,
         year: body?.year || year,
         lastNumber: body?.number || nextNumber
     }
@@ -129,6 +138,8 @@ async function getEditData(id) {
 }
 
 async function updateDenunciation(id, data) {
+    if (!Object.hasOwn(DENUNCIATION_SENDER, data.registration_type)) return { ok: false, status: 400, message: 'Origem da denúncia inválida.' }
+    if (data.status && !Object.hasOwn(DENUNCIATION_STATUS, data.status)) return { ok: false, status: 400, message: 'Status inválido.' }
     const {
         registration_type,
         title,
@@ -187,9 +198,7 @@ async function updateDenunciation(id, data) {
     }
 }
 
-async function getAssignContext({ denunciaId } = {}) {
-
-    const denuncias = await repo.findUnassignedWithReports()
+async function getAssignContext({ denunciaId, page = 1 } = {}) {
     const fiscais = await userService.getActiveUsers()
 
     let denunciaSelecionada = null
@@ -198,10 +207,15 @@ async function getAssignContext({ denunciaId } = {}) {
         denunciaSelecionada = await repo.findByIdWithUser(denunciaId)
     }
 
+    const total = denunciaId ? 0 : await repo.count({user_id:null})
+    const pages = Math.max(1,Math.ceil(total / 25))
+    const currentPage = Math.min(page,pages)
+    const denuncias = denunciaId ? [] : await repo.findAll({where:{user_id:null},order:[['year','DESC'],['number','DESC'],['id','DESC']],limit:25,offset:(currentPage-1)*25})
     return {
         denuncias,
         fiscais,
-        denunciaSelecionada
+        denunciaSelecionada,
+        total,pages,page:currentPage
     }
 }
 
@@ -245,15 +259,16 @@ async function assignDenunciation(denunciaId, userId) {
 }
 
 async function getSearchContext(query = {}) {
+    const {filters, errors, hasFilters} = normalizeSearchFilters(query)
 
     const users = await userService.getAllOrdered()
     const districts = await districtService.getAll()
 
     let denuncias = []
 
-    if (Object.keys(query).length > 0) {
+    if (hasFilters && !errors.length) {
 
-        const where = buildSearchWhere(query)
+        const where = buildSearchWhere(filters)
 
         denuncias = await repo.search(where)
     }
@@ -265,17 +280,13 @@ async function getSearchContext(query = {}) {
         denuncias,
         districts,
         users,
+        ...filters,
+        searchPerformed: hasFilters && !errors.length,
+        searchErrors: errors,
+        activeFilters: describeSearchFilters(filters,users),
+        searchUrl,
 
         // mantém os filtros preenchidos
-        year: query.year || '',
-        number: query.number || '',
-        endereco: query.endereco || '',
-        numero: query.numero || '',
-        bairro: query.bairro || '',
-        status: query.status || '',
-        registration_type: query.registration_type || '',
-        userId: query.userId || '',
-
         scroll: denuncias.length > 0
     }
 }
@@ -323,11 +334,6 @@ async function findAllByFiscal(fiscalId, status = 'ALL', limit = 50, offset = 0)
 
     const denuncias = await repo.findAll({
         where,
-        include: [{
-            model: Report,
-            as: 'reports',
-            required: false
-        }],
         order: [
             ['year', 'DESC'],
             ['number', 'DESC']

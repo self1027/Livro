@@ -20,7 +20,7 @@ export function buildSearchWhere(query = {}) {
 
     if (endereco) {
         const cleanEndereco = endereco
-            .replace(/^(rua|r\.|avenida|av\.|travessa|praça|estrada|alameda|rodovia)\s*/i, '')
+            .replace(/^(?:(?:rua|avenida|travessa|praça|estrada|alameda|rodovia)\s+|(?:r\.|av\.)\s*)/i, '')
             .trim()
 
         where.endereco = {
@@ -38,7 +38,7 @@ export function buildSearchWhere(query = {}) {
 
     if (status && status !== 'Selecione') where.status = status
     if (registration_type && registration_type !== 'Selecione') where.registration_type = registration_type
-    if (userId) where.user_id = userId
+    if (userId) where.user_id = userId === 'unassigned' ? null : userId
 
     return where
 }

@@ -4,8 +4,15 @@ import DENUNCIATION_STATUS from '../constants/denunciationStatus.js'
 import denunciationsService from '../services/denunciationsService.js'
 import usersService from '../services/usersService.js'
 import attendanceService from '../services/attendanceService.js'
+import { reportDetails, senderDetails } from '../utils/catalogRegistry.js'
 
 const router = express.Router()
+const detailNotices = {
+    'report-saved':'Relatório adicionado com sucesso.',
+    'report-deleted':'Relatório excluído com sucesso.',
+    'report-updated':'Relatório atualizado com sucesso.',
+    'fiscal-saved':'Fiscal responsável atualizado com sucesso.'
+}
 
 router.get('/', async (req, res) => {
 	try {
@@ -20,6 +27,7 @@ router.get('/', async (req, res) => {
 		res.render('index', {
 			denuncias,
 			DENUNCIATION_SENDER,
+            SENDER_DETAILS: senderDetails,
 			DENUNCIATION_STATUS,
 			offset: offset + limit,
 			limit,
@@ -60,9 +68,9 @@ router.post('/denuncias', async (req, res) => {
 
 			return res.status(result.status).render('denunciation/new', {
 				...context,
-				message: result.meta?.id
-					? `${result.message} <a href="/denuncias/${result.meta.id}">Ver denúncia</a>`
-					: result.message,
+				message: result.message,
+                existingId: result.meta?.id || null,
+                fieldErrors: result.fieldErrors || {},
 				DENUNCIATION_SENDER
 			})
 		}
@@ -96,10 +104,13 @@ router.get('/denuncias/:id', async (req, res, next) => {
 		res.render('denunciation/show', {
 			denuncia,
 			reports: denuncia.reports,
+            REPORT_DETAILS: reportDetails,
+            SENDER_DETAILS: senderDetails,
 			fiscal: denuncia.user,
 			fiscais,
 			DENUNCIATION_SENDER,
-			DENUNCIATION_STATUS
+			DENUNCIATION_STATUS,
+            successMessages: Object.hasOwn(detailNotices,req.query.notice) ? [detailNotices[req.query.notice]] : []
 		})
 
 	} catch (error) {
@@ -153,61 +164,19 @@ router.post('/denuncias/:id/edit', async (req, res) => {
 	}
 })
 
-router.get('/atribuir', async (req, res) => {
-	try {
-
-		const { denunciaId } = req.query
-
-		const { denuncias, fiscais, denunciaSelecionada } =
-			await denunciationsService.getAssignContext({ denunciaId })
-
-		res.render('denunciation/associate', {
-			denuncias,
-			fiscais,
-			denunciaSelecionada,
-			DENUNCIATION_SENDER,
-			success: req.query.success,
-			error: req.query.error
-		})
-
-	} catch (error) {
-		console.error('Erro:', error)
-		res.status(500).send('Erro ao carregar página')
-	}
+router.get('/atribuir',(req,res)=>{
+    const query=new URLSearchParams()
+    for(const key of ['denunciaId','page','success','error'])if(typeof req.query[key]==='string')query.set(key,req.query[key])
+    res.redirect('/admin/assignments'+(query.size?'?'+query:''))
 })
-
-router.post('/atribuir/:denunciaId', async (req, res) => {
-	try {
-		const { denunciaId } = req.params
-		const { userId, redirectToShow } = req.body
-
-		const result = await denunciationsService.assignDenunciation(
-			denunciaId,
-			userId
-		)
-
-		if (!result.ok) {
-			return res.redirect(`/atribuir?error=${encodeURIComponent(result.message)}`)
-		}
-
-		if (redirectToShow) {
-			return res.redirect(`/denuncias/${denunciaId}`)
-		}
-
-		res.redirect('/atribuir?success=Denúncia+atribuída+com+sucesso')
-
-	} catch (error) {
-		console.error('Erro ao atribuir fiscal:', error)
-		res.redirect('/atribuir?error=Erro+ao+atribuir+fiscal')
-	}
-})
+router.post('/atribuir/:denunciaId',(req,res)=>res.redirect(307,'/admin/assignments/'+encodeURIComponent(req.params.denunciaId)))
 
 router.get('/buscar', async (req, res) => {
 	try {
 
 		const context = await denunciationsService.getSearchContext(req.query)
 
-		res.render('denunciation/search', context)
+		res.status(context.searchErrors.length ? 400 : 200).render('denunciation/search', context)
 
 	} catch (error) {
 		console.error('Erro:', error)

@@ -17,7 +17,10 @@ function findByIdWithRelations(id) {
             {
                 model: Report,
                 as: 'reports',
-                attributes: ['id', 'description', 'created_at']
+                attributes: ['id', 'description', 'created_at', 'type'],
+                include: [{model:User,as:'user',attributes:['name']}],
+                separate: true,
+                order: [['created_at','DESC'],['id','DESC']]
             },
             {
                 model: User,
@@ -45,15 +48,13 @@ function create(data) {
     return Denunciation.create(data)
 }
 
-function findOpenByAddress({ endereco, numero, bairro, statusFinalizado }) {
+function findOpenByAddress({ endereco, numero, bairro, closedStatuses }) {
     return Denunciation.findOne({
         where: {
             endereco,
             numero,
             bairro,
-            status: {
-                [Op.ne]: statusFinalizado
-            }
+            [Op.or]: [{ status: { [Op.notIn]: closedStatuses } }, { status: null }]
         }
     })
 }

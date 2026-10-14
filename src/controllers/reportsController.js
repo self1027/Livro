@@ -19,7 +19,7 @@ router.post('/denuncias/:id/adicionar-relatorio', async (req, res) => {
             return res.status(result.status).send(result.message)
         }
 
-        return res.redirect(`/denuncias/${denunciaId}`)
+        return res.redirect(`/denuncias/${denunciaId}?notice=report-saved#reports-section`)
 
     } catch (error) {
         console.error('Erro ao adicionar relatório:', error)
@@ -41,9 +41,9 @@ router.post('/relatorio/:id/editar', async (req, res) => {
         status: req.body.status
     })
 
-    if (!result.ok) return res.redirect(`/relatorio/${req.params.id}`)
+    if (!result.ok) return res.status(result.status).send(result.message)
 
-    res.redirect(`/denuncias/${result.data.denunciation_id}`)
+    res.redirect(`/denuncias/${result.data.denunciation_id}?notice=report-updated#reports-section`)
 })
 
 router.post('/relatorio/:id/deletar', async (req, res) => {
@@ -51,7 +51,7 @@ router.post('/relatorio/:id/deletar', async (req, res) => {
 
     if (!result.ok) return res.status(result.status).send(result.message)
 
-    res.redirect(`/denuncias/${result.denunciationId}`)
+    res.redirect(`/denuncias/${result.denunciationId}?notice=report-deleted#reports-section`)
 })
 
 export default router

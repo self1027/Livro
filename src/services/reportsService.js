@@ -2,9 +2,11 @@ import reportsRepository from '../repositories/reportsRepository.js'
 import denunciationsRepository from '../repositories/denunciationsRepository.js'
 import REPORT_TYPE from '../constants/reportType.js'
 import DENUNCIATION_STATUS from '../constants/denunciationStatus.js'
+import { reportDetails } from '../utils/catalogRegistry.js'
 
 async function addReport({ denunciationId, userId, description, status }) {
     if (!userId) return { ok: false, status: 400, message: 'ID do usuário não informado' }
+    if (status && !Object.hasOwn(DENUNCIATION_STATUS, status)) return { ok: false, status: 400, message: 'Status inválido' }
 
     const denuncia = await denunciationsRepository.findByPk(denunciationId)
     if (!denuncia) return { ok: false, status: 404, message: 'Denúncia não encontrada' }
@@ -48,17 +50,19 @@ async function addReport({ denunciationId, userId, description, status }) {
 async function editReport(reportId, { description, status }) {
     const report = await reportsRepository.findByPk(reportId)
     if (!report) return { ok: false, status: 404, message: 'Relatório não encontrado' }
+    if (status && !Object.hasOwn(DENUNCIATION_STATUS, status)) return { ok: false, status: 400, message: 'Status inválido' }
+    const isStatusChange = report.type === REPORT_TYPE.STATUS_CHANGE
 
     let finalDescription = description
 
-    if (report.type === REPORT_TYPE.STATUS_CHANGE && status) {
+    if (isStatusChange && status) {
         const labelNew = DENUNCIATION_STATUS[status]?.label || status
         finalDescription = `Status alterado para "${labelNew}"`
     }
 
     await reportsRepository.update(reportId, { description: finalDescription })
 
-    if (status && status !== report.status) {
+    if (isStatusChange && status) {
         const denuncia = await denunciationsRepository.findByPk(report.denunciation_id)
         if (denuncia) {
             denuncia.status = status
@@ -89,7 +93,8 @@ async function getReport(reportId) {
         data: {
             report,
             denuncia,
-            reportTypeLabel: REPORT_TYPE[report.type],
+            reportTypeLabel: reportDetails[report.type]?.label || 'Tipo não reconhecido',
+            REPORT_DETAILS: reportDetails,
             DENUNCIATION_STATUS
         }
     }

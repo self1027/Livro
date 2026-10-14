@@ -1,0 +1,14 @@
+﻿.denunciation-create { container-type: inline-size; }
+.registration-protocol { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; padding: 16px 20px; background: var(--ui-info-background); border: 1px solid var(--ui-border); border-radius: 8px; margin-bottom: 24px; }
+.registration-protocol strong { display: block; font-size: 1.2rem; font-variant-numeric: tabular-nums; }
+.registration-protocol p { margin: 0; font-size: 13px; color: var(--ui-muted); }
+.registration-layout { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); gap: 24px; align-items: start; }
+.registration-address-grid { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: 16px; }
+.registration-field-pair { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.registration-description textarea { min-height: 280px; }
+.registration-actions { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; padding: 20px 0; border-top: 1px solid var(--ui-border); }
+.registration-actions > div { display: flex; flex-wrap: wrap; gap: 12px; }
+#registration-feedback[hidden] { display: none; }
+.registration-required-note { margin-bottom: 16px; }
+@container (max-width: 850px) { .registration-layout { grid-template-columns: minmax(0, 1fr); gap: 0; } .registration-description { margin-bottom: 24px; } }
+@container (max-width: 550px) { .registration-address-grid, .registration-field-pair { grid-template-columns: minmax(0, 1fr); gap: 0; } }
