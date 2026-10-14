@@ -1,70 +1,60 @@
 import express from 'express'
 import adminService from '../services/adminService.js'
 import attendanceService from '../services/attendanceService.js'
+import STATUS from '../constants/denunciationStatus.js'
+import SENDERS from '../constants/denunciationSenders.js'
+import { normalizeFilters, isOpen } from '../utils/adminMetrics.js'
+import { reportDetails } from '../utils/catalogRegistry.js'
+import { exportCsv, exportPdf } from '../utils/adminExport.js'
 
 const router = express.Router()
+export function adminUrl(filters, changes = {}, path = '/admin') {
+    const params = new URLSearchParams()
+    for (const [key, value] of Object.entries({ ...filters, page: 1, ...changes })) {
+        if (value !== '' && value != null) params.set(key, String(value))
+    }
+    return `${path}?${params}`
+}
+const formatDate = value => value ? new Date(value).toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' }) : 'Sem relatório'
 
 router.get('/admin', async (req, res) => {
     try {
-        const attendance = await attendanceService.get()
-
-        const years = await adminService.getYears()
-
-        if (years.length === 0) {
-            return res.render('admin/index.ejs', {
-                year: null,
-                years: [],
-                stats: { total: 0, andamento: 0, resolvidas: 0, semFiscal: 0 },
-                statusStats: [],
-                reports: [],
-                bairros: [],
-                meses: []
-            })
-        }
-
-        let year = parseInt(req.query.year)
-        if (!years.includes(year)) year = years[0]
-
-        const [stats, statusStats, meses, bairros, reports] = await Promise.all([
-            adminService.getStats(year),
-            adminService.getStatusStats(year),
-            adminService.getMonthlyStats(year),
-            adminService.getTopBairros(year),
-            adminService.getRecentReports(year)
-        ])
-
-        res.render('admin/index.ejs', {
-            year,
-            years,
-            stats,
-            statusStats,
-            meses,
-            bairros,
-            reports,
-            attendance
+        try { normalizeFilters(req.query) } catch (error) { return res.status(400).send(error.message) }
+        const [dashboard, attendance] = await Promise.all([adminService.getDashboard(req.query), attendanceService.get()])
+        res.render('admin/index', {
+            ...dashboard, attendance, STATUS, SENDERS, adminUrl, formatDate, isOpen, REPORT_DETAILS: reportDetails,
+            tab: req.query.tab === 'attendance' ? 'attendance' : 'overview',
+            notice: req.query.notice === 'saved' ? 'Configuração de atendimento salva.' : req.query.notice === 'error' ? 'Não foi possível salvar a configuração. Tente novamente.' : '',
+            noticeError: req.query.notice === 'error'
         })
-
     } catch (error) {
         console.error('Erro ao carregar painel administrativo:', error)
-        res.status(500).send("Erro ao carregar painel administrativo")
+        res.status(500).send('Erro ao carregar painel administrativo')
+    }
+})
+
+router.get('/admin/export/:format', async (req, res) => {
+    if (!['csv', 'pdf'].includes(req.params.format)) return res.sendStatus(404)
+    try {
+        try { normalizeFilters(req.query) } catch (error) { return res.status(400).send(error.message) }
+        const data = await adminService.getDashboard(req.query)
+        if (req.params.format === 'csv') return exportCsv(res, data)
+        exportPdf(res, data)
+    } catch (error) {
+        console.error('Erro ao exportar painel:', error)
+        if (!res.headersSent) res.status(500).send('Erro ao exportar os dados')
+        else res.end()
     }
 })
 
 router.post('/admin/attendance', async (req, res) => {
     try {
-        const { weekdays, paused } = req.body
-
-        await attendanceService.update({
-            weekdays: Array.isArray(weekdays) ? weekdays : [weekdays].filter(Boolean),
-            paused: paused === 'on'
-        })
-
-        res.redirect('/admin')
-
+        const { weekdays, paused, module_disabled } = req.body
+        await attendanceService.update({ weekdays: Array.isArray(weekdays) ? weekdays : [weekdays].filter(Boolean), paused: paused === 'on', enabled: module_disabled !== 'on' })
+        res.redirect('/admin?tab=attendance&notice=saved')
     } catch (error) {
-        console.error(error)
-        res.redirect('/admin')
+        console.error('Erro ao salvar atendimento:', error)
+        res.redirect('/admin?tab=attendance&notice=error')
     }
 })
-
 export default router
