@@ -1,0 +1,129 @@
+
+	#calendario th,
+	#calendario td {
+	min-width: 120px;
+	height: 110px;
+	vertical-align: top;
+	position: relative;
+	}
+	.controle-col {
+	width: 160px;
+	min-width: 160px;
+	font-weight: 600;
+	background: var(--ui-surface-muted);
+	cursor: pointer;
+	position: relative;
+	padding-top: 25px !important;
+	vertical-align: top !important; 
+	}
+	.nome-badge {
+	display: block; 
+	padding: 4px 8px;
+	border-radius: 6px;
+	font-size: 0.75rem;
+	color: var(--ui-surface);
+	font-weight: 600;
+	max-width: 100%;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	position: relative;
+	z-index: 2;
+	text-align: center;
+	}
+	.controle-col .nome-badge {
+	margin-top: 20px; 
+	}
+	.dia-util .nome-badge,
+	.fds .nome-badge {
+	margin-top: 20px;
+	position: relative;
+	z-index: 2;
+	display: block; 
+	text-align: center;
+	}
+	.nome-badge {
+	box-shadow: none;
+	}
+	.icone-anotacao {
+	position: absolute;
+	top: 0px; 
+	right: 6px;
+	font-size: 1.1rem;
+	color: var(--ui-danger);
+	opacity: 1;
+	cursor: help;
+	z-index: 10;
+	transition: transform 0.2s, color 0.2s;
+	background: transparent;
+	display: block !important;
+	pointer-events: auto;
+	text-shadow: 0 0 3px rgba(255,255,255,0.8);
+	}
+	.icone-anotacao:hover {
+	transform: scale(1.2);
+	color: var(--ui-danger);
+	}
+	.dia-util {
+	cursor: pointer;
+	transition: background 0.2s ease;
+	position: relative;
+	padding-top: 25px !important;
+	min-height: 110px;
+	background-color: transparent;
+	vertical-align: top;
+	}
+	.dia-util:hover {
+	background: var(--ui-surface-hover);
+	}
+	.fds {
+	background: var(--ui-surface-muted);
+	color: var(--ui-muted);
+	position: relative;
+	padding-top: 25px !important;
+	min-height: 110px;
+	vertical-align: top;
+	}
+	.feriado {
+	background: var(--ui-warning-background) !important;
+	}
+	.dia-numero {
+	position: absolute;
+	top: 6px;
+	left: 8px;
+	font-size: 0.9rem;
+	font-weight: 600;
+	color: var(--ui-text);
+	z-index: 1;
+	}
+	.tooltip-inner {
+	max-width: 250px;
+	text-align: left;
+	padding: 8px 12px;
+	background-color: var(--ui-sidebar);
+	font-size: 0.85rem;
+	white-space: pre-wrap;
+	}
+	.controle-col.tem-anotacao {
+	background-color: var(--ui-surface-muted) !important;
+	}
+	.controle-col .icone-anotacao {
+	position: absolute;
+	top: 0px;
+	right: 6px;
+	z-index: 10;
+	}
+	.controle-col .text-muted {
+	display: block;
+	margin-top: 20px;
+	text-align: center;
+	}
+.schedule-toolbar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px; }
+.schedule-month-navigation { display: flex; flex-wrap: wrap; gap: 8px; }
+#calendario th { height: auto; background: var(--ui-surface-muted); color: var(--ui-text); }
+#calendario.schedule-readonly .controle-col, #calendario.schedule-readonly .dia-util { cursor: default; }
+#calendario .schedule-outside-month { background: var(--ui-surface-muted); }
+.schedule-note { margin-top: 12px; text-align: left; font-size: 12px; font-weight: 400; }
+.schedule-note summary { cursor: pointer; color: var(--ui-primary); }
+.schedule-note p { white-space: pre-wrap; overflow-wrap: anywhere; margin-top: 8px; }
+#tipoDiaContainer[hidden], #schedule-day-help[hidden], #schedule-save-feedback[hidden] { display: none !important; }

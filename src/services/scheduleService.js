@@ -25,8 +25,9 @@ const MESES_PTBR = [
 
 async function getCalendar(year, month) {
     const hoje = new Date();
-    year = isNaN(year) ? hoje.getFullYear() : year;
-    month = isNaN(month) ? hoje.getMonth() : month;
+    const parts=new Intl.DateTimeFormat('en-US',{timeZone:'America/Sao_Paulo',year:'numeric',month:'numeric'}).formatToParts(hoje);
+    year = isNaN(year) ? Number(parts.find(part=>part.type==='year').value) : year;
+    month = isNaN(month) ? Number(parts.find(part=>part.type==='month').value)-1 : month;
 
     const startGrid = getGridStart(year, month);
     const weeksSet = new Set();
