@@ -1,0 +1,31 @@
+﻿/* Troque os tokens deste arquivo para alterar o tema de todas as telas. */
+:root {
+    --ui-primary: #17665e;
+    --ui-primary-hover: #104c46;
+    --ui-background: #f6f5f1;
+    --ui-surface: #ffffff;
+    --ui-surface-muted: #f0f2ec;
+    --ui-surface-hover: #f8faf5;
+    --ui-text: #263c38;
+    --ui-muted: #596b64;
+    --ui-border: #dce2d9;
+    --ui-input-border: #a4bab0;
+    --ui-sidebar: #183e38;
+    --ui-sidebar-text: #d9e6df;
+    --ui-sidebar-muted: #b9cec3;
+    --ui-sidebar-active: #30574d;
+    --ui-accent: #e4efbe;
+    --ui-accent-text: #263e22;
+    --ui-accent-hover: #d4e49f;
+    --ui-info-background: #e8eee6;
+    --ui-danger: #963b38;
+    --ui-danger-background: #fbe6e3;
+    --ui-warning: #795116;
+    --ui-warning-background: #fff0d6;
+    --ui-success: #245d45;
+    --ui-success-background: #e1eee7;
+    --ui-focus: #9a7621;
+    --ui-focus-shadow: 0 0 0 3px rgba(23, 102, 94, .18);
+    --ui-radius: 12px;
+    --ui-shadow: 0 4px 20px rgba(24, 62, 56, .05);
+}

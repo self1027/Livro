@@ -1,0 +1,8 @@
+﻿<header class="ui-page-heading">
+    <div>
+        <% if (eyebrow) { %><p class="ui-eyebrow"><%= eyebrow %></p><% } %>
+        <h1><%= title %></h1>
+        <p class="ui-page-description"><%= description %></p>
+    </div>
+    <a href="<%= actionHref %>" class="btn <%= typeof actionPrimary !== 'undefined' && actionPrimary ? 'btn-primary' : 'btn-outline-secondary' %>"><%= actionLabel %></a>
+</header>

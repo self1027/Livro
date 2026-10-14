@@ -1,0 +1,16 @@
+    <aside class="app-sidebar">
+        <a class="app-brand" href="/">Livro <span>VISA Andradina</span></a>
+        <button class="app-menu-toggle" type="button" aria-expanded="false" aria-controls="app-navigation">Menu</button>
+        <nav id="app-navigation" aria-label="Navegação principal">
+            <a class="app-create" href="/denuncias/new">+ Nova Denúncia</a>
+            <a class="app-nav-link" href="/">Listagem de denúncias</a>
+            <% const groups = [{name: 'Fiscal', items: [['Área do Fiscal','/area-fiscal'],['Lavrar AIF','/aif'],['Escala','/escala']]}, {name:'Administrativo', items:[['Painel Administrativo','/admin']]}]; %>
+            <% groups.forEach(group => { %>
+                <div class="app-nav-group"><h2><%= group.name %></h2>
+                <% group.items.forEach(item => { %><a class="app-nav-link" href="<%= item[1] %>"><%= item[0] %></a><% }) %>
+                <% if (group.name === 'Fiscal') { %><span class="app-nav-disabled" aria-disabled="true">Números <small>Em breve</small></span><% } %>
+                </div>
+            <% }) %>
+        </nav>
+        <p class="app-sidebar-note">Vigilância Sanitária<br>Gestão de denúncias e fiscalização</p>
+    </aside>
