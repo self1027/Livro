@@ -7,6 +7,7 @@
     <%- include('../partials/pageHeading.ejs', {eyebrow:'', title:denuncia.title, description:'Registrada em ' + new Date(denuncia.created_at).toLocaleDateString('pt-BR', {timeZone:'America/Sao_Paulo'}) + ' · Cadastrada por ' + (denuncia.creator?.name || 'autor não identificado'), actionHref:workAllowed('denunciations.edit.own')?'/denuncias/' + denuncia.id + '/edit':null, actionLabel:'Editar denúncia'}) %>
     <% if (locals.successMessages) { successMessages.forEach(message => { %><div class="alert alert-success" role="status"><%= message %></div><% }) } %>
     <% if (locals.error) { %><div class="alert alert-danger" role="alert"><%= error %></div><% } %>
+    <% if(typeof auth!=='undefined' && auth && detailAllowed('chat.use')) { %><p class="mb-3"><a class="btn btn-sm btn-outline-secondary" href="/recados?denunciationId=<%= denuncia.id %>">Conversar sobre esta denúncia</a></p><% } %>
     <section class="detail-summary" aria-label="Situação e responsabilidade">
         <div><span class="detail-label">Status atual</span><%- include('../partials/statusBadge.ejs', {status:DENUNCIATION_STATUS[denuncia.status?.trim()] || {label:'Desconhecido'}}) %></div>
         <div class="detail-assignee"><span class="detail-label">Fiscal responsável</span><strong><%= denuncia.user?.name || 'Não atribuído' %></strong></div>

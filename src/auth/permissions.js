@@ -15,7 +15,9 @@ export const PERMISSIONS = Object.freeze({
     'schedule.manage':'Administrar escala',
     'catalogs.manage':'Administrar cadastros e cores',
     'attendance.manage':'Configurar atendimento',
-    'dashboard.read':'Consultar painel e exportações'
+    'dashboard.read':'Consultar painel e exportações',
+    'chat.use':'Usar recados e conversas privadas',
+    'chat.announce':'Enviar anúncios para várias pessoas'
 })
 export const PERMISSION_DESCRIPTIONS=Object.freeze({
     'denunciations.read':'Abre a listagem, a busca e os detalhes das denúncias, incluindo a situação e os protocolos SIVISA do histórico. Não permite alterar os registros ou os protocolos.',
@@ -34,11 +36,13 @@ export const PERMISSION_DESCRIPTIONS=Object.freeze({
     'schedule.manage':'Permite criar e alterar os dias, equipes e horários da escala no painel administrativo.',
     'catalogs.manage':'Permite administrar bairros, situações, origens, tipos de relatório e suas cores.',
     'attendance.manage':'Permite configurar os dias de atendimento e pausar ou retomar o recebimento público.',
-    'dashboard.read':'Abre os indicadores e filtros do painel administrativo, incluindo ações e registros SIVISA por autor. Também permite as exportações de denúncias em CSV ou PDF; não concede edição de relatórios ou protocolos.'
+    'dashboard.read':'Abre os indicadores e filtros do painel administrativo, incluindo ações e registros SIVISA por autor. Também permite as exportações de denúncias em CSV ou PDF; não concede edição de relatórios ou protocolos.',
+    'chat.use':'Permite conversar com pessoas ativas, receber anúncios, consultar suas mensagens e confirmar a leitura. Cada conversa é privada entre seus dois participantes, inclusive perante outros administradores. Referenciar uma denúncia não concede acesso a ela.',
+    'chat.announce':'Permite distribuir anúncios aos cargos ou pessoas selecionadas, dentro das conversas individuais, e acompanhar a leitura de cada destinatário. Exige também a permissão de usar recados. As respostas são privadas para o remetente.'
 })
 export const seedRoles = [
-    {name:'Fiscal',maximum:false,permissions:['denunciations.read','denunciations.create','denunciations.receive','reports.create','reports.edit','fiscal.area.own','schedule.read']},
-    {name:'Administrativo',maximum:false,permissions:Object.keys(PERMISSIONS).filter(key=>!['denunciations.receive','fiscal.area.own','denunciations.edit.own'].includes(key))},
+    {name:'Fiscal',maximum:false,permissions:['denunciations.read','denunciations.create','denunciations.receive','reports.create','reports.edit','fiscal.area.own','schedule.read','chat.use']},
+    {name:'Administrativo',maximum:false,permissions:Object.keys(PERMISSIONS).filter(key=>!['denunciations.receive','fiscal.area.own','denunciations.edit.own','chat.announce'].includes(key))},
     {name:'Chefia',maximum:true,permissions:Object.keys(PERMISSIONS).filter(key=>!['denunciations.receive','fiscal.area.own','denunciations.edit.own'].includes(key))}
 ]
 export const can = (identity, permission) => !!identity && ((permission!=='denunciations.receive'&&identity.role.maximum) || identity.role.permissions.includes(permission) || (permission==='fiscal.area.own'&&identity.role.permissions.includes('fiscal.area.all')) || (permission==='denunciations.edit.own'&&identity.role.permissions.includes('denunciations.edit.all')))

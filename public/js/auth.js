@@ -20,6 +20,9 @@
         const response=await originalFetch(input,init)
         if(url.origin===location.origin){
             if(response.status===401)redirect('/auth/login')
+            else if(response.status===403&&response.clone){
+                try{if((await response.clone().json()).code==='PASSWORD_CHANGE_REQUIRED')redirect('/auth/password')}catch{}
+            }
             else if(response.redirected){
                 const destination=new URL(response.url)
                 if(destination.origin===location.origin&&['/auth/login','/auth/password'].includes(destination.pathname))redirect(destination.pathname)
@@ -31,6 +34,7 @@
     let checking=false
     async function checkSession(){
         if(checking||redirecting||document.visibilityState==='hidden')return
+        if(window.LivroRecados?.lastSessionCheck&&Date.now()-window.LivroRecados.lastSessionCheck<12000)return
         checking=true
         try{
             const response=await window.fetch('/api/auth/me',{cache:'no-store',credentials:'same-origin'})

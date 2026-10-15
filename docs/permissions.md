@@ -21,8 +21,12 @@ Cada ação exige sua permissão específica. Consultar não concede edição; c
 | `catalogs.manage` | Consulta e gravação de categorias, cores e bairros. |
 | `attendance.manage` | Consulta e gravação da configuração de atendimento. |
 | `dashboard.read` | Painel de indicadores, filtros e exportações CSV/PDF. Não concede atribuição ou edição de relatórios. |
+| `chat.use` | Conversas privadas das quais participa, envio individual, recebimento de anúncios e confirmação de leitura. |
+| `chat.announce` | Envio coletivo por cargo ou pessoas e acompanhamento das leituras do anúncio; exige também `chat.use`. |
 
 A autoridade máxima administra pessoas, contas, cargos, recuperação e auditoria e tem acesso às operações acima. Receber novas denúncias continua exigindo seleção explícita.
+
+Conversas privadas continuam restritas aos dois participantes, inclusive para autoridade máxima. Anúncios e referências a denúncias não ampliam o acesso a outras conversas ou registros. A atualização `npm run migrate:auth` habilita recados para os cargos existentes e anúncios somente para autoridade máxima uma única vez; depois preserva as permissões alteradas. Consulte [recados.md](recados.md).
 
 Os controles da interface e o servidor usam a mesma política de autoria e atribuição. O histórico inclui `reports.user_id`; o nome exibido e o texto do relatório não determinam sua autoria.
 

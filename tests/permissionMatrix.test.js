@@ -11,6 +11,7 @@ import {statuses,senders,senderDetails,reportDetails} from '../src/utils/catalog
 
 const identity=permissions=>({user:{id:1,name:'Fiscal'},account:{must_change_password:false},role:{name:'Teste',maximum:false,permissions}})
 const routes=[
+    ['GET','/recados','chat.use'],['GET','/api/recados/notifications','chat.use'],['GET','/api/recados/conversations/1/messages','chat.use'],['POST','/api/recados/conversations/1/read','chat.use'],['POST','/api/recados/announcements','chat.announce'],
     ['GET','/','denunciations.read'],['GET','/buscar','denunciations.read'],['GET','/api/denuncias','denunciations.read'],['GET','/denuncias/1','denunciations.read'],
     ['GET','/denuncias/new','denunciations.create'],['POST','/denuncias','denunciations.create'],
     ['GET','/denuncias/1/edit','denunciations.edit.own'],['POST','/denuncias/1/edit','denunciations.edit.own'],

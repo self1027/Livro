@@ -21,6 +21,9 @@ const same=(a,b)=>typeof a==='string'&&typeof b==='string'&&Buffer.byteLength(a)
 export function checkCsrf(req,expected){return same(req.get('X-CSRF-Token')||req.body?._csrf,expected)}
 export function routePermission(path,method) {
     const read=method==='GET'||method==='HEAD'
+    if(path==='/recados'&&read)return 'chat.use'
+    if(path==='/api/recados/announcements'&&!read)return 'chat.announce'
+    if(/^\/api\/recados(?:\/|$)/.test(path))return 'chat.use'
     if(path==='/docs'||path==='/docs.json'||path.startsWith('/docs/'))return 'maximum'
     if(/^\/admin\/access(?:\/|$)/.test(path))return 'maximum'
     if(/^\/admin\/schedule(?:\/|$)/.test(path))return 'schedule.manage'
@@ -57,7 +60,8 @@ export async function authContext(req,res,next){
         req.usingBearer=!!header
         if(!req.auth&&!header&&cookies(req).livro_session)res.clearCookie('livro_session',cookieOptions())
         res.locals.auth=req.auth||null;res.locals.can=p=>can(req.auth,p)
-        if(can(req.auth,'reports.edit'))res.locals.sivisaPendingCount=await sivisaService.countPending(req.auth.user.id)
+        // API polling must not repeatedly calculate unrelated sidebar data.
+        if(!req.path.startsWith('/api/')&&can(req.auth,'reports.edit'))res.locals.sivisaPendingCount=await sivisaService.countPending(req.auth.user.id)
         res.locals.canWorkOnDenunciation=(permission,denunciation)=>canWorkOnDenunciation(req.auth,permission,denunciation)
         res.locals.canManageReport=(permission,report)=>canManageReport(req.auth,permission,report)
         res.locals.canPath=path=>{
@@ -92,7 +96,7 @@ export async function protectRoutes(req,res,next){
     if(!authEnabled())return next()
     const api=req.path.startsWith('/api/'),fail=(code,message)=>api?res.status(code).json({error:message}):res.status(code).send(message)
     if(!req.auth)return api?fail(401,'Autenticação necessária.'):res.redirect('/auth/login')
-    if(req.auth.account.must_change_password)return api?fail(403,'Troque sua senha antes de continuar.'):res.redirect('/auth/password')
+    if(req.auth.account.must_change_password)return api?res.status(403).json({error:'Troque sua senha antes de continuar.',code:'PASSWORD_CHANGE_REQUIRED'}):res.redirect('/auth/password')
     if(!['GET','HEAD','OPTIONS'].includes(req.method)&&!req.usingBearer&&!checkCsrf(req,req.auth.session.csrf))return fail(403,'Sessão do formulário expirada. Recarregue a página.')
     const permission=req.path==='/admin'&&req.query.tab==='attendance'?'attendance.manage':routePermission(req.path,req.method)
     if(!permission||!(permission==='maximum'?req.auth.role.maximum:can(req.auth,permission)))return fail(403,'Você não possui permissão para esta operação.')

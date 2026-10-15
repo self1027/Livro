@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <% if(typeof csrfToken !== 'undefined' && csrfToken) { %><meta name="csrf-token" content="<%= csrfToken %>"><script src="/js/auth.js" defer></script><% } %>
     <% if(typeof auth !== 'undefined' && auth) { %><meta name="authenticated-session" content="true"><% } %>
+    <% if(typeof auth !== 'undefined' && auth && !auth.account.must_change_password && typeof can==='function' && can('chat.use')) { %><meta name="recados-user" content="<%= auth.user.id %>"><script src="/js/notifications.js" defer></script><link rel="stylesheet" href="/css/notifications.css"><% } %>
     <title>Livro</title>
     <link rel="icon" href="/favicon/book.png" type="image/png">
 <!-- Bootstrap 4 CSS -->

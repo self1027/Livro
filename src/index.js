@@ -28,6 +28,9 @@ import {authRouter,accessRouter} from './auth/controller.js'
 import {assertAuthReady} from './auth/service.js'
 import {migrateReportOperations} from './database/migrateReportOperations.js'
 import {migrateDenunciationCreators} from './database/migrateDenunciationCreators.js'
+import chatController from './controllers/chatController.js'
+import {notifications as chatNotifications} from './services/chatService.js'
+import {can} from './auth/permissions.js'
 
 
 const app = express()
@@ -53,6 +56,14 @@ app.use(authContext)
 app.use(authRouter)
 app.use(protectRoutes)
 app.use(accessRouter)
+// Polling and chat do not need the catalog refresh used by the complaint screens.
+app.get('/api/recados/notifications',async(req,res)=>{
+    if(!req.auth)return res.status(401).json({error:'Autenticação necessária.'})
+    if(!can(req.auth,'chat.use'))return res.status(403).json({error:'Recados indisponíveis para este acesso.'})
+    res.set('Cache-Control','no-store')
+    res.json(await chatNotifications(req.auth))
+})
+app.use(chatController)
 
 user.hasMany(denunciation, {
 	foreignKey: 'user_id'

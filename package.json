@@ -11,9 +11,11 @@
     "migrate:report-operations": "node --env-file-if-exists=.env src/database/migrateReportOperations.js",
     "migrate:denunciation-creators": "node --env-file-if-exists=.env src/database/migrateDenunciationCreators.js",
     "migrate:auth": "node --env-file-if-exists=.env src/database/migrateAuth.js",
+    "migrate:chat": "node --env-file-if-exists=.env src/database/migrateChat.js",
     "auth:bootstrap": "node --env-file-if-exists=.env src/database/bootstrapChief.js",
     "auth:migrate": "node --env-file-if-exists=.env src/database/authMigrationScript.js",
-    "test:auth:db": "node scripts/testAuthDb.js"
+    "test:auth:db": "node scripts/testAuthDb.js",
+    "test:chat:db": "node --env-file-if-exists=.env scripts/testChatDb.js"
   },
   "engines": {"node": ">=22"},
   "author": "",

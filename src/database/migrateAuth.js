@@ -11,7 +11,7 @@ export async function migrateAuth() {
     if(tables.includes('denunciations'))await migrateDenunciationCreators()
     for(const model of authModels)await model.sync() // Never alter/drop existing tables.
     const columns=await db.getQueryInterface().describeTable(Setting.tableName)
-    for(const field of ['role_receiving_migrated','fiscal_area_permissions_migrated','denunciation_edit_permissions_migrated']){
+    for(const field of ['role_receiving_migrated','fiscal_area_permissions_migrated','denunciation_edit_permissions_migrated','chat_permissions_migrated']){
         if(!columns[field])await db.getQueryInterface().addColumn(Setting.tableName,field,Setting.rawAttributes[field])
     }
     await db.transaction(async transaction=>{
@@ -46,6 +46,13 @@ export async function migrateAuth() {
                 await role.update({permissions:[...new Set(permissions)]},{transaction})
             }
             await locked.update({fiscal_area_permissions_migrated:true},{transaction})
+        }
+        if(!locked.chat_permissions_migrated){
+            for(const role of await Role.findAll({transaction})){
+                const permissions=[...new Set([...role.permissions,'chat.use',...(role.maximum?['chat.announce']:[])])]
+                await role.update({permissions},{transaction})
+            }
+            await locked.update({chat_permissions_migrated:true},{transaction})
         }
         if(!locked.denunciation_edit_permissions_migrated){
             for(const role of await Role.findAll({transaction})){

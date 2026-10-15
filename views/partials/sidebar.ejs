@@ -4,11 +4,12 @@ const adminEntry=adminItems.find(item=>navAllowed(item[2]));
 const adminHref=typeof auth!=='undefined'&&auth?.role.maximum?'/admin':adminEntry?.[1];
 const groups=[{name:'Fiscal',items:[['Área do Fiscal','/area-fiscal','fiscal.area.own'],['Escala','/escala','schedule.read']]},{name:'Administrativo',items:adminHref?[['Painel Administrativo',adminHref,adminEntry?.[2]||'dashboard.read']]:[]}]; %>
 <aside class="app-sidebar">
-    <a class="app-brand" href="<%= navAllowed('denunciations.read')?'/':navAllowed('fiscal.area.own')?'/area-fiscal':adminHref|| (navAllowed('denunciations.create')?'/denuncias/new':'/auth/password') %>">Livro <span>VISA Andradina</span></a>
+    <a class="app-brand" href="<%= navAllowed('denunciations.read')?'/':navAllowed('fiscal.area.own')?'/area-fiscal':adminHref|| (navAllowed('denunciations.create')?'/denuncias/new':typeof auth!=='undefined'&&auth&&navAllowed('chat.use')?'/recados':'/auth/password') %>">Livro <span>VISA Andradina</span></a>
     <button class="app-menu-toggle" type="button" aria-expanded="false" aria-controls="app-navigation">Menu</button>
     <nav id="app-navigation" aria-label="Navegação principal">
         <% if(navAllowed('denunciations.create')) { %><a class="app-create" href="/denuncias/new">+ Nova Denúncia</a><% } %>
         <% if(navAllowed('denunciations.read')) { %><a class="app-nav-link" href="/">Listagem de denúncias</a><% } %>
+        <% if(typeof auth!=='undefined' && auth && !auth.account.must_change_password && navAllowed('chat.use')) { %><a class="app-nav-link" href="/recados" data-recados-link>Recados <span class="badge badge-warning" data-recados-count hidden aria-label="Mensagens não lidas">0</span></a><button class="app-notification-toggle" type="button" data-enable-notifications hidden>Ativar notificações</button><small class="app-notification-status" data-notification-status role="status"></small><% } %>
         <% groups.forEach(group=>{const items=group.items.filter(item=>navAllowed(item[2]));if(!items.length)return; %>
         <div class="app-nav-group"><h2><%= group.name %></h2>
             <% items.forEach(item=>{ %><a class="app-nav-link" href="<%= item[1] %>"><%= item[0] %></a><% }) %>

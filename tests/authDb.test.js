@@ -26,6 +26,7 @@ test('MySQL isolado: migração, acessos, revogação, permissões, CSRF e recup
     const {migrateSivisa}=await import('../src/database/migrateSivisa.js')
     const {migrateReportOperations}=await import('../src/database/migrateReportOperations.js')
     const {migrateDenunciationCreators}=await import('../src/database/migrateDenunciationCreators.js')
+    const {migrateChat}=await import('../src/database/migrateChat.js')
     const {runAuthMigration}=await import('../src/database/authMigrationScript.js')
     const {Role,Account,Session,Reset,Setting,Audit}=await import('../src/auth/models.js')
     const service=await import('../src/auth/service.js')
@@ -42,6 +43,8 @@ test('MySQL isolado: migração, acessos, revogação, permissões, CSRF e recup
     const {sivisaState,summarizeSivisa}=await import('../src/utils/sivisa.js')
     const {default:userRepo}=await import('../src/repositories/usersRepository.js')
     const {default:adminRepo}=await import('../src/repositories/adminRepository.js')
+    const {default:chatController}=await import('../src/controllers/chatController.js')
+    const {default:chatService}=await import('../src/services/chatService.js')
     let server
     const originalTransport=nodemailer.createTransport
     const sent=[]
@@ -52,6 +55,7 @@ test('MySQL isolado: migração, acessos, revogação, permissões, CSRF e recup
         Report.belongsTo(User,{foreignKey:'user_id',as:'user'})
         Report.belongsTo(Denunciation,{foreignKey:'denunciation_id',as:'denunciation'})
         await User.sync();await Denunciation.sync();await Report.sync();await migrateSivisa()
+        await migrateChat()
         await migrateReportOperations()
         const legacy=await User.create({id:17,name:'Fiscal anterior',ativo:true})
         const row=await Denunciation.create({year:2025,number:9,title:'Registro antigo',description:'Anterior à autenticação',endereco:'Rua',numero:'1',bairro:'Centro',user_id:17,status:'REGISTRADA'})
@@ -129,7 +133,8 @@ test('MySQL isolado: migração, acessos, revogação, permissões, CSRF e recup
             await migrateAuth();assert.equal(await Role.count(),3);assert.equal(await Role.count({where:{name:'Chefia'}}),0)
             await assert.rejects(service.saveRole(fiscalAuth,null,{name:'Promoção',maximum:true,permissions:[]}))
         })
-        const app=express();app.set('views',fileURLToPath(new URL('../views/',import.meta.url)));app.set('view engine','ejs');app.use(express.urlencoded({extended:false}));app.use(express.json());app.use(authContext);app.use(authRouter);app.use(protectRoutes);app.use(accessRouter);app.use(reportController);app.use(denunciationController)
+        const app=express();app.set('views',fileURLToPath(new URL('../views/',import.meta.url)));app.set('view engine','ejs');app.use(express.urlencoded({extended:false}));app.use(express.json());app.use(authContext);app.use(authRouter);app.use(protectRoutes);app.use(accessRouter);app.use(reportController);app.use(denunciationController);app.use(chatController)
+        app.get('/api/recados/notifications',async(req,res)=>res.json(await chatService.notifications(req.auth)))
         app.get('/api/denuncias',(req,res)=>res.json({ok:true}));app.get('/area-fiscal/:id',(req,res)=>res.send('fiscal'));app.get('/admin/fiscais',(req,res)=>res.send('admin'));app.use((error,req,res,next)=>res.status(500).json({error:error.message}))
         server=app.listen(0);await new Promise(resolve=>server.once('listening',resolve));const base=`http://127.0.0.1:${server.address().port}`
         const apiLogin=async username=>{const response=await fetch(base+'/api/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username,password:secret+' nova'})});assert.equal(response.status,200);return response.json()}
@@ -314,6 +319,38 @@ test('MySQL isolado: migração, acessos, revogação, permissões, CSRF e recup
                 await fiscalRole.update({permissions})
             }
         })
+        await t.test('recados integram sessão real, CSRF, polling, autoria e privacidade',async()=>{
+            const permissions=[...fiscalRole.permissions]
+            try{
+                await fiscalRole.update({permissions:['chat.use']})
+                const tokens=await service.login('fiscal.1',secret+' nova'),identity=await service.authenticate(tokens.browser,'browser')
+                const cookie='livro_session='+tokens.browser,headers={Cookie:cookie,'Content-Type':'application/json'}
+                const post=(path,body,csrf=true)=>fetch(base+path,{method:'POST',headers:{...headers,...(csrf?{'X-CSRF-Token':identity.session.csrf}:{})},body:JSON.stringify(body),redirect:'manual'})
+                const page=await fetch(base+'/recados',{headers}),html=await page.text()
+                assert.equal(page.status,200);assert.ok(html.includes('chat-app'))
+                assert.equal((await post('/api/recados/conversations',{userId:17},false)).status,403)
+                const conversation=await (await post('/api/recados/conversations',{userId:17})).json()
+                assert.ok(conversation.conversation.id)
+                const id=conversation.conversation.id
+                const sent=await (await post(`/api/recados/conversations/${id}/messages`,{body:'Pedido autenticado',clientId:'auth-message-test-1',senderId:17})).json()
+                assert.equal(sent.message.senderId,fiscal.user_id)
+                // Use a fresh token: user permissions are resolved again on each request.
+                const otherTokens=await service.login('chefe.2',secret+' nova')
+                const otherHeaders={Authorization:'Bearer '+otherTokens.access_token}
+                assert.equal((await fetch(base+`/api/recados/conversations/${id}/messages`,{headers:otherHeaders})).status,404)
+                const chiefHeaders={Authorization:'Bearer '+chiefTokens.access_token,'Content-Type':'application/json'}
+                const reply=await fetch(base+`/api/recados/conversations/${id}/messages`,{method:'POST',headers:chiefHeaders,body:JSON.stringify({body:'Resposta da chefia',clientId:'auth-message-test-2'})})
+                assert.equal(reply.status,200)
+                const incoming=(await reply.json()).message
+                const pending=await (await fetch(base+'/api/recados/notifications',{headers})).json()
+                assert.equal(pending.unreadCount,1);assert.equal(pending.unreadMessages[0].id,incoming.id)
+                assert.equal((await post(`/api/recados/conversations/${id}/read`,{messageIds:[incoming.id]},false)).status,403)
+                assert.equal((await post(`/api/recados/conversations/${id}/read`,{messageIds:[incoming.id]})).status,200)
+                assert.equal((await (await fetch(base+'/api/recados/notifications',{headers})).json()).unreadCount,0)
+                await fiscalRole.update({permissions:[]})
+                assert.equal((await fetch(base+'/api/recados/notifications',{headers})).status,403)
+            }finally{await fiscalRole.update({permissions})}
+        })
         await t.test('login web, CSRF e painel funcionam sem JavaScript',async()=>{
             const page=await fetch(base+'/auth/login'),html=await page.text(),csrf=/name="_csrf" value="([^"]+)"/.exec(html)[1]
             const cookie=page.headers.get('set-cookie').split(';')[0]
@@ -353,13 +390,13 @@ test('MySQL isolado: migração, acessos, revogação, permissões, CSRF e recup
             const headers={Cookie:'livro_session='+tokens.browser}
             assert.equal((await fetch(base+'/api/auth/me',{headers})).status,200)
             await service.logout(await service.authenticate(tokens.browser,'browser'))
-            for(const path of ['/admin/access','/admin/fiscais','/area-fiscal/17','/auth/password']){
+            for(const path of ['/admin/access','/admin/fiscais','/area-fiscal/17','/auth/password','/recados']){
                 const response=await fetch(base+path,{headers,redirect:'manual'})
                 assert.equal(response.status,302)
                 assert.equal(response.headers.get('location'),'/auth/login')
                 assert.match(response.headers.get('set-cookie'),/livro_session=;/)
             }
-            for(const path of ['/api/auth/me','/api/denuncias'])assert.equal((await fetch(base+path,{headers})).status,401)
+            for(const path of ['/api/auth/me','/api/denuncias','/api/recados/notifications','/api/recados/conversations'])assert.equal((await fetch(base+path,{headers})).status,401)
             assert.equal((await fetch(base+'/auth/password',{method:'POST',headers,redirect:'manual'})).headers.get('location'),'/auth/login')
             assert.equal((await fetch(base+'/api/auth/password',{method:'POST',headers})).status,401)
         })
@@ -370,6 +407,10 @@ test('MySQL isolado: migração, acessos, revogação, permissões, CSRF e recup
             const temporary=await service.login('chefe.2','credencial temporária para chefia')
             assert.equal(temporary.must_change_password,true)
             assert.equal((await fetch(base+'/admin/access',{headers:{Authorization:'Bearer '+temporary.access_token},redirect:'manual'})).status,302)
+            const blockedChat=await fetch(base+'/api/recados/notifications',{headers:{Authorization:'Bearer '+temporary.access_token}})
+            assert.equal(blockedChat.status,403)
+            assert.equal((await blockedChat.json()).code,'PASSWORD_CHANGE_REQUIRED')
+            assert.equal((await fetch(base+'/recados',{headers:{Authorization:'Bearer '+temporary.access_token},redirect:'manual'})).headers.get('location'),'/auth/password')
             const cookie='livro_session='+temporary.browser
             const page=await fetch(base+'/auth/password',{headers:{Cookie:cookie}})
             const html=await page.text()
@@ -562,6 +603,27 @@ test('MySQL isolado: migração, acessos, revogação, permissões, CSRF e recup
             delete after.operation_id
             assert.deepEqual(after,before)
             assert.equal((await schema.showIndex('reports')).filter(index=>index.name==='reports_operation_id').length,1)
+        })
+        await t.test('migração de recados adiciona permissões uma vez e preserva escolhas posteriores',async()=>{
+            const ordinary=await Role.create({name:'Cargo anterior sem recados',maximum:false,permissions:['schedule.read']})
+            const maximum=await Role.create({name:'Chefia anterior aos recados',maximum:true,permissions:['dashboard.read']})
+            const schema=db.getQueryInterface(),roleCount=await Role.count()
+            await schema.removeColumn(Setting.tableName,'chat_permissions_migrated')
+            await migrateAuth()
+            assert.ok((await schema.describeTable(Setting.tableName)).chat_permissions_migrated)
+            assert.equal((await Setting.findByPk(1)).chat_permissions_migrated,true)
+            assert.deepEqual((await ordinary.reload()).permissions,['schedule.read','chat.use'])
+            assert.deepEqual((await maximum.reload()).permissions,['dashboard.read','chat.use','chat.announce'])
+            for(const role of await Role.findAll()){
+                assert.ok(role.permissions.includes('chat.use'))
+                if(!role.maximum)assert.ok(!role.permissions.includes('chat.announce'))
+            }
+            await ordinary.update({permissions:['schedule.read']})
+            await maximum.update({permissions:['dashboard.read']})
+            await migrateAuth()
+            assert.equal(await Role.count(),roleCount)
+            assert.deepEqual((await ordinary.reload()).permissions,['schedule.read'])
+            assert.deepEqual((await maximum.reload()).permissions,['dashboard.read'])
         })
     }finally{
         nodemailer.createTransport=originalTransport

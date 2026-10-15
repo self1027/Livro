@@ -41,7 +41,7 @@ authRouter.post('/auth/login',rateLimit,async(req,res)=>{
     res.cookie('livro_session',tokens.browser,cookieOptions());res.clearCookie('livro_csrf',cookieOptions())
     const identity=await service.authenticate(tokens.browser,'browser')
     const landing=identity?.role.maximum?'/':[
-        ['denunciations.read','/'],['fiscal.area.own','/area-fiscal'],['dashboard.read','/admin'],['catalogs.manage','/admin/catalogs'],['denunciations.assign','/admin/assignments'],['schedule.manage','/admin/schedule'],['attendance.manage','/admin?tab=attendance'],['schedule.read','/escala'],['denunciations.create','/denuncias/new']
+        ['denunciations.read','/'],['fiscal.area.own','/area-fiscal'],['dashboard.read','/admin'],['catalogs.manage','/admin/catalogs'],['denunciations.assign','/admin/assignments'],['schedule.manage','/admin/schedule'],['attendance.manage','/admin?tab=attendance'],['schedule.read','/escala'],['denunciations.create','/denuncias/new'],['chat.use','/recados']
     ].find(([permission])=>can(identity,permission))?.[1]||'/auth/password'
     res.redirect(tokens.must_change_password?'/auth/password':landing)
 })

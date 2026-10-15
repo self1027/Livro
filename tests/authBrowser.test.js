@@ -39,3 +39,23 @@ test('permissão negada e falha de rede não encerram sessão; troca obrigatóri
     await page.events.pageshow()
     assert.deepEqual(page.redirects,['/auth/password'])
 })
+
+test('fetch encaminha a troca obrigatória ao receber o código de erro 403',async()=>{
+    const page=browser(false)
+    page.state.response={status:403,ok:false,clone:()=>({json:async()=>({code:'PASSWORD_CHANGE_REQUIRED'})})}
+    await page.window.fetch('/api/recados/notifications')
+    assert.deepEqual(page.redirects,['/auth/password'])
+})
+
+test('checagem global reaproveita polling recente de recados e retoma após doze segundos',async()=>{
+    const page=browser();await settle()
+    const calls=page.calls.length
+    page.window.LivroRecados={lastSessionCheck:Date.now()}
+    await page.events.interval()
+    await page.events.focus()
+    assert.equal(page.calls.length,calls)
+    page.window.LivroRecados.lastSessionCheck=Date.now()-13000
+    await page.events.interval()
+    assert.equal(page.calls.length,calls+1)
+    assert.equal(page.calls.at(-1).input,'/api/auth/me')
+})
