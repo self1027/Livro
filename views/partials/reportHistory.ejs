@@ -1,13 +1,12 @@
 ﻿<% if (reports.length) { %>
 <ol class="report-timeline">
     <% reports.forEach(report => { const date = report.created_at ? new Date(report.created_at) : null; %>
+    <% const reportAllowed=typeof can==='function'?can:()=>true;const ownsReport=typeof auth==='undefined'||!auth||reportAllowed('fiscal.all')||String(report.user_id)===String(auth.user.id);const managesReport=permission=>typeof canManageReport==='function'?canManageReport(permission,report):reportAllowed(permission)&&ownsReport; %>
     <li class="report-timeline-item">
         <div class="report-history-heading"><%- include('statusBadge.ejs', {status:REPORT_DETAILS[report.type] || {label:'Registro'}}) %><% if (date && !isNaN(date)) { %><time datetime="<%= date.toISOString() %>"><%= date.toLocaleString('pt-BR', {timeZone:'America/Sao_Paulo',dateStyle:'short',timeStyle:'short'}) %></time><% } %></div>
         <p class="report-history-author"><%= report.user?.name || 'Fiscal não informado' %></p>
         <div class="ui-report-text"><%= report.description || 'Sem descrição.' %></div>
-        <% if (!(report.description || '').includes('Denúncia atribuída ao fiscal')) { %>
-        <div class="report-history-actions"><a class="btn btn-sm btn-outline-secondary" href="/relatorio/<%= report.id %>">Editar relatório</a><form method="POST" action="/relatorio/<%= report.id %>/deletar" data-delete-report><button type="submit" class="btn btn-sm btn-outline-danger">Excluir</button></form></div>
-        <% } %>
+        <% if(managesReport('reports.edit')||managesReport('reports.delete')) { %><div class="report-history-actions"><% if(managesReport('reports.edit')) { %><a class="btn btn-sm btn-outline-secondary" href="/relatorio/<%= report.id %>">Editar relatório</a><% } %><% if(managesReport('reports.delete')) { %><form method="POST" action="/relatorio/<%= report.id %>/deletar" data-delete-report><button type="submit" class="btn btn-sm btn-outline-danger">Excluir</button></form><% } %></div><% } %>
     </li>
     <% }) %>
 </ol>

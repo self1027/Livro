@@ -23,9 +23,14 @@ import usersController from './controllers/usersController.js'
 import catalogController from './controllers/catalogController.js'
 import catalogService from './services/catalogService.js'
 import { reportDetails, senderDetails } from './utils/catalogRegistry.js'
+import {authContext,protectRoutes,authEnabled} from './auth/middleware.js'
+import {authRouter,accessRouter} from './auth/controller.js'
+import {assertAuthReady} from './auth/service.js'
+import {migrateDenunciationCreators} from './database/migrateDenunciationCreators.js'
 
 
 const app = express()
+if(process.env.TRUST_PROXY==='true')app.set('trust proxy',1)
 
 import path from 'path'
 import { fileURLToPath } from 'url'
@@ -43,6 +48,10 @@ app.use(bodyParser.urlencoded({
 	extended: true
 }))
 app.use(bodyParser.json())
+app.use(authContext)
+app.use(authRouter)
+app.use(protectRoutes)
+app.use(accessRouter)
 
 user.hasMany(denunciation, {
 	foreignKey: 'user_id'
@@ -99,9 +108,21 @@ app.use('/admin/schedule',adminScheduleController)
 app.use('/admin',adminStaffController)
 app.use('/', usersController)
 
+app.use((error,req,res,next)=>{
+    console.error('Falha na requisição:',error.name)
+    if(res.headersSent)return next(error)
+    if(req.path.startsWith('/api/'))return res.status(500).json({error:'Não foi possível concluir a operação.'})
+    res.status(500).send('Não foi possível concluir a operação. Tente novamente.')
+})
+
 try {
     await connection.authenticate()
-    await connection.sync()
+    if(authEnabled())await assertAuthReady()
+    // Authentication tables are managed exclusively by the explicit migration.
+    const models=connection.modelManager.getModelsTopoSortedByForeignKey()
+    if(!models)throw new Error('Dependências circulares entre tabelas.')
+    for(const model of models.reverse())if(!model.tableName.startsWith('auth_'))await model.sync()
+    await migrateDenunciationCreators()
     await catalogService.initialize()
     app.listen(80, () => console.log('Livro disponível em http://localhost'))
 } catch (error) {

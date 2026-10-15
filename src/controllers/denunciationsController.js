@@ -5,6 +5,7 @@ import denunciationsService from '../services/denunciationsService.js'
 import usersService from '../services/usersService.js'
 import attendanceService from '../services/attendanceService.js'
 import { reportDetails, senderDetails } from '../utils/catalogRegistry.js'
+import {completeOperation} from '../utils/completeOperation.js'
 
 const router = express.Router()
 const detailNotices = {
@@ -58,7 +59,7 @@ router.get('/denuncias/new', async (req, res) => {
 router.post('/denuncias', async (req, res) => {
 	try {
 
-		const result = await denunciationsService.createDenunciation(req.body)
+		const result = await denunciationsService.createDenunciation(req.body,req.auth)
 
 		if (result.status !== 201) {
 
@@ -75,7 +76,7 @@ router.post('/denuncias', async (req, res) => {
 			})
 		}
 
-		res.redirect('/')
+		completeOperation(req,res,{redirect:'/',title:'Denúncia cadastrada',message:'A denúncia foi cadastrada com sucesso.',actionHref:'/denuncias/new',actionLabel:'Cadastrar outra denúncia'})
 
 	} catch (error) {
 		console.error(error)
@@ -156,7 +157,7 @@ router.post('/denuncias/:id/edit', async (req, res) => {
 			return res.status(result.status).send(result.message)
 		}
 
-		res.redirect(`/denuncias/${id}`)
+		completeOperation(req,res,{redirect:`/denuncias/${id}`,title:'Denúncia atualizada',message:'Os dados da denúncia foram atualizados com sucesso.',actionHref:`/denuncias/${id}/edit`,actionLabel:'Voltar à edição'})
 
 	} catch (err) {
 		console.error('Erro ao atualizar:', err)

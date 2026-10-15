@@ -8,7 +8,7 @@
         <p>O ano e o número são preenchidos automaticamente.</p>
     </section>
     <div id="registration-feedback" class="alert <%= existingId ? 'alert-warning' : 'alert-danger' %>" role="alert" tabindex="-1" <%= typeof message !== 'undefined' && message ? '' : 'hidden' %>>
-        <% if (typeof message !== 'undefined' && message) { %><p class="mb-0"><%= message %></p><% if (existingId) { %><a class="btn btn-outline-secondary mt-3" href="/denuncias/<%= existingId %>">Ver denúncia existente</a><% } %><% } %>
+        <% if (typeof message !== 'undefined' && message) { %><p class="mb-0"><%= message %></p><% if (existingId&&(typeof can!=='function'||can('denunciations.read'))) { %><a class="btn btn-outline-secondary mt-3" href="/denuncias/<%= existingId %>">Ver denúncia existente</a><% } %><% } %>
     </div>
     <form method="POST" action="/denuncias" id="denunciaForm" novalidate>
         <input type="hidden" name="year" value="<%= year %>"><input type="hidden" name="number" value="<%= lastNumber %>">
@@ -41,7 +41,7 @@
                 <div class="card-body"><label for="registration-description">Descrição *</label><textarea id="registration-description" class="form-control <%= fieldErrors.description ? 'is-invalid' : '' %>" name="description" rows="9" required placeholder="O que está acontecendo no local?" aria-describedby="description-help description-error"><%= form.description %></textarea><div id="description-error" class="invalid-feedback" data-field-error="description"><%= fieldErrors.description || '' %></div><p id="description-help" class="small text-muted mt-3">Descreva o que foi observado, há quanto tempo ocorre e quais referências ajudam a localizar o problema.</p></div>
             </section>
         </div>
-        <div class="registration-actions"><p class="small text-muted mb-0" data-registration-progress role="status" aria-live="polite">Revise as informações antes de cadastrar.</p><div><a href="/" class="btn btn-outline-secondary">Cancelar</a><button class="btn btn-primary" type="submit" data-registration-submit>Cadastrar denúncia</button></div></div>
+        <div class="registration-actions"><p class="small text-muted mb-0" data-registration-progress role="status" aria-live="polite">Revise as informações antes de cadastrar.</p><div><% if(typeof can!=='function'||can('denunciations.read')) { %><a href="/" class="btn btn-outline-secondary">Cancelar</a><% } %><button class="btn btn-primary" type="submit" data-registration-submit>Cadastrar denúncia</button></div></div>
     </form>
 </main>
 <script src="/js/denunciation-form.js" defer></script>

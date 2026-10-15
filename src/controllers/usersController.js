@@ -5,13 +5,14 @@ import DENUNCIATION_STATUS from '../constants/denunciationStatus.js'
 
 const router = express.Router()
 
-router.get('/cadastro/usuario',(req,res)=>res.redirect('/admin/fiscais'))
+router.get('/cadastro/usuario',(req,res)=>res.redirect('/admin/access'))
 
-router.post('/usuario/registrar',(req,res)=>res.redirect(307,'/admin/fiscais'))
+router.post('/usuario/registrar',(req,res)=>res.redirect(303,'/admin/access'))
 
 router.get('/area-fiscal', async (req, res) => {
+  if(req.auth&&!res.locals.can('fiscal.area.all'))return res.redirect(`/area-fiscal/${req.auth.user.id}`)
   try {
-    const fiscais = await userService.getActiveUsers()
+    const fiscais = req.auth?await userService.getAllOrdered():await userService.getActiveUsers()
     res.render('users/select', { fiscais })
   } catch (error) {
     console.error('Erro ao buscar fiscais:', error)
@@ -51,8 +52,8 @@ router.get('/area-fiscal/:id', async (req, res) => {
   }
 })
 
-router.get('/editar-usuario/:id',(req,res)=>res.redirect(`/admin/fiscais/${encodeURIComponent(req.params.id)}/edit`))
+router.get('/editar-usuario/:id',(req,res)=>res.redirect('/admin/access'))
 
-router.post('/usuario/atualizar/:id',(req,res)=>res.redirect(307,`/admin/fiscais/${encodeURIComponent(req.params.id)}`))
+router.post('/usuario/atualizar/:id',(req,res)=>res.redirect(303,'/admin/access'))
 
 export default router

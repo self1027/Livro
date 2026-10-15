@@ -155,40 +155,20 @@ paths:
       responses:
         '200': {description: Dia atualizado.}
         '400': {description: Dados inválidos.}
-  /admin/fiscais:
+  /admin/access:
     get:
       tags: [Administração]
-      summary: Gerenciar fiscais no painel
-      responses:
-        '200': {description: Cadastro e listagem de fiscais.}
-    post:
-      tags: [Administração]
-      summary: Cadastrar fiscal ativo
-      requestBody:
-        required: true
-        content:
-          application/x-www-form-urlencoded:
-            schema:
-              type: object
-              required: [name]
-              properties:
-                name: {type: string, maxLength: 255}
-      responses:
-        '302': {description: Fiscal cadastrado; retorna ao painel.}
-        '400': {description: Nome inválido; mantém o formulário.}
-  /admin/fiscais/{id}/edit:
-    get:
-      tags: [Administração]
-      summary: Editar nome e situação do fiscal
+      summary: Gerenciar pessoas, acessos, cargos e permissões
+      description: Exclusivo da autoridade máxima. Inclui cadastros sem conta, consulta do histórico, credenciais, situação, recuperação e auditoria. O recebimento é definido pela permissão denunciations.receive do cargo.
       parameters:
-        - {name: id, in: path, required: true, schema: {type: integer, minimum: 1}}
+        - {name: user_id, in: query, schema: {type: integer}, description: Pré-seleciona um cadastro sem conta para criar acesso vinculado.}
       responses:
-        '200': {description: Formulário de edição.}
-        '404': {description: Fiscal não encontrado.}
-  /admin/fiscais/{id}:
+        '200': {description: Gestão unificada de usuários e acessos.}
+        '403': {description: Exige autoridade máxima.}
+  /admin/access/people/{id}:
     post:
       tags: [Administração]
-      summary: Salvar nome e estado ativo explícito
+      summary: Atualizar nome e situação de um cadastro existente
       parameters:
         - {name: id, in: path, required: true, schema: {type: integer, minimum: 1}}
       requestBody:
@@ -197,14 +177,40 @@ paths:
           application/x-www-form-urlencoded:
             schema:
               type: object
-              required: [name, activeState]
+              required: [name, _csrf]
               properties:
                 name: {type: string, maxLength: 255}
-                activeState: {type: string, enum: [explicit]}
-                ativo: {type: string, enum: [on], description: Omitido indica fiscal inativo.}
+                ativo: {type: string, enum: [on], description: Omitido desativa o cadastro e impede login e novas atribuições.}
+                _csrf: {type: string}
       responses:
-        '302': {description: Fiscal atualizado; retorna ao painel.}
-        '400': {description: Dados inválidos.}
+        '302': {description: Retorna à gestão unificada.}
+        '400': {description: Alteração inválida ou tentativa de desativar a última Chefia.}
+  /admin/access/accounts:
+    post:
+      tags: [Administração]
+      summary: Criar acesso com novo cadastro ou vínculo a uma pessoa existente
+      description: Campos name, username, password e role_id são obrigatórios. user_id vincula ao cadastro existente. enabled e ativo usam on para habilitar acesso e cadastro. O recebimento é definido pelo cargo, sem opção inspector individual. Exige autoridade máxima e CSRF para sessão web.
+      responses:
+        '302': {description: Acesso criado; exige troca da senha no primeiro login.}
+        '400': {description: Dados inválidos ou username já utilizado.}
+  /admin/access/accounts/{id}:
+    post:
+      tags: [Administração]
+      summary: Salvar nome, username, cargo, acesso habilitado e cadastro ativo
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: integer, minimum: 1}}
+      responses:
+        '302': {description: Alteração salva e sessões da conta encerradas.}
+        '400': {description: Dados inválidos ou alteração deixaria o sistema sem Chefia ativa.}
+  /admin/access/accounts/{id}/reset:
+    post:
+      tags: [Administração]
+      summary: Definir senha temporária e exigir troca no próximo acesso
+      parameters:
+        - {name: id, in: path, required: true, schema: {type: integer, minimum: 1}}
+      responses:
+        '302': {description: Senha redefinida e sessões revogadas.}
+        '400': {description: Senha inválida.}
   /admin/assignments:
     get:
       tags: [Administração]

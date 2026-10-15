@@ -10,6 +10,7 @@ paths:
     post:
       tags: [Denunciations]
       summary: Criar nova denúncia
+      description: O autor do cadastro é definido pela identidade autenticada no servidor e não pode ser informado ou alterado pelo formulário. A edição usa permissões separadas para denúncias cadastradas pela própria pessoa e para todas as denúncias, independentemente do fiscal responsável.
       requestBody:
         required: true
         content:
@@ -40,7 +41,7 @@ paths:
           description: Redireciona com o resultado da atribuição.
 
   # --- MÓDULO DE RELATÓRIOS (Reports) ---
-  /denuncia/{id}/adicionar-relatorio:
+  /denuncias/{id}/adicionar-relatorio:
     post:
       tags: [Reports]
       summary: Adicionar Histórico ou Mudança de Status
@@ -128,8 +129,16 @@ components:
 
     ReportInput:
       type: object
-      required: [user_id]
       properties:
+        description: Obrigatório para novo relatório textual; independente do status da denúncia.
+        sivisa_protocol:
+          type: array
+          items: {type: string, maxLength: 64}
+          description: Protocolos exclusivos deste relatório; pelo menos um quando registrado.
+        sivisa_note:
+          type: array
+          items: {type: string, maxLength: 500}
+          description: Observações na mesma ordem dos protocolos.
         description: 
           type: string
           description: Conteúdo textual da fiscalização.
@@ -138,7 +147,7 @@ components:
           description: Novo status para a denúncia (gera log de mudança).
         user_id: 
           type: integer
-          description: ID do fiscal que está realizando a ação.
+          description: Somente no modo sem autenticação; com sessão, o autor vem da identidade autenticada.
 
     # Baseado no arquivo reportType.js
     ReportType:

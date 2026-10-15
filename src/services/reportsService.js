@@ -3,74 +3,83 @@ import denunciationsRepository from '../repositories/denunciationsRepository.js'
 import REPORT_TYPE from '../constants/reportType.js'
 import DENUNCIATION_STATUS from '../constants/denunciationStatus.js'
 import { reportDetails } from '../utils/catalogRegistry.js'
+import {canWorkOnDenunciation} from '../auth/permissions.js'
+import db from '../database/database.js'
 
-async function addReport({ denunciationId, userId, description, status }) {
+async function addReport({ denunciationId, userId, description, status, actor }) {
+    if(description!=null&&typeof description!=='string')return {ok:false,status:400,message:'Informe um texto válido para o relatório.'}
+    description=description?.trim()
     if (!userId) return { ok: false, status: 400, message: 'ID do usuário não informado' }
     if (status && !Object.hasOwn(DENUNCIATION_STATUS, status)) return { ok: false, status: 400, message: 'Status inválido' }
 
-    const denuncia = await denunciationsRepository.findByPk(denunciationId)
-    if (!denuncia) return { ok: false, status: 404, message: 'Denúncia não encontrada' }
+    try{return await db.transaction(async transaction=>{
+        const denuncia = await denunciationsRepository.findByPk(denunciationId,{transaction,lock:transaction.LOCK.UPDATE})
+        if (!denuncia) return { ok: false, status: 404, message: 'Denúncia não encontrada' }
 
-    const statusAnterior = denuncia.status
-    const houveMudancaStatus = status && statusAnterior !== status
+        const statusAnterior = denuncia.status
+        const houveMudancaStatus = status && statusAnterior !== status
 
-    // cria relatório de descrição
-    if (description) {
-        await reportsRepository.create({
-            description,
-            denunciation_id: denunciationId,
-            user_id: userId,
-            type: REPORT_TYPE.TEXT
-        })
-    }
+        // cria relatório de descrição
+        if (description) {
+            const report=await reportsRepository.create({
+                description,
+                denunciation_id: denunciationId,
+                user_id: userId,
+                type: REPORT_TYPE.TEXT
+            },{transaction})
+        }
 
-    // cria relatório de mudança de status
-    if (houveMudancaStatus) {
-        const statusAnteriorLabel = DENUNCIATION_STATUS[statusAnterior]?.label || statusAnterior
-        const novoStatusLabel = DENUNCIATION_STATUS[status]?.label || status
+        // cria relatório de mudança de status
+        if (houveMudancaStatus) {
+            const statusAnteriorLabel = DENUNCIATION_STATUS[statusAnterior]?.label || statusAnterior
+            const novoStatusLabel = DENUNCIATION_STATUS[status]?.label || status
 
-        await reportsRepository.create({
-            description: `Status alterado de "${statusAnteriorLabel}" para "${novoStatusLabel}"`,
-            denunciation_id: denunciationId,
-            user_id: userId,
-            type: REPORT_TYPE.STATUS_CHANGE
-        })
+            await reportsRepository.create({
+                description: `Status alterado de "${statusAnteriorLabel}" para "${novoStatusLabel}"`,
+                denunciation_id: denunciationId,
+                user_id: userId,
+                type: REPORT_TYPE.STATUS_CHANGE
+            },{transaction})
 
-        denuncia.status = status
-        await denuncia.save()
-    }
+            denuncia.status = status
+            await denuncia.save({transaction})
+        }
 
-    if (!description && !houveMudancaStatus) {
-        return { ok: false, status: 400, message: 'Nada para atualizar' }
-    }
+        if (!description && !houveMudancaStatus) {
+            return { ok: false, status: 400, message: 'Nada para atualizar' }
+        }
 
-    return { ok: true, data: denuncia }
+        return { ok: true, data: denuncia }
+    })}catch(error){throw error}
 }
 
-async function editReport(reportId, { description, status }) {
-    const report = await reportsRepository.findByPk(reportId)
-    if (!report) return { ok: false, status: 404, message: 'Relatório não encontrado' }
-    if (status && !Object.hasOwn(DENUNCIATION_STATUS, status)) return { ok: false, status: 400, message: 'Status inválido' }
-    const isStatusChange = report.type === REPORT_TYPE.STATUS_CHANGE
+async function editReport(reportId, { description, status, actor }) {
+    return db.transaction(async transaction=>{
+        const report = await reportsRepository.findByPk(reportId,{transaction,lock:transaction.LOCK.UPDATE})
+        if (!report) return { ok: false, status: 404, message: 'Relatório não encontrado' }
+        if (status && !Object.hasOwn(DENUNCIATION_STATUS, status)) return { ok: false, status: 400, message: 'Status inválido' }
+        const isStatusChange = report.type === REPORT_TYPE.STATUS_CHANGE
+        if(!isStatusChange&&(typeof description!=='string'||!description.trim()))return {ok:false,status:400,message:'A descrição do relatório não pode ficar vazia.'}
 
-    let finalDescription = description
+        let finalDescription = description
 
-    if (isStatusChange && status) {
-        const labelNew = DENUNCIATION_STATUS[status]?.label || status
-        finalDescription = `Status alterado para "${labelNew}"`
-    }
-
-    await reportsRepository.update(reportId, { description: finalDescription })
-
-    if (isStatusChange && status) {
-        const denuncia = await denunciationsRepository.findByPk(report.denunciation_id)
-        if (denuncia) {
-            denuncia.status = status
-            await denuncia.save()
+        if (isStatusChange && status) {
+            const labelNew = DENUNCIATION_STATUS[status]?.label || status
+            finalDescription = `Status alterado para "${labelNew}"`
         }
-    }
 
-    return { ok: true, data: report }
+        await reportsRepository.update(reportId, { description: finalDescription },{transaction})
+
+        if (isStatusChange && status) {
+            const denuncia = await denunciationsRepository.findByPk(report.denunciation_id,{transaction,lock:transaction.LOCK.UPDATE})
+            if (denuncia&&(!actor||canWorkOnDenunciation(actor,'reports.edit',denuncia))) {
+                denuncia.status = status
+                await denuncia.save({transaction})
+            }
+        }
+
+        return { ok: true, data: report }
+    })
 }
 
 async function deleteReport(reportId) {

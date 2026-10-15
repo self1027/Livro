@@ -23,7 +23,7 @@ async function getNextNumber() {
     }
 }
 
-async function createDenunciation(data) {
+async function createDenunciation(data, actor) {
     const form = normalizeDenunciationForm(data)
     const fieldErrors = validateDenunciationForm(form,DENUNCIATION_SENDER)
     if (Object.keys(fieldErrors).length) return {status:400,message:'Revise os campos indicados para cadastrar a denúncia.',fieldErrors}
@@ -81,6 +81,7 @@ async function createDenunciation(data) {
         bairro: district.name,
         complemento: complemento || null,
         description,
+        created_by_user_id: actor?.user?.id ?? null,
         status: DENUNCIATION_STATUS.REGISTRADA.slug
     })
 
@@ -241,7 +242,8 @@ async function assignDenunciation(denunciaId, userId) {
 
     const fiscal = await userService.findByPk(userId)
 
-    if (!fiscal || !fiscal.ativo) {
+    const eligible=process.env.AUTH_ENABLED!=='true'||(await userService.getActiveUsers()).some(user=>String(user.id)===String(userId))
+    if (!fiscal || !fiscal.ativo || !eligible) {
         return {
             ok: false,
             status: 400,

@@ -14,10 +14,11 @@ function findByPk(id, options = {}) {
 function findByIdWithRelations(id) {
     return Denunciation.findByPk(id, {
         include: [
+            {model:User,as:'creator',attributes:['name']},
             {
                 model: Report,
                 as: 'reports',
-                attributes: ['id', 'description', 'created_at', 'type'],
+                attributes: ['id', 'user_id', 'description', 'created_at', 'type'],
                 include: [{model:User,as:'user',attributes:['name']}],
                 separate: true,
                 order: [['created_at','DESC'],['id','DESC']]

@@ -23,6 +23,25 @@ test('cadastro normaliza campos e valida texto obrigatório e origem no servidor
     assert.equal(result.status,400)
     assert.ok(result.fieldErrors.description)
 })
+test('cadastro usa o autor autenticado e ignora autoria e atribuição enviadas pelo formulário',async()=>{
+    const original={district:districts.findByName,open:repo.findOpenByAddress,create:repo.create,find:repo.findByPk,update:repo.update}
+    districts.findByName=async()=>({name:'Centro'})
+    repo.findOpenByAddress=async()=>null
+    let created,updated
+    repo.create=async data=>{created=data;return {id:1,...data}}
+    repo.findByPk=async()=>({id:1,created_by_user_id:17})
+    repo.update=async(id,data)=>{updated=data}
+    try{
+        const result=await service.createDenunciation({...input,created_by_user_id:999,user_id:999},{user:{id:17},account:{id:3}})
+        assert.equal(result.status,201)
+        assert.equal(created.created_by_user_id,17)
+        assert.equal(created.user_id,undefined)
+        assert.equal((await service.updateDenunciation(1,{...input,created_by_user_id:999})).ok,true)
+        assert.ok(!Object.hasOwn(updated,'created_by_user_id'))
+        await service.createDenunciation({...input,created_by_user_id:999})
+        assert.equal(created.created_by_user_id,null)
+    }finally{districts.findByName=original.district;repo.findOpenByAddress=original.open;repo.create=original.create;repo.findByPk=original.find;repo.update=original.update}
+})
 
 test('falhas de cadastro preservam campos, origem e bairro; duplicidade oferece acesso ao registro', async () => {
     const original={getAll:districts.getAll,last:repo.findLastByYear,create:service.createDenunciation}

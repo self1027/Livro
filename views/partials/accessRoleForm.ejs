@@ -1,0 +1,11 @@
+<% const suffix=role?String(role.id):'new'; %>
+<form method="POST" action="/admin/access/roles<%= role?'/'+role.id:'' %>">
+    <div class="form-group"><label for="role_name_<%= suffix %>">Nome da responsabilidade</label><input class="form-control" id="role_name_<%= suffix %>" name="name" required maxlength="80" value="<%= role?.name||'' %>"></div>
+    <div class="access-permissions"><label><input type="checkbox" name="maximum" <%= role?.maximum?'checked':'' %> aria-describedby="maximum_help_<%= suffix %>"><span>Autoridade máxima<small id="maximum_help_<%= suffix %>" class="permission-description">Administra pessoas, acessos, cargos e recuperação, com acesso a todas as operações. Para receber novas denúncias, selecione explicitamente a permissão de recebimento abaixo.</small></span></label></div>
+    <fieldset><legend class="h6">Permissões por módulo</legend>
+    <% const modules={denunciations:'Denúncias',reports:'Relatórios e SIVISA',fiscal:'Áreas dos fiscais e alcance de atuação',schedule:'Escala',catalogs:'Cadastros e cores',attendance:'Atendimento',dashboard:'Painel'}; %>
+    <% Object.entries(modules).forEach(([prefix,label])=>{ const items=Object.entries(permissions).filter(([key])=>key.startsWith(prefix+'.'));if(!items.length)return; %><h3 class="h6 mt-3"><%= label %></h3><div class="access-permissions">
+        <% items.forEach(([key,text])=>{ %><label><input type="checkbox" name="permissions" value="<%= key %>" <%= role?.permissions.includes(key)?'checked':'' %> aria-describedby="permission_<%= suffix %>_<%= key %>"><span><%= text %><small class="permission-description" id="permission_<%= suffix %>_<%= key %>"><%= permissionDescriptions[key] %></small></span></label><% }) %>
+    </div><% }) %></fieldset>
+    <button class="btn btn-primary"><%= role?'Salvar responsabilidade':'Criar responsabilidade' %></button>
+</form>

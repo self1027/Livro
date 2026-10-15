@@ -3,6 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <% if(typeof csrfToken !== 'undefined' && csrfToken) { %><meta name="csrf-token" content="<%= csrfToken %>"><script src="/js/auth.js" defer></script><% } %>
+    <% if(typeof auth !== 'undefined' && auth) { %><meta name="authenticated-session" content="true"><% } %>
     <title>Livro</title>
     <link rel="icon" href="/favicon/book.png" type="image/png">
 <!-- Bootstrap 4 CSS -->

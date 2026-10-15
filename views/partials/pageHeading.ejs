@@ -4,5 +4,5 @@
         <h1><%= title %></h1>
         <p class="ui-page-description"><%= description %></p>
     </div>
-    <a href="<%= actionHref %>" class="btn <%= typeof actionPrimary !== 'undefined' && actionPrimary ? 'btn-primary' : 'btn-outline-secondary' %>"><%= actionLabel %></a>
+    <% if(typeof actionHref!=='undefined'&&actionHref&&(typeof canPath!=='function'||canPath(actionHref))) { %><a href="<%= actionHref %>" class="btn <%= typeof actionPrimary !== 'undefined' && actionPrimary ? 'btn-primary' : 'btn-outline-secondary' %>"><%= actionLabel %></a><% } %>
 </header>

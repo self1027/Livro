@@ -10,6 +10,8 @@ import { normalizeFilters, summarize, selectQueue } from '../src/utils/adminMetr
 import repo, { whereFor } from '../src/repositories/adminRepository.js'
 import attendance from '../src/services/attendanceService.js'
 import router from '../src/controllers/adminController.js'
+import {can,canManageReport} from '../src/auth/permissions.js'
+import {routePermission} from '../src/auth/middleware.js'
 
 const now = new Date('2026-10-14T15:00:00Z')
 const users = [{ id: 1, name: 'Fiscal A', ativo: true }, { id: 2, name: 'Fiscal B', ativo: false }]
@@ -61,6 +63,7 @@ test('preenche meses intermediários e contabiliza status desconhecido', () => {
 test('painel, paginação, exports e atendimento funcionam sem banco', async t => {
     let data = []
     let reports = []
+    let scopedPermissions=null
     const original = { ...repo }
     const originalGet = attendance.get, originalUpdate = attendance.update
     repo.findDenunciations = async () => data
@@ -75,6 +78,15 @@ test('painel, paginação, exports e atendimento funcionam sem banco', async t =
     app.engine('ejs', ejs.__express)
     app.set('view engine', 'ejs')
     app.use(express.urlencoded({ extended: true }))
+    app.use((req,res,next)=>{
+        if(scopedPermissions){
+            const auth={user:{id:1},role:{maximum:false,permissions:scopedPermissions}}
+            res.locals.can=permission=>can(auth,permission)
+            res.locals.canPath=target=>can(auth,routePermission(new URL(target,'http://livro.test').pathname,'GET'))
+            res.locals.canManageReport=(permission,report)=>canManageReport(auth,permission,report)
+        }
+        next()
+    })
     app.use(router)
     const server = app.listen(0, '127.0.0.1')
     await new Promise(resolve => server.once('listening', resolve))
@@ -118,6 +130,20 @@ test('painel, paginação, exports e atendimento funcionam sem banco', async t =
         assert.equal(res.status, 200)
         assert.match(res.headers.get('content-type'), /application\/pdf/)
         assert.equal(Buffer.from(await res.arrayBuffer()).subarray(0, 4).toString(), '%PDF')
+    })
+    await t.test('painel não oferece atribuição ou edição de relatório sem as permissões da ação e autoria',async()=>{
+        reports=[{id:91,user_id:1,type:1,description:'Próprio',denunciation:data[0]},{id:92,user_id:2,type:1,description:'Outro autor',denunciation:data[0]}]
+        try{
+            scopedPermissions=['dashboard.read']
+            let html=await (await fetch(`${base}/admin?view=reports`)).text()
+            assert.ok(!html.includes('href="/denuncias/'))
+            assert.ok(!html.includes('href="/admin/assignments'))
+            assert.ok(!html.includes('href="/relatorio/'))
+            scopedPermissions=['dashboard.read','reports.edit']
+            html=await (await fetch(`${base}/admin?view=reports`)).text()
+            assert.ok(html.includes('href="/relatorio/91"'))
+            assert.ok(!html.includes('href="/relatorio/92"'))
+        }finally{scopedPermissions=null}
     })
     await t.test('datas invertidas retornam 400 e salvar atendimento informa resultado', async () => {
         assert.equal((await fetch(`${base}/admin?start=2026-10-14&end=2026-10-01`)).status, 400)

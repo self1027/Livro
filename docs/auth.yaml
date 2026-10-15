@@ -1,0 +1,91 @@
+paths:
+  /api/auth/login:
+    post:
+      tags: [Autenticação]
+      summary: Entrar com username e senha
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [username, password]
+              properties:
+                username: {type: string}
+                password: {type: string, format: password}
+      responses:
+        '200':
+          description: Tokens opacos. Quando must_change_password for true, troque a senha antes de acessar os módulos.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/AuthTokens'}
+        '401': {description: Username ou senha inválidos}
+        '429': {description: Limite de tentativas atingido}
+  /api/auth/refresh:
+    post:
+      tags: [Autenticação]
+      summary: Renovar acesso e rotacionar o token de renovação
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [refresh_token]
+              properties:
+                refresh_token: {type: string}
+      responses:
+        '200':
+          description: Guarde o novo refresh_token. Reutilizar o anterior encerra a família de sessões.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/AuthTokens'}
+        '401': {description: Token inválido ou expirado}
+  /api/auth/me:
+    get:
+      tags: [Autenticação]
+      summary: Consultar sua identidade e responsabilidade atual
+      responses:
+        '200': {description: Dados públicos da conta autenticada, sem senha ou hashes}
+        '401': {description: Autenticação necessária}
+  /api/auth/password:
+    post:
+      tags: [Autenticação]
+      summary: Trocar sua senha e encerrar todas as sessões
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [current_password, password]
+              properties:
+                current_password: {type: string, format: password}
+                password: {type: string, format: password, minLength: 15, maxLength: 128}
+      responses:
+        '200': {description: Senha alterada. Entre novamente.}
+        '400': {description: Senha atual ou nova senha inválida}
+        '401': {description: Autenticação necessária}
+  /api/auth/logout:
+    post:
+      tags: [Autenticação]
+      summary: Encerrar a família de sessões atual
+      responses:
+        '204': {description: Sessão encerrada}
+components:
+  securitySchemes:
+    opaqueBearer:
+      type: http
+      scheme: bearer
+      description: Token opaco retornado pelo login; não é JWT.
+  schemas:
+    AuthTokens:
+      type: object
+      properties:
+        access_token: {type: string}
+        refresh_token: {type: string}
+        token_type: {type: string, enum: [Bearer]}
+        expires_in: {type: integer, example: 900}
+        must_change_password: {type: boolean}

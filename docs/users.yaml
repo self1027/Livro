@@ -5,77 +5,11 @@ info:
   version: 1.0.0
 
 paths:
-  # --- Gestão Administrativa ---
-  /cadastro/usuario:
-    get:
-      tags: [Users Admin]
-      summary: Listar todos os usuários para gestão
-      description: Retorna a página de cadastro contendo todos os usuários ordenados alfabeticamente.
-      responses:
-        '200':
-          description: HTML da view 'users/new' carregado.
-        '500':
-          $ref: '#/components/responses/ServerError'
-
-  /usuario/registrar:
-    post:
-      tags: [Users Admin]
-      summary: Criar novo usuário
-      requestBody:
-        required: true
-        content:
-          application/x-www-form-urlencoded:
-            schema:
-              type: object
-              properties:
-                username:
-                  type: string
-                  description: Nome completo do usuário.
-              required: [username]
-      responses:
-        '302':
-          description: Usuário criado. Redireciona para /cadastro/usuario.
-
-  /editar-usuario/{id}:
-    get:
-      tags: [Users Admin]
-      summary: Formulário de edição
-      parameters:
-        - $ref: '#/components/parameters/userId'
-      responses:
-        '200':
-          description: HTML da view 'users/edit'.
-        '404':
-          $ref: '#/components/responses/NotFound'
-
-  /usuario/atualizar/{id}:
-    post:
-      tags: [Users Admin]
-      summary: Atualizar dados ou status do usuário
-      description: Permite renomear o usuário ou alternar seu estado (Ativo/Inativo).
-      parameters:
-        - $ref: '#/components/parameters/userId'
-      requestBody:
-        content:
-          application/x-www-form-urlencoded:
-            schema:
-              type: object
-              properties:
-                name:
-                  type: string
-                active:
-                  type: string
-                  description: Se presente no body (checkbox 'on'), o status 'ativo' é invertido no banco.
-      responses:
-        '302':
-          description: Redireciona para a página de gestão.
-
-  # --- Fluxo de Trabalho Fiscal ---
   /area-fiscal:
     get:
       tags: [Fiscal]
       summary: Seleção de Fiscal
-      description: Lista apenas usuários com `ativo: true` para entrada no dashboard.
+      description: Com fiscal.area.own, redireciona para a própria área. Com fiscal.area.all, lista todos os cadastros para consulta, inclusive inativos ou sem login. A consulta independe da permissão de receber novas denúncias.
       responses:
         '200':
           description: HTML da view 'users/select'.

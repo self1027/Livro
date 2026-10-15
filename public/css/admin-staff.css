@@ -1,13 +1,7 @@
 ﻿.admin-staff-layout { display: grid; grid-template-columns: minmax(0, .8fr) minmax(0, 1.6fr); gap: 24px; align-items: start; }
 .admin-section-heading, .admin-pagination { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px; }
-.admin-list-filters { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: 16px; }
 .admin-row-actions { display: flex; flex-wrap: wrap; gap: 8px; }
-.admin-staff-table th, .assignment-table th { background: var(--ui-surface-muted); color: var(--ui-muted); font-size: 12px; }
-.admin-staff-table th:nth-child(1) { width: 10%; }
-.admin-staff-table th:nth-child(2) { width: 40%; }
-.admin-staff-table th:nth-child(3) { width: 15%; }
-.admin-staff-table th:nth-child(4) { width: 35%; }
-.admin-staff-edit { max-width: 720px; }
+.assignment-table th { background: var(--ui-surface-muted); color: var(--ui-muted); font-size: 12px; }
 .assignment-title { font-size: 1.15rem; margin-bottom: 16px; }
 .assignment-description, .assignment-note p { white-space: pre-line; overflow-wrap: anywhere; }
 .assignment-note { font-size: 12px; margin-top: 12px; }
@@ -24,4 +18,3 @@
 .admin-empty { text-align: center; padding: 32px 16px; }
 .admin-empty h3 { font-size: 1.1rem; }
 @container (max-width: 1000px) { .admin-staff-layout { grid-template-columns: minmax(0, 1fr); } }
-@media (max-width: 575px) { .admin-list-filters { grid-template-columns: minmax(0, 1fr); } }

@@ -1,15 +1,15 @@
 import Report from '../../src/models/reportsModel.js'
 
-function create(data) {
-    return Report.create(data)
+function create(data,options={}) {
+    return Report.create(data,options)
 }
 
-function findByPk(id) {
-    return Report.findByPk(id)
+function findByPk(id,options={}) {
+    return Report.findByPk(id,options)
 }
 
-function update(id, data) {
-    return Report.update(data, { where: { id } })
+function update(id, data,options={}) {
+    return Report.update(data, { where: { id },...options })
 }
 
 function remove(id) {

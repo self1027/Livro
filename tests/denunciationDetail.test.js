@@ -12,7 +12,7 @@ test('visualização distingue denúncia sem fiscal e preserva ações e histór
     assert.ok(html.includes('&lt;script&gt;teste&lt;/script&gt;'))
     assert.ok(html.includes('<fieldset disabled>'))
     assert.ok(html.includes('Nenhum relatório disponível'))
-    assert.ok(html.includes('Nenhum fiscal ativo disponível'))
+    assert.ok(html.includes('Nenhuma pessoa ativa com acesso habilitado e cargo que permita receber denúncias'))
     data.denuncia.user_id=2;data.denuncia.user={name:'Fiscal A'}
     data.fiscais=[{id:2,name:'Fiscal A'}]
     data.reports=[{id:3,type:1,created_at:'2026-10-14T15:00:00Z',user:{name:'Fiscal A'},description:'Texto <b>seguro</b>'}]

@@ -18,8 +18,8 @@ async function create(data) {
   return userRepository.create(data)
 }
 
-async function update(id, { name, toggleActive, ativo } = {}) {
-  const updated = await userRepository.update(id, { name, toggleActive, ativo })
+async function update(id, { name, toggleActive, ativo, actor } = {}) {
+  const updated = await userRepository.update(id, { name, toggleActive, ativo, actor })
   if (!updated) throw new Error('Usuário não encontrado')
   return updated
 }

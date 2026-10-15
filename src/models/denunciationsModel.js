@@ -1,5 +1,6 @@
 import Sequelize from 'sequelize'
 import connection from '../database/database.js'
+import User from './usersModel.js'
 
 const denunciation = connection.define('denunciations', {
     year: {
@@ -45,6 +46,10 @@ const denunciation = connection.define('denunciations', {
         allowNull: false,
         defaultValue: Sequelize.NOW
     },
+    created_by_user_id: {
+        type: Sequelize.INTEGER,
+        allowNull: true
+    },
     user_id: {
         type: Sequelize.INTEGER,
         allowNull: true
@@ -55,4 +60,5 @@ const denunciation = connection.define('denunciations', {
     updatedAt: false     // DESABILITA updatedAt, pois não existe no seu banco
 })
 
+denunciation.belongsTo(User,{foreignKey:'created_by_user_id',as:'creator'})
 export default denunciation

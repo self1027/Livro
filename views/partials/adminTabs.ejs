@@ -1,8 +1,8 @@
+<% const allowed=typeof can==='function'?can:()=>true; %>
 <nav class="nav nav-tabs mb-4" aria-label="Seções do painel">
-    <a class="nav-link <%= activeTab === 'overview' ? 'active' : '' %>" href="<%= typeof overviewUrl !== 'undefined' ? overviewUrl : '/admin' %>" <%- activeTab === 'overview' ? 'aria-current="page"' : '' %>>Visão geral</a>
-    <a class="nav-link <%= activeTab === 'attendance' ? 'active' : '' %>" href="<%= typeof attendanceUrl !== 'undefined' ? attendanceUrl : '/admin?tab=attendance' %>" <%- activeTab === 'attendance' ? 'aria-current="page"' : '' %>>Atendimento</a>
-    <a class="nav-link <%= activeTab === 'catalogs' ? 'active' : '' %>" href="/admin/catalogs" <%- activeTab === 'catalogs' ? 'aria-current="page"' : '' %>>Cadastros e cores</a>
-    <a class="nav-link <%= activeTab === 'schedule' ? 'active' : '' %>" href="/admin/schedule" <%- activeTab === 'schedule' ? 'aria-current="page"' : '' %>>Escala</a>
-    <a class="nav-link <%= activeTab === 'staff' ? 'active' : '' %>" href="/admin/fiscais" <%- activeTab === 'staff' ? 'aria-current="page"' : '' %>>Fiscais</a>
-    <a class="nav-link <%= activeTab === 'assignments' ? 'active' : '' %>" href="/admin/assignments" <%- activeTab === 'assignments' ? 'aria-current="page"' : '' %>>Atribuição</a>
+    <% if(allowed('dashboard.read')) { %><a class="nav-link <%= activeTab==='overview'?'active':'' %>" href="<%= typeof overviewUrl!=='undefined'?overviewUrl:'/admin' %>" <%- activeTab==='overview'?'aria-current="page"':'' %>>Visão geral</a><% } %>
+    <% if(allowed('attendance.manage')) { %><a class="nav-link <%= activeTab==='attendance'?'active':'' %>" href="<%= typeof attendanceUrl!=='undefined'?attendanceUrl:'/admin?tab=attendance' %>" <%- activeTab==='attendance'?'aria-current="page"':'' %>>Atendimento</a><% } %>
+    <% const tabs=[['catalogs','Cadastros e cores','/admin/catalogs','catalogs.manage'],['schedule','Escala','/admin/schedule','schedule.manage'],['assignments','Atribuição','/admin/assignments','denunciations.assign']]; %>
+    <% tabs.filter(tab=>allowed(tab[3])).forEach(tab=>{ %><a class="nav-link <%= activeTab===tab[0]?'active':'' %>" href="<%= tab[2] %>" <%- activeTab===tab[0]?'aria-current="page"':'' %>><%= tab[1] %></a><% }) %>
+    <% if(typeof auth!=='undefined'&&auth?.role.maximum) { %><a class="nav-link <%= activeTab==='access'?'active':'' %>" href="/admin/access" <%- activeTab==='access'?'aria-current="page"':'' %>>Usuários e acessos</a><% } %>
 </nav>

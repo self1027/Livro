@@ -4,8 +4,17 @@
   "type": "module",
   "main": "index.js",
   "scripts": {
+    "start": "node --env-file-if-exists=.env src/index.js",
     "test": "node --test",
-    "migrate:catalogs": "node src/database/migrateCatalogs.js"
+    "migrate:catalogs": "node src/database/migrateCatalogs.js",
+    "migrate:denunciation-creators": "node --env-file-if-exists=.env src/database/migrateDenunciationCreators.js",
+    "migrate:auth": "node --env-file-if-exists=.env src/database/migrateAuth.js",
+    "auth:bootstrap": "node --env-file-if-exists=.env src/database/bootstrapChief.js",
+    "auth:migrate": "node --env-file-if-exists=.env src/database/authMigrationScript.js",
+    "test:auth:db": "node scripts/testAuthDb.js"
+  },
+  "engines": {
+    "node": ">=22"
   },
   "author": "",
   "license": "ISC",
@@ -16,6 +25,7 @@
     "express": "^5.1.0",
     "livro": "file:",
     "mysql2": "^3.14.0",
+    "nodemailer": "^10.1.1",
     "pdfkit": "^0.17.1",
     "sequelize": "^6.37.7",
     "slugify": "^1.6.6",
