@@ -1,2 +1,9 @@
 node_modules/
-package-lock.json
+.env
+.env.*
+!.env.example
+*.log
+*.sql
+*.sql.gz
+*.dump
+coverage/
