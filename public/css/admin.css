@@ -36,6 +36,15 @@
 .admin-panel .admin-filters .card-body > .btn { margin-bottom: 8px; }
 .admin-panel th { white-space: normal; }
 .admin-panel #denuncias { scroll-margin-top: 24px; }
+.admin-panel #acoes { scroll-margin-top: 24px; }
+.admin-action-description { white-space: pre-wrap; overflow-wrap: anywhere; }
+.admin-action-links { display: flex; flex-wrap: wrap; gap: 8px; }
+.admin-count { display: inline-block; min-width: 28px; padding: 4px; font-weight: 600; text-decoration: underline; }
+.admin-views,
+.admin-period-actions { display: flex; flex-wrap: wrap; gap: 12px; }
+.admin-views { margin-bottom: 20px; }
+.admin-period { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; }
+.admin-advanced summary { cursor: pointer; color: var(--ui-primary); }
 @container (max-width: 850px) {
     .admin-panel .form-group { flex: 0 0 50%; max-width: 50%; }
     .admin-overview .col-lg-3 { flex: 0 0 50%; max-width: 50%; }

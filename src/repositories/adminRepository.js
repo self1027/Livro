@@ -2,6 +2,7 @@ import { Op, Sequelize } from 'sequelize'
 import Denunciation from '../models/denunciationsModel.js'
 import Report from '../models/reportsModel.js'
 import User from '../models/usersModel.js'
+import usersRepository from './usersRepository.js'
 import District from '../models/districtsModel.js'
 import { closedStatusSlugs } from '../utils/catalogRegistry.js'
 import {sivisaInclude} from '../models/sivisaModels.js'
@@ -46,6 +47,17 @@ async function findYears() {
     const rows = await Denunciation.findAll({ attributes: [[Sequelize.fn('DISTINCT', Sequelize.col('year')), 'year']], order: [['year', 'DESC']], raw: true })
     return rows.map(row => row.year)
 }
+async function findMonthlyReportedDenunciations(filters) {
+    const month = Sequelize.fn('DATE_FORMAT',
+        Sequelize.fn('CONVERT_TZ', Sequelize.col('reports.created_at'), '+00:00', '-03:00'), '%Y-%m')
+    return Report.findAll({
+        where: { type: 1, ...whereFor({ start: filters.start, end: filters.end }) },
+        attributes: [[month, 'month'], [Sequelize.fn('COUNT', Sequelize.fn('DISTINCT', Sequelize.col('reports.denunciation_id'))), 'total']],
+        include: [{ model: Denunciation, as: 'denunciation',
+            where: whereFor({ ...filters, start: '', end: '' }), attributes: [] }],
+        group: [month], order: [[month, 'ASC']], raw: true
+    })
+}
 async function findSivisaReports(filters){
     const where={type:1}
     if(filters.userId)where.user_id=filters.userId==='unassigned'?null:Number(filters.userId)
@@ -54,6 +66,18 @@ async function findSivisaReports(filters){
     const reports=await Report.findAll({where,attributes:['id','user_id','type','created_at'],include:[...sivisaInclude.map(item=>({...item,attributes:item.as==='sivisa'?['applies']:['id']})),{model:Denunciation,as:'denunciation',where:whereFor({...filters,userId:'',start:'',end:''}),attributes:['id']} ]})
     return reports.map(report=>report.get({plain:true}))
 }
-export default { findDenunciations, findRecentReports, findYears,findSivisaReports,
-    findUsers: () => User.findAll({ attributes: ['id', 'name', 'ativo'], order: [['name', 'ASC']], raw: true }),
+async function findActionReports(ids) {
+    if (!ids.length) return []
+    const reports = await Report.findAll({
+        where: { id: { [Op.in]: ids }, type: 1 },
+        attributes: ['id','user_id','denunciation_id','type','description','created_at'],
+        include: [...sivisaInclude,
+            { model: Denunciation, as: 'denunciation', attributes: ['id','number','year','title','status','bairro'] },
+            { model: User, as: 'user', attributes: ['id','name'] }],
+        order: [['created_at','DESC'],['id','DESC']]
+    })
+    return reports.map(report=>report.get({plain:true}))
+}
+export default { findDenunciations, findRecentReports, findYears,findSivisaReports, findMonthlyReportedDenunciations, findActionReports,
+    findUsers: () => usersRepository.findAll({ attributes: ['id', 'name', 'ativo'], order: [['name', 'ASC']], raw: true }),
     findDistricts: () => District.findAll({ attributes: ['name'], order: [['name', 'ASC']], raw: true }) }

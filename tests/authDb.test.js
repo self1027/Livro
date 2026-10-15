@@ -258,6 +258,15 @@ test('MySQL isolado: migração, acessos, revogação, permissões, CSRF e recup
                 assert.equal(sivisaState(await snapshot(pending.id)),'registered')
                 assert.equal(await sivisaService.countPending(fiscal.user_id),baseline)
                 assert.equal((await snapshot(pending.id)).sivisaProtocols.length,2)
+                const actionDetails=await adminRepo.findActionReports([pending.id,automatic.id])
+                assert.equal(actionDetails.length,1)
+                assert.equal(actionDetails[0].id,pending.id)
+                assert.equal(actionDetails[0].description,'SIVISA ação pendente')
+                assert.equal(actionDetails[0].user_id,fiscal.user_id)
+                assert.equal(actionDetails[0].denunciation.id,row.id)
+                assert.equal(actionDetails[0].sivisaProtocols.length,2)
+                assert.ok(actionDetails[0].sivisaProtocols.some(protocol=>protocol.note==='Notificação completa no primeiro SIVISA'))
+                assert.deepEqual(await adminRepo.findActionReports([]),[])
                 const editor=await fetch(base+`/relatorio/${pending.id}/sivisa`,{headers})
                 assert.equal(editor.status,200);assert.match(await editor.text(),/Notificação completa no primeiro SIVISA/)
                 const audit=await Audit.findOne({where:{action:'sivisa.saved'},order:[['id','DESC']]})
@@ -442,6 +451,28 @@ test('MySQL isolado: migração, acessos, revogação, permissões, CSRF e recup
             await migrateAuth()
             assert.equal(await Role.count(),roleCount)
             assert.deepEqual((await Role.findByPk(receivingRole.id)).permissions,['fiscal.area.own'])
+        })
+        await t.test('gráfico mensal conta denúncias distintas por relatório textual, incluindo registros antigos',async()=>{
+            const fixture={year:2024,title:'Denúncia antiga com atendimento',description:'Texto',endereco:'Rua',numero:'1',bairro:'Bairro teste gráfico',user_id:17,status:'EM_ANDAMENTO',registration_type:'OUTROS',created_at:new Date('2024-05-01T12:00:00Z')}
+            const old=await Denunciation.create({...fixture,number:8001})
+            const other=await Denunciation.create({...fixture,number:8002,status:'FINALIZADA'})
+            const create=(denunciation_id,type,date)=>Report.create({denunciation_id,user_id:fiscal.user_id,type,description:'Registro de teste',created_at:new Date(date)})
+            await create(old.id,1,'2026-02-12T12:00:00Z')
+            await create(old.id,1,'2026-02-22T12:00:00Z')
+            await create(old.id,1,'2026-03-01T02:59:59Z') // Still February in São Paulo.
+            await create(old.id,1,'2026-03-01T03:00:00Z')
+            await create(other.id,1,'2026-03-15T12:00:00Z')
+            await create(other.id,0,'2026-02-10T12:00:00Z') // Automatic status changes do not count.
+            await create(other.id,1,'2025-12-31T12:00:00Z') // Outside the selected period.
+            const filters={start:'2026-01-01',end:'2026-03-31',bairro:fixture.bairro,userId:'17'}
+            const months=await adminRepo.findMonthlyReportedDenunciations(filters)
+            assert.deepEqual(months.map(m=>({month:m.month,total:Number(m.total)})),[{month:'2026-02',total:1},{month:'2026-03',total:2}])
+            const march=await adminRepo.findMonthlyReportedDenunciations({...filters,start:'2026-03-01',end:'2026-03-01'})
+            assert.deepEqual(march.map(m=>({month:m.month,total:Number(m.total)})),[{month:'2026-03',total:1}])
+            assert.deepEqual(await adminRepo.findMonthlyReportedDenunciations({...filters,userId:String(fiscal.user_id)}),[])
+            assert.equal((await adminRepo.findMonthlyReportedDenunciations({...filters,status:'FINALIZADA'}))[0].month,'2026-03')
+            assert.deepEqual(await adminRepo.findMonthlyReportedDenunciations({...filters,year:'2026'}),[])
+            assert.deepEqual(await adminRepo.findMonthlyReportedDenunciations({...filters,registration_type:'OUTRA_ORIGEM'}),[])
         })
         await t.test('migração separa consulta das áreas e não restaura permissões removidas depois',async()=>{
             const own=await Role.create({name:'Consulta própria antiga',permissions:['fiscal.read'],maximum:false})

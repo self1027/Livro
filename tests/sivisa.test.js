@@ -1,6 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import {normalizeSivisa,sivisaState,summarizeSivisa} from '../src/utils/sivisa.js'
+import {normalizeSivisa,sivisaState,summarizeSivisa,selectSivisaReports} from '../src/utils/sivisa.js'
 
 test('primeiro protocolo regulariza; último removido deixa pendência; status não cabe',()=>{
     const report={type:1,sivisa:{applies:true},sivisaProtocols:[]}
@@ -29,4 +29,7 @@ test('produtividade conta ações e protocolos separadamente, pelo autor, sem co
     assert.deepEqual([result.actions,result.protocols,result.registered,result.pending,result.notApplicable,result.unclassified],[4,2,1,1,1,1])
     assert.equal(result.byAuthor[0].actions,2);assert.equal(result.byAuthor[0].pending,1)
     assert.equal(result.byAuthor[1].unclassified,1)
+    for(const key of ['actions','registered','pending','notApplicable','unclassified'])assert.equal(selectSivisaReports(reports,key).length,result[key])
+    assert.equal(selectSivisaReports(reports,'protocols').reduce((sum,report)=>sum+report.sivisaProtocols.length,0),result.protocols)
+    assert.deepEqual(selectSivisaReports(reports,'unknown'),[])
 })

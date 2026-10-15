@@ -9,20 +9,26 @@
     }
     const { monthly, bairros, statusStats, filters } = JSON.parse(source.textContent)
     function navigate(changes) {
-        const params = new URLSearchParams({ ...filters, page: 1, queue: '', ...changes })
+        const params = new URLSearchParams({ ...filters, view: 'overview', page: 1, queue: '', ...changes })
         window.location.href = `/admin?${params}#denuncias`
     }
     const theme = typeof getComputedStyle === 'function' ? getComputedStyle(document.documentElement) : null
     const primary = theme?.getPropertyValue('--ui-primary').trim() || '#17665e'
     const chartFill = theme?.getPropertyValue('--ui-info-background').trim() || '#e8eee6'
+    const reportColor = theme?.getPropertyValue('--ui-warning').trim() || '#795116'
     const options = { responsive: true, maintainAspectRatio: false }
     new Chart(document.getElementById('monthChart'), {
         type: 'line',
-        data: { labels: monthly.map(m => m.month), datasets: [{ label: 'Registros', data: monthly.map(m => m.total), borderColor: primary, backgroundColor: chartFill, fill: true, tension: .2 }] },
-        options: { ...options, scales: { y: { beginAtZero: true, ticks: { precision: 0 } } },
+        data: { labels: monthly.map(m => m.month), datasets: [
+            { label: 'Denúncias registradas', data: monthly.map(m => m.total), borderColor: primary, backgroundColor: chartFill, fill: false, tension: .2 },
+            { label: 'Denúncias com relatório registrado', data: monthly.map(m => m.withReport ?? 0), borderColor: reportColor, backgroundColor: reportColor, borderDash: [6, 4], pointStyle: 'rectRot', fill: false, tension: .2 }
+        ] },
+        options: { ...options, interaction: { mode: 'nearest', intersect: true }, plugins: { tooltip: { mode: 'index', intersect: false } }, scales: { y: { beginAtZero: true, ticks: { precision: 0 } } },
             onClick: (_event, elements) => {
-                if (!elements.length) return
-                const month = monthly[elements[0].index].month
+                // Only registration points drill into the list filtered by denunciation creation date.
+                const registration = elements.find(element => (element.datasetIndex ?? 0) === 0)
+                if (!registration) return
+                const month = monthly[registration.index].month
                 const date = new Date(`${month}-01T12:00:00Z`)
                 date.setUTCMonth(date.getUTCMonth() + 1)
                 date.setUTCDate(0)

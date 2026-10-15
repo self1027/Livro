@@ -1,0 +1,32 @@
+<% const actionPeriod=filters.view==='sivisa';
+const periodYearStart=typeof currentYearStart==='string'?currentYearStart:new Intl.DateTimeFormat('en',{timeZone:'America/Sao_Paulo',year:'numeric'}).format(new Date())+'-01-01';
+const advancedActive=!!(filters.year||filters.userId||filters.bairro||filters.status||filters.registration_type||filters.inactivityDays!==30);
+const shortDate=value=>value.split('-').reverse().join('/'); %>
+<form class="card mb-4 admin-filters" method="GET" action="/admin">
+    <input type="hidden" name="view" value="<%= filters.view %>">
+    <% if(filters.view==='sivisa'&&filters.actionMetric) { %><input type="hidden" name="actionMetric" value="<%= filters.actionMetric %>"><% } %>
+    <div class="card-body">
+        <div class="admin-period mb-3">
+            <div><strong><%= actionPeriod?'Ações registradas':filters.view==='analytics'?'Denúncias e relatórios registrados':'Denúncias registradas' %></strong><br><span class="text-muted"><%= filters.start ? 'Desde '+shortDate(filters.start) : 'Desde o início do livro' %><%= filters.end ? ' até '+shortDate(filters.end) : ', sem data final' %></span></div>
+            <div class="admin-period-actions"><a href="<%= adminUrl(filters,{start:periodYearStart,end:'',year:'',queue:''}) %>">Este ano</a><a href="<%= adminUrl(filters,{start:'',end:'',year:'',queue:''}) %>">Todo o histórico</a></div>
+        </div>
+        <div class="form-row">
+            <div class="form-group col-sm-6 col-lg-4"><label for="start">A partir de</label><input class="form-control" type="date" id="start" name="start" value="<%= filters.start %>"></div>
+            <div class="form-group col-sm-6 col-lg-4"><label for="end">Até</label><input class="form-control" type="date" id="end" name="end" value="<%= filters.end %>"></div>
+            <div class="form-group col-lg-4"><label for="scope">Situação da denúncia</label><select id="scope" name="scope" class="form-control"><option value="all" <%= filters.scope==='all'?'selected':'' %>>Todas</option><option value="open" <%= filters.scope==='open'?'selected':'' %>>Somente abertas</option></select></div>
+        </div>
+        <details class="admin-advanced mb-3" <%= advancedActive?'open':'' %>>
+            <summary>Mais filtros<%= advancedActive?' · há filtros adicionais aplicados':'' %></summary>
+            <div class="form-row mt-3">
+                <div class="form-group col-sm-6 col-lg-4"><label for="userId"><%= actionPeriod?'Autor da ação':'Fiscal responsável' %></label><select class="form-control" id="userId" name="userId"><option value="">Todos</option><option value="unassigned" <%= filters.userId==='unassigned'?'selected':'' %>><%= actionPeriod?'Sem autor':'Sem fiscal' %></option><% users.forEach(user=>{ %><option value="<%= user.id %>" <%= filters.userId===String(user.id)?'selected':'' %>><%= user.name %><%= user.ativo?'':' (inativo)' %></option><% }) %></select></div>
+                <div class="form-group col-sm-6 col-lg-4"><label for="bairro">Bairro</label><select class="form-control" name="bairro" id="bairro"><option value="">Todos</option><% [...new Set([...districts.map(d=>d.name),...rows.map(r=>r.bairro),filters.bairro].filter(Boolean))].sort().forEach(name=>{ %><option value="<%= name %>" <%= name===filters.bairro?'selected':'' %>><%= name %></option><% }) %></select></div>
+                <div class="form-group col-sm-6 col-lg-4"><label for="status">Status da denúncia</label><select class="form-control" id="status" name="status"><option value="">Todos</option><% Object.entries(STATUS).forEach(([key,status])=>{ %><option value="<%= key %>" <%= key===filters.status?'selected':'' %>><%= status.label %></option><% }) %></select></div>
+                <div class="form-group col-sm-6 col-lg-4"><label for="origin">Origem</label><select class="form-control" id="origin" name="registration_type"><option value="">Todas</option><% Object.entries(SENDERS).forEach(([slug,sender])=>{ %><option value="<%= slug %>" <%= slug===filters.registration_type?'selected':'' %>><%= sender %></option><% }) %></select></div>
+                <div class="form-group col-sm-6 col-lg-4"><label for="year">Ano do protocolo</label><select id="year" name="year" class="form-control"><option value="">Todos os anos</option><% years.forEach(y=>{ %><option value="<%= y %>" <%= String(y)===filters.year?'selected':'' %>><%= y %></option><% }) %></select></div>
+                <div class="form-group col-sm-6 col-lg-4"><label for="inactivity">Alerta sem relatório há</label><select class="form-control" id="inactivity" name="inactivityDays"><% [7,15,30,60].forEach(days=>{ %><option value="<%= days %>" <%= days===filters.inactivityDays?'selected':'' %>><%= days %> dias</option><% }) %></select></div>
+            </div>
+        </details>
+        <button class="btn btn-primary">Aplicar filtros</button> <a class="btn btn-outline-secondary" href="<%= adminUrl({start:periodYearStart,end:'',scope:'all'},{view:filters.view}) %>">Restaurar padrão</a>
+        <p class="small text-muted mt-3 mb-0"><%= actionPeriod?'As datas consideram o registro da ação; o fiscal é o autor do relatório.':filters.view==='analytics'?'No comparativo mensal, as datas filtram separadamente a criação da denúncia e o registro do relatório. Os demais indicadores usam a criação da denúncia. O fiscal é o responsável atual.':'As datas consideram o registro da denúncia; o fiscal é o responsável atual.' %> O ano do protocolo é um filtro adicional. Para incluir registros antigos, amplie o período ou escolha “Todo o histórico”.</p>
+    </div>
+</form>

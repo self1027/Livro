@@ -1,4 +1,9 @@
 export const SIVISA_LABELS=Object.freeze({pending:'Cabe SIVISA — ainda não registrado',registered:'SIVISA registrado',not_applicable:'Não cabe SIVISA',unclassified:'Sem classificação anterior à implantação'})
+export const SIVISA_METRICS=Object.freeze({actions:'Ações',registered:'Com SIVISA',protocols:'Protocolos',pending:'Pendentes',notApplicable:'Não cabe SIVISA',unclassified:'Sem classificação'})
+export function selectSivisaReports(reports,metric){
+    const state={registered:'registered',protocols:'registered',pending:'pending',notApplicable:'not_applicable',unclassified:'unclassified'}[metric]
+    return reports.filter(report=>Number(report.type)===1&&(metric==='actions'||state&&sivisaState(report)===state))
+}
 export function sivisaState(report){
     if(Number(report.type)===0)return 'not_applicable'
     if(report.sivisaProtocols?.length)return 'registered'

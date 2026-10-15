@@ -1,13 +1,18 @@
 import STATUS from '../constants/denunciationStatus.js'
 import SENDERS from '../constants/denunciationSenders.js'
 import { isClosedStatus } from './catalogRegistry.js'
+import { SIVISA_METRICS } from './sivisa.js'
 
 const scalar = value => typeof value === 'string' ? value.trim() : ''
 const dateOnly = value => /^\d{4}-\d{2}-\d{2}$/.test(value) && !isNaN(Date.parse(value)) && new Date(value).toISOString().slice(0, 10) === value
-export function normalizeFilters(query = {}) {
+export const currentYearStart = (now = new Date()) => `${calendarDay(now).slice(0, 4)}-01-01`
+export function normalizeFilters(query = {}, now = new Date()) {
+    const explicitPeriod = Object.hasOwn(query, 'start') || Object.hasOwn(query, 'end') || /^\d{4}$/.test(scalar(query.year))
     const filters = {
         year: /^\d{4}$/.test(scalar(query.year)) ? scalar(query.year) : '',
-        start: scalar(query.start), end: scalar(query.end),
+        start: explicitPeriod ? scalar(query.start) : currentYearStart(now), end: scalar(query.end),
+        view: ['sivisa', 'analytics', 'reports'].includes(query.view) ? query.view : 'overview',
+        actionMetric: Object.hasOwn(SIVISA_METRICS, scalar(query.actionMetric)) ? scalar(query.actionMetric) : '',
         userId: /^\d+$/.test(scalar(query.userId)) || query.userId === 'unassigned' ? query.userId : '',
         bairro: scalar(query.bairro),
         status: Object.hasOwn(STATUS, scalar(query.status)) ? scalar(query.status) : '',
@@ -31,6 +36,24 @@ const calendarDay = value => {
 const daysBetween = (now, date) => Math.max(0, Math.round((Date.parse(calendarDay(now)) - Date.parse(calendarDay(date))) / 86400000))
 export const isOpen = row => !isClosedStatus(row.status)
 export const isProgress = row => STATUS[row.status]?.behavior === 'progress'
+export function mergeMonthlyReports(registrations, reported) {
+    const months = new Map(registrations.map(row => [row.month, { ...row, withReport: 0 }]))
+    for (const row of reported) {
+        const entry = months.get(row.month) || { month: row.month, total: 0, withReport: 0 }
+        entry.withReport = Number(row.total)
+        months.set(row.month, entry)
+    }
+    const keys = [...months.keys()].sort()
+    if (keys.length) {
+        const cursor = new Date(`${keys[0]}-01T12:00:00Z`)
+        while (cursor.toISOString().slice(0, 7) <= keys.at(-1)) {
+            const month = cursor.toISOString().slice(0, 7)
+            if (!months.has(month)) months.set(month, { month, total: 0, withReport: 0 })
+            cursor.setUTCMonth(cursor.getUTCMonth() + 1)
+        }
+    }
+    return [...months.values()].sort((a, b) => a.month.localeCompare(b.month))
+}
 export function selectQueue(rows, queue) {
     const checks = {
         unassigned: row => isOpen(row) && !row.user_id,
