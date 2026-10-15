@@ -36,6 +36,8 @@ Use header, navbar, conteúdo e footer nessa ordem, uma vez por tela. Não feche
 
 `public/js/ui.js` controla o menu no celular, destaca o destino atual e adapta tabelas com cabeçalhos simples para blocos rotulados quando há pouco espaço. As linhas adicionadas por paginação recebem os mesmos rótulos. Tabelas com células mescladas e o calendário mantêm sua estrutura e rolagem local, para preservar a associação entre colunas.
 
+No desktop, a sidebar ocupa a altura da janela e permanece fixa durante a rolagem da página. `.app-navigation-links` concentra a rolagem dos menus, enquanto `.app-sidebar-account` mantém Minha conta no rodapé visível. A personalização do avatar abre para cima sem alterar essa posição. O footer usa `footer.css`, ocupa somente a coluna de conteúdo e reúne as informações adicionais em Créditos. No celular, o menu permanece recolhível, com altura limitada à janela; login e troca obrigatória de senha continuam usando o footer em toda a largura.
+
 Use `btn-primary` para ações principais, `btn-outline-secondary` para ações auxiliares e `btn-danger` para exclusão. Os componentes Bootstrap existentes continuam compatíveis com o tema. Não use a cor como única indicação de status ou resultado.
 
 ## Verificação

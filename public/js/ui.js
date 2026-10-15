@@ -6,6 +6,22 @@
         toggle.setAttribute('aria-expanded', String(expanded));
         nav.classList.toggle('is-open', expanded);
     });
+    document.addEventListener('keydown', event => {
+        if (event.defaultPrevented || event.key !== 'Escape' || !nav?.classList.contains('is-open') || document.querySelector('[data-account-identity][open]')) return;
+        nav.classList.remove('is-open');
+        toggle?.setAttribute('aria-expanded', 'false');
+        toggle?.focus();
+    });
+    const credits = document.querySelector('.footer-credits');
+    document.addEventListener('click', event => {
+        if (credits?.open && !credits.contains(event.target)) credits.open = false;
+    });
+    document.addEventListener('keydown', event => {
+        if (event.key === 'Escape' && credits?.open) {
+            credits.open = false;
+            credits.querySelector('summary').focus();
+        }
+    });
     const path = location.pathname;
     let best;
     document.querySelectorAll('.app-nav-link, .app-create').forEach(link => {

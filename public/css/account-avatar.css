@@ -13,7 +13,7 @@
 .account-customize-label { display: block; margin-top: 5px; color: var(--ui-sidebar-text); font-size: 10px; text-decoration: underline; text-underline-offset: 2px; }
 .account-identity-chevron { width: 14px; height: 14px; flex-shrink: 0; color: var(--ui-sidebar-muted); transition: transform .15s; }
 .account-identity[open] .account-identity-chevron { transform: rotate(180deg); }
-.account-avatar-form { margin: 6px 0 0; padding: 12px 10px; border-radius: 9px; background: #ffffff0a; border: 1px solid #ffffff20; }
+.account-avatar-form { position: absolute; bottom: calc(100% + 8px); left: 0; right: 0; z-index: 2; max-height: calc(100dvh - 190px); overflow-y: auto; overscroll-behavior: contain; margin: 0; padding: 12px 10px; border-radius: 9px; background: var(--ui-sidebar); border: 1px solid var(--ui-sidebar-active); box-shadow: 0 8px 28px #0004; }
 .account-avatar-form fieldset { margin: 0 0 12px; padding: 0; border: 0; min-width: 0; }
 .account-avatar-form legend { width: auto; margin: 0 0 7px; padding: 0; color: var(--ui-sidebar-muted); font-size: 11px; font-weight: 600; }
 .account-icon-options { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 7px; }
