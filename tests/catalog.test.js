@@ -120,6 +120,26 @@ test('tipo de relatório é definido pelo backend mesmo com tipo forjado na entr
         assert.equal(writes[0].type,REPORT_TYPE.TEXT)
     } finally { denunciationsRepo.findByPk = find; reportsRepo.create = create;db.transaction=transaction;sivisaService.saveForReport=saveSivisa }
 })
+test('texto e status do mesmo envio compartilham operação; alteração isolada recebe outra operação',async()=>{
+    const find=denunciationsRepo.findByPk,create=reportsRepo.create,transaction=db.transaction,saveSivisa=sivisaService.saveForReport
+    const writes=[]
+    denunciationsRepo.findByPk=async()=>({status:'REGISTRADA',save:async()=>{}})
+    reportsRepo.create=async data=>{writes.push(data);return {...data,id:writes.length}}
+    db.transaction=async callback=>callback({LOCK:{UPDATE:'UPDATE'}})
+    sivisaService.saveForReport=async()=>{}
+    try{
+        const combined=await reportsService.addReport({denunciationId:1,userId:1,description:'Inspeção',status:'FINALIZADA',sivisa_state:'not_applicable',operation_id:'forjado'})
+        assert.equal(combined.ok,true)
+        assert.equal(writes.length,2)
+        assert.equal(writes[0].operation_id,writes[1].operation_id)
+        assert.match(writes[0].operation_id,/^[a-f0-9-]{36}$/)
+        const standalone=await reportsService.addReport({denunciationId:1,userId:1,status:'EM_ANDAMENTO'})
+        assert.equal(standalone.ok,true)
+        assert.equal(writes[2].type,REPORT_TYPE.STATUS_CHANGE)
+        assert.notEqual(writes[2].operation_id,writes[0].operation_id)
+    }finally{denunciationsRepo.findByPk=find;reportsRepo.create=create;db.transaction=transaction;sivisaService.saveForReport=saveSivisa}
+})
+
 test('painel renderiza categorias e mantém valores ao rejeitar alterações', async () => {
     const originalList = catalogService.list, originalSave = catalogService.save
     catalogService.list = async () => catalogDefaults.map((entry,id)=>({...entry,id:id+1}))

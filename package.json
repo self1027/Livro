@@ -8,6 +8,7 @@
     "test": "node --test",
     "migrate:catalogs": "node src/database/migrateCatalogs.js",
     "migrate:sivisa": "node --env-file-if-exists=.env src/database/migrateSivisa.js",
+    "migrate:report-operations": "node --env-file-if-exists=.env src/database/migrateReportOperations.js",
     "migrate:denunciation-creators": "node --env-file-if-exists=.env src/database/migrateDenunciationCreators.js",
     "migrate:auth": "node --env-file-if-exists=.env src/database/migrateAuth.js",
     "auth:bootstrap": "node --env-file-if-exists=.env src/database/bootstrapChief.js",

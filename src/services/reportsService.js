@@ -7,6 +7,7 @@ import {canWorkOnDenunciation} from '../auth/permissions.js'
 import db from '../database/database.js'
 import sivisaService from './sivisaService.js'
 import {normalizeSivisa,sivisaRows} from '../utils/sivisa.js'
+import {randomUUID} from 'node:crypto'
 
 async function addReport({ denunciationId, userId, description, status, actor, ...sivisaInput }) {
     if(description!=null&&typeof description!=='string')return {ok:false,status:400,message:'Informe um texto válido para o relatório.'}
@@ -23,6 +24,7 @@ async function addReport({ denunciationId, userId, description, status, actor, .
 
         const statusAnterior = denuncia.status
         const houveMudancaStatus = status && statusAnterior !== status
+        const operationId = randomUUID()
 
         // cria relatório de descrição
         if (description) {
@@ -30,6 +32,7 @@ async function addReport({ denunciationId, userId, description, status, actor, .
                 description,
                 denunciation_id: denunciationId,
                 user_id: userId,
+                operation_id: operationId,
                 type: REPORT_TYPE.TEXT
             },{transaction})
             await sivisaService.saveForReport(report.id,sivisa,transaction,actor)
@@ -44,6 +47,7 @@ async function addReport({ denunciationId, userId, description, status, actor, .
                 description: `Status alterado de "${statusAnteriorLabel}" para "${novoStatusLabel}"`,
                 denunciation_id: denunciationId,
                 user_id: userId,
+                operation_id: operationId,
                 type: REPORT_TYPE.STATUS_CHANGE
             },{transaction})
 

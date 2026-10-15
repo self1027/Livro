@@ -50,6 +50,7 @@ paths:
         1. TEXTO: Relato livre do fiscal.
         2. STATUS_CHANGE: Gerado automaticamente se o campo 'status' for alterado.
         Texto exige sivisa_state (pending, registered ou not_applicable). sivisa_protocol e sivisa_note aceitam listas correspondentes; registrado exige ao menos um protocolo. Um protocolo só pode pertencer a um relatório. Mudança somente de status não cabe no SIVISA.
+        Texto e mudança de status enviados juntos compartilham uma operação interna, gerada no servidor. No painel de atividade recente, somente o texto desse envio aparece; mudanças de status isoladas continuam aparecendo. Ambos os registros permanecem no histórico completo da denúncia.
       parameters:
         - $ref: '#/components/parameters/denunciationIdPath'
       requestBody:

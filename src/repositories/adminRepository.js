@@ -36,7 +36,23 @@ async function findDenunciations(filters) {
     return rows.map(row => row.get({ plain: true }))
 }
 async function findRecentReports(filters) {
+    // New submissions have an explicit operation ID. Legacy pairs use consecutive IDs,
+    // the same author/complaint and the exact stored timestamp, without a time window.
     const rows = await Report.findAll({
+        where: Sequelize.literal(`(
+            reports.type <> 0 OR NOT EXISTS (
+                SELECT 1 FROM reports AS accompanying_text
+                WHERE accompanying_text.type = 1
+                  AND accompanying_text.denunciation_id = reports.denunciation_id
+                  AND accompanying_text.user_id = reports.user_id
+                  AND (
+                    (reports.operation_id IS NOT NULL AND accompanying_text.operation_id = reports.operation_id)
+                    OR (reports.operation_id IS NULL AND accompanying_text.operation_id IS NULL
+                        AND accompanying_text.id = reports.id - 1
+                        AND accompanying_text.created_at = reports.created_at)
+                  )
+            )
+        )`),
         include: [{ model: Denunciation, as: 'denunciation', where: whereFor(filters), attributes: ['id', 'number', 'year', 'title'] },
             { model: User, as: 'user', attributes: ['name'] }],
         order: [['created_at', 'DESC'], ['id', 'DESC']], limit: 10

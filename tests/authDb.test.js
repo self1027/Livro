@@ -24,6 +24,7 @@ test('MySQL isolado: migração, acessos, revogação, permissões, CSRF e recup
     const {default:District}=await import('../src/models/districtsModel.js')
     const {migrateAuth}=await import('../src/database/migrateAuth.js')
     const {migrateSivisa}=await import('../src/database/migrateSivisa.js')
+    const {migrateReportOperations}=await import('../src/database/migrateReportOperations.js')
     const {migrateDenunciationCreators}=await import('../src/database/migrateDenunciationCreators.js')
     const {runAuthMigration}=await import('../src/database/authMigrationScript.js')
     const {Role,Account,Session,Reset,Setting,Audit}=await import('../src/auth/models.js')
@@ -51,6 +52,7 @@ test('MySQL isolado: migração, acessos, revogação, permissões, CSRF e recup
         Report.belongsTo(User,{foreignKey:'user_id',as:'user'})
         Report.belongsTo(Denunciation,{foreignKey:'denunciation_id',as:'denunciation'})
         await User.sync();await Denunciation.sync();await Report.sync();await migrateSivisa()
+        await migrateReportOperations()
         const legacy=await User.create({id:17,name:'Fiscal anterior',ativo:true})
         const row=await Denunciation.create({year:2025,number:9,title:'Registro antigo',description:'Anterior à autenticação',endereco:'Rua',numero:'1',bairro:'Centro',user_id:17,status:'REGISTRADA'})
         const report=await Report.create({description:'Histórico antigo',user_id:17,denunciation_id:row.id,type:1})
@@ -452,6 +454,44 @@ test('MySQL isolado: migração, acessos, revogação, permissões, CSRF e recup
             assert.equal(await Role.count(),roleCount)
             assert.deepEqual((await Role.findByPk(receivingRole.id)).permissions,['fiscal.area.own'])
         })
+        await t.test('atividade recente oculta status junto ao texto e mantém mudanças isoladas antes do limite de dez',async()=>{
+            const fixture=await Denunciation.create({year:2026,number:8101,title:'Teste da atividade recente',description:'Texto',endereco:'Rua',numero:'1',bairro:'Bairro teste atividade',user_id:17,status:'REGISTRADA'})
+            const create=(type,description,date,extra={})=>Report.create({denunciation_id:fixture.id,user_id:17,type,description,created_at:new Date(date),...extra})
+            const period={bairro:fixture.bairro,start:'',end:''}
+            try{
+                const combined=await reportsService.addReport({denunciationId:fixture.id,userId:17,description:'Inspeção com alteração',status:'FINALIZADA',sivisa_state:'not_applicable'})
+                assert.equal(combined.ok,true)
+                const pair=await Report.findAll({where:{denunciation_id:fixture.id},order:[['id','ASC']]})
+                assert.equal(pair.length,2)
+                assert.equal(pair[0].operation_id,pair[1].operation_id)
+                await pair[0].update({created_at:new Date('2026-10-15T12:00:00Z')})
+                await pair[1].update({created_at:new Date('2026-10-15T12:00:01Z')})
+                assert.equal((await reportsService.addReport({denunciationId:fixture.id,userId:17,status:'EM_ANDAMENTO'})).ok,true)
+                const standalone=await Report.findOne({where:{denunciation_id:fixture.id,type:0},order:[['id','DESC']]})
+                assert.notEqual(standalone.operation_id,pair[0].operation_id)
+                await standalone.update({created_at:pair[0].created_at}) // Same author, complaint and second; a different submission must remain visible.
+                const legacyText=await create(1,'Texto antigo conjunto','2026-10-14T12:00:00Z')
+                const legacyStatus=await create(0,'Status antigo junto ao texto','2026-10-14T12:00:00Z')
+                assert.equal(legacyStatus.id,legacyText.id+1)
+                const independent=await create(0,'Status antigo isolado','2026-10-14T12:00:01Z')
+                const otherText=await create(1,'Texto de outro autor','2026-10-13T12:00:00Z',{user_id:fiscal.user_id})
+                const otherStatus=await create(0,'Status de autor diferente','2026-10-13T12:00:00Z')
+                assert.equal(otherStatus.id,otherText.id+1)
+                const recent=await adminRepo.findRecentReports(period)
+                const ids=recent.map(report=>report.id)
+                assert.ok(ids.includes(pair[0].id))
+                assert.ok(!ids.includes(pair[1].id))
+                assert.ok(ids.includes(standalone.id))
+                assert.ok(!ids.includes(legacyStatus.id))
+                assert.ok(ids.includes(independent.id))
+                assert.ok(ids.includes(otherStatus.id))
+                for(let i=0;i<12;i++)await create(1,'Texto para completar a lista '+i,'2026-10-12T12:00:00Z')
+                assert.equal((await adminRepo.findRecentReports(period)).length,10)
+                // Filtering the summary never removes status events from the complaint history.
+                assert.ok(await Report.findByPk(pair[1].id))
+                assert.ok(await Report.findByPk(legacyStatus.id))
+            }finally{await Report.destroy({where:{denunciation_id:fixture.id}});await fixture.destroy()}
+        })
         await t.test('gráfico mensal conta denúncias distintas por relatório textual, incluindo registros antigos',async()=>{
             const fixture={year:2024,title:'Denúncia antiga com atendimento',description:'Texto',endereco:'Rua',numero:'1',bairro:'Bairro teste gráfico',user_id:17,status:'EM_ANDAMENTO',registration_type:'OUTROS',created_at:new Date('2024-05-01T12:00:00Z')}
             const old=await Denunciation.create({...fixture,number:8001})
@@ -509,6 +549,19 @@ test('MySQL isolado: migração, acessos, revogação, permissões, CSRF e recup
             await broad.update({permissions:[]})
             await migrateAuth()
             assert.deepEqual((await broad.reload()).permissions,[])
+        })
+        await t.test('migração de operações adiciona vínculo sem alterar o histórico e pode ser repetida',async()=>{
+            const schema=db.getQueryInterface()
+            const before=(await Report.findByPk(report.id)).toJSON()
+            delete before.operation_id
+            await schema.removeIndex('reports','reports_operation_id')
+            await schema.removeColumn('reports','operation_id')
+            await migrateReportOperations();await migrateReportOperations()
+            const after=(await Report.findByPk(report.id)).toJSON()
+            assert.equal(after.operation_id,null)
+            delete after.operation_id
+            assert.deepEqual(after,before)
+            assert.equal((await schema.showIndex('reports')).filter(index=>index.name==='reports_operation_id').length,1)
         })
     }finally{
         nodemailer.createTransport=originalTransport

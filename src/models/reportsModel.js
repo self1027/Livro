@@ -17,6 +17,10 @@ const report = connection.define('reports', {
         type: Sequelize.INTEGER,
         allowNull: false
     },
+    operation_id: {
+        type: Sequelize.STRING(36),
+        allowNull: true
+    },
     type: {
         type: Sequelize.INTEGER,
         allowNull: false
