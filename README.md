@@ -16,7 +16,6 @@ Sistema de gerenciamento para a Vigilância Sanitária de Andradina, projetado p
 
 ### Inteligência e Auxiliares
 * **Dashboard Administrativo:** Agregação de dados em tempo real para visualização de produtividade e manchas de calor (bairros com mais ocorrências).
-* **AIF Helper:** Repositório digital de leis (Decretos Estaduais e Leis Municipais) com assistente para preenchimento de autos de infração.
 * **Exportação PDF:** Geração de relatórios formatados para impressão e uso em vistorias externas.
 
 ## Arquitetura de Software

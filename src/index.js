@@ -99,10 +99,6 @@ app.use('/admin/schedule',adminScheduleController)
 app.use('/admin',adminStaffController)
 app.use('/', usersController)
 
-app.get('/aif', (req, res) => {
-	res.render('aif_helper/index.ejs')
-})
-
 try {
     await connection.authenticate()
     await connection.sync()
