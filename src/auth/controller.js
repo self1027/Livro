@@ -25,11 +25,12 @@ authRouter.use((req,res,next)=>{
 })
 authRouter.use((req,res,next)=>{
     res.set('Cache-Control','no-store');res.set('Referrer-Policy','no-referrer')
-    if(['/auth/password','/api/auth/password','/auth/logout','/api/auth/logout'].includes(req.path)&&!req.auth){
+    if(['/auth/password','/api/auth/password','/auth/logout','/api/auth/logout','/api/auth/profile'].includes(req.path)&&!req.auth){
         return req.path.startsWith('/api/')?res.status(401).json({error:'Autenticação necessária.'}):res.redirect('/auth/login')
     }
+    if(req.path==='/api/auth/profile'&&req.auth.account.must_change_password)return res.status(403).json({error:'Troque sua senha antes de continuar.',code:'PASSWORD_CHANGE_REQUIRED'})
     if(['/api/auth/login','/api/auth/refresh'].includes(req.path)&&!req.auth)return next()
-    if(req.method==='POST'&&!req.usingBearer&&!checkCsrf(req,res.locals.csrfToken))return res.status(403).send('Recarregue o formulário e tente novamente.')
+    if(req.method==='POST'&&!req.usingBearer&&!checkCsrf(req,res.locals.csrfToken))return req.path==='/api/auth/profile'?res.status(403).json({error:'Recarregue o formulário e tente novamente.'}):res.status(403).send('Recarregue o formulário e tente novamente.')
     next()
 })
 const render=(res,mode,error='',extra={})=>res.render('auth/index',{mode,error,...extra})
@@ -73,7 +74,12 @@ authRouter.post(['/auth/logout','/api/auth/logout'],async(req,res)=>{
 })
 authRouter.get('/api/auth/me',(req,res)=>{
     if(!req.auth)return res.status(401).json({error:'Autenticação necessária.'})
-    res.json({id:req.auth.account.id,user_id:req.auth.user.id,username:req.auth.account.username,name:req.auth.user.name,role:{id:req.auth.role.id,name:req.auth.role.name,maximum:req.auth.role.maximum,permissions:req.auth.role.permissions},must_change_password:req.auth.account.must_change_password})
+    res.json({id:req.auth.account.id,user_id:req.auth.user.id,username:req.auth.account.username,name:req.auth.user.name,avatar:{icon:req.auth.account.avatar_icon,color:req.auth.account.avatar_color},role:{id:req.auth.role.id,name:req.auth.role.name,maximum:req.auth.role.maximum,permissions:req.auth.role.permissions},must_change_password:req.auth.account.must_change_password})
+})
+
+authRouter.post('/api/auth/profile',async(req,res)=>{
+    try{res.json({avatar:await service.saveOwnAvatar(req.auth,req.body)})}
+    catch(error){res.status(error.status||400).json({error:clientError(error),...(error.code==='PASSWORD_CHANGE_REQUIRED'?{code:error.code}:{})})}
 })
 authRouter.get('/auth/recover',(req,res)=>render(res,'recover'))
 authRouter.post('/auth/recover',rateLimit,async(req,res)=>{

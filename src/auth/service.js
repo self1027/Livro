@@ -6,6 +6,7 @@ import User from '../models/usersModel.js'
 import {Account,Role,Session,Reset,Setting,Audit} from './models.js'
 import {hashPassword,verifyPassword,randomToken,tokenHash,normalizeUsername} from './passwords.js'
 import {validateRole,can} from './permissions.js'
+import {validateAvatar} from './profile.js'
 
 const minutes=n=>new Date(Date.now()+n*60000)
 const audit=(actor,action,target,details,transaction)=>Audit.create({actor_id:actor?.account.id||null,action,target_id:target||null,details:details||{}},{transaction})
@@ -72,6 +73,19 @@ export async function refresh(token) {
 }
 export async function logout(auth) {
     await Session.destroy({where:{family:auth.session.family}})
+}
+export async function saveOwnAvatar(auth,input) {
+    const data=validateAvatar(input)
+    return db.transaction(async transaction=>{
+        const fresh=auth?.account?await identity(auth.account.id,transaction):null
+        const session=auth?.session?await Session.findByPk(auth.session.id,{transaction}):null
+        if(!fresh||!session||session.account_id!==fresh.account.id||session.consumed||session.expires_at<=new Date()){
+            throw Object.assign(new Error('Sessão expirada. Entre novamente.'),{status:401})
+        }
+        if(fresh.account.must_change_password)throw Object.assign(new Error('Troque sua senha antes de continuar.'),{status:403,code:'PASSWORD_CHANGE_REQUIRED'})
+        await fresh.account.update(data,{transaction,fields:['avatar_icon','avatar_color']})
+        return {icon:fresh.account.avatar_icon,color:fresh.account.avatar_color}
+    })
 }
 export async function updateLegacyUser(id,changes) {
     return db.transaction(async transaction=>{

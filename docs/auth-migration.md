@@ -37,6 +37,8 @@ As migrações de autenticação e permissões exigem execução explícita de `
 
 ## Novas tabelas
 
+A identificação em **Minha conta** permite escolher um ícone masculino ou feminino e uma das seis cores de fundo. As preferências ficam nos campos `avatar_icon` e `avatar_color` de `auth_accounts`, disponíveis para qualquer pessoa com sessão regular. Ao atualizar uma instalação anterior, execute `npm run migrate:auth` antes de reiniciar; os novos campos são adicionados com valores padrão e a repetição preserva as escolhas salvas.
+
 | Tabela | Finalidade |
 |---|---|
 | `auth_roles` | Responsabilidades: nome, autoridade máxima e permissões JSON |

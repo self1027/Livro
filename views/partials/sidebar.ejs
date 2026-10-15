@@ -17,7 +17,7 @@ const groups=[{name:'Fiscal',items:[['Área do Fiscal','/area-fiscal','fiscal.ar
         </div><% }) %>
         <% if(navAllowed('reports.edit')) { %><a class="app-nav-link" href="/sivisa/pendencias">SIVISA pendentes<% if(locals.sivisaPendingCount) { %> <span class="badge badge-warning"><%= sivisaPendingCount %></span><% } %></a><% } %>
         <% if(typeof authEnabled!=='undefined'&&authEnabled) { %><div class="app-nav-group"><h2>Minha conta</h2>
-        <% if(auth) { %><p><%= auth.user.name %><br><small><%= auth.role.name %></small></p><a class="app-nav-link" href="/auth/password">Alterar senha</a><form method="POST" action="/auth/logout"><button class="btn btn-outline-light btn-block">Sair</button></form>
+        <% if(auth) { %><%- include('accountIdentity.ejs') %><a class="app-nav-link" href="/auth/password">Alterar senha</a><form method="POST" action="/auth/logout"><button class="btn btn-outline-light btn-block">Sair</button></form>
         <% } else { %><a class="app-nav-link" href="/auth/login">Entrar</a><% } %></div><% } %>
     </nav>
     <p class="app-sidebar-note">Vigilância Sanitária<br>Gestão de denúncias e fiscalização</p>

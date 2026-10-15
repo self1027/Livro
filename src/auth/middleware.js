@@ -5,6 +5,7 @@ import {randomToken} from './passwords.js'
 import Denunciation from '../models/denunciationsModel.js'
 import Report from '../models/reportsModel.js'
 import sivisaService from '../services/sivisaService.js'
+import {AVATAR_ICONS,AVATAR_COLORS} from './profile.js'
 
 export const authEnabled=()=>process.env.AUTH_ENABLED==='true'
 export const secureCookies=()=>process.env.AUTH_COOKIE_SECURE!=='false'
@@ -46,6 +47,7 @@ export function routePermission(path,method) {
     return null
 }
 export async function authContext(req,res,next){
+    res.locals.avatarOptions={icons:AVATAR_ICONS,colors:AVATAR_COLORS}
     res.locals.authEnabled=authEnabled();res.locals.auth=null;res.locals.csrfToken='';res.locals.can=()=>!authEnabled()
     res.locals.canPath=()=>!authEnabled()
     res.locals.sivisaPendingCount=0

@@ -138,6 +138,53 @@ test('MySQL isolado: migração, acessos, revogação, permissões, CSRF e recup
         app.get('/api/denuncias',(req,res)=>res.json({ok:true}));app.get('/area-fiscal/:id',(req,res)=>res.send('fiscal'));app.get('/admin/fiscais',(req,res)=>res.send('admin'));app.use((error,req,res,next)=>res.status(500).json({error:error.message}))
         server=app.listen(0);await new Promise(resolve=>server.once('listening',resolve));const base=`http://127.0.0.1:${server.address().port}`
         const apiLogin=async username=>{const response=await fetch(base+'/api/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username,password:secret+' nova'})});assert.equal(response.status,200);return response.json()}
+        await t.test('avatar próprio independe do cargo, limita campos, exige CSRF e respeita bloqueios da conta',async()=>{
+            const permissions=[...fiscalRole.permissions],before=(await fiscal.reload()).toJSON(),other=(await chief.reload()).toJSON()
+            const tokens=await service.login('fiscal.1',secret+' nova'),auth=await service.authenticate(tokens.browser,'browser')
+            const headers={Cookie:'livro_session='+tokens.browser,'Content-Type':'application/json'}
+            const post=(body,csrf=true)=>fetch(base+'/api/auth/profile',{method:'POST',headers:{...headers,...(csrf?{'X-CSRF-Token':auth.session.csrf}:{})},body:JSON.stringify(body)})
+            try{
+                await fiscalRole.update({permissions:[]})
+                const sessionCount=await Session.count({where:{account_id:fiscal.id}}),auditCount=await Audit.count()
+                const input={avatar_icon:'female',avatar_color:'purple',account_id:chief.id,user_id:chief.user_id,role_id:chiefRole.id,username:'forjado',name:'Forjado',enabled:false,must_change_password:false}
+                const csrf=await post(input,false)
+                assert.equal(csrf.status,403);assert.match(csrf.headers.get('content-type'),/application\/json/)
+                assert.equal((await fiscal.reload()).avatar_icon,'male')
+                const saved=await post(input)
+                assert.equal(saved.status,200);assert.deepEqual(await saved.json(),{avatar:{icon:'female',color:'purple'}})
+                const current=(await fiscal.reload()).toJSON()
+                for(const key of ['id','user_id','username','password_hash','role_id','enabled','must_change_password'])assert.deepEqual(current[key],before[key])
+                assert.equal((await User.findByPk(fiscal.user_id)).name,'Fiscal atual')
+                assert.deepEqual((await chief.reload()).toJSON(),other)
+                assert.equal(await Session.count({where:{account_id:fiscal.id}}),sessionCount)
+                assert.equal(await Audit.count(),auditCount)
+                assert.ok(await service.authenticate(tokens.access_token,'access'))
+                assert.deepEqual((await(await fetch(base+'/api/auth/me',{headers})).json()).avatar,{icon:'female',color:'purple'})
+                for(const values of [
+                    {avatar_icon:'other',avatar_color:'blue'},
+                    {avatar_icon:['male'],avatar_color:'blue'},
+                    {avatar_icon:'male',avatar_color:'#ffffff'},
+                    {avatar_icon:'male',avatar_color:'__proto__'}
+                ])assert.equal((await post(values)).status,400)
+                assert.deepEqual([(await fiscal.reload()).avatar_icon,fiscal.avatar_color],['female','purple'])
+                await fiscal.update({must_change_password:true})
+                const blocked=await post({avatar_icon:'male',avatar_color:'blue'})
+                assert.equal(blocked.status,403);assert.equal((await blocked.json()).code,'PASSWORD_CHANGE_REQUIRED')
+                await assert.rejects(service.saveOwnAvatar(auth,{avatar_icon:'male',avatar_color:'blue'}),error=>error.code==='PASSWORD_CHANGE_REQUIRED')
+                await fiscal.update({must_change_password:false})
+                await User.update({ativo:false},{where:{id:fiscal.user_id}})
+                assert.equal((await post({avatar_icon:'male',avatar_color:'blue'})).status,401)
+                await User.update({ativo:true},{where:{id:fiscal.user_id}})
+                await service.logout(auth)
+                assert.equal((await post({avatar_icon:'male',avatar_color:'blue'})).status,401)
+                await assert.rejects(service.saveOwnAvatar(auth,{avatar_icon:'male',avatar_color:'blue'}),error=>error.status===401)
+                assert.equal((await fetch(base+'/api/auth/profile',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'})).status,401)
+            }finally{
+                await fiscal.update({avatar_icon:before.avatar_icon,avatar_color:before.avatar_color,must_change_password:before.must_change_password})
+                await User.update({ativo:true},{where:{id:fiscal.user_id}})
+                await fiscalRole.update({permissions})
+            }
+        })
         await t.test('Bearer permite API, limita objetos, bloqueia rotas antigas e atribui o autor pela sessão',async()=>{
             const tokens=await apiLogin('fiscal.1'),headers={Authorization:'Bearer '+tokens.access_token,'Content-Type':'application/json'}
             assert.equal((await fetch(base+'/api/denuncias',{headers})).status,200)
@@ -603,6 +650,23 @@ test('MySQL isolado: migração, acessos, revogação, permissões, CSRF e recup
             delete after.operation_id
             assert.deepEqual(after,before)
             assert.equal((await schema.showIndex('reports')).filter(index=>index.name==='reports_operation_id').length,1)
+        })
+        await t.test('migração de avatar adiciona defaults sem alterar contas, credenciais ou sessões e preserva preferências',async()=>{
+            const schema=db.getQueryInterface()
+            const withoutAvatar=account=>{const values=account.toJSON();delete values.avatar_icon;delete values.avatar_color;return values}
+            const accounts=(await Account.findAll({order:[['id','ASC']]})).map(withoutAvatar)
+            const sessions=(await Session.findAll({order:[['id','ASC']]})).map(session=>session.toJSON())
+            await schema.removeColumn(Account.tableName,'avatar_icon')
+            await schema.removeColumn(Account.tableName,'avatar_color')
+            await migrateAuth()
+            const migrated=await Account.findAll({order:[['id','ASC']]})
+            assert.deepEqual(migrated.map(withoutAvatar),accounts)
+            for(const account of migrated)assert.deepEqual([account.avatar_icon,account.avatar_color],['male','teal'])
+            assert.deepEqual((await Session.findAll({order:[['id','ASC']]})).map(session=>session.toJSON()),sessions)
+            await fiscal.update({avatar_icon:'female',avatar_color:'rose'})
+            await migrateAuth();await migrateAuth()
+            assert.deepEqual([(await fiscal.reload()).avatar_icon,fiscal.avatar_color],['female','rose'])
+            assert.deepEqual((await Account.findAll({order:[['id','ASC']]})).map(withoutAvatar).map(account=>({...account,updatedAt:undefined})),accounts.map(account=>({...account,updatedAt:undefined})))
         })
         await t.test('migração de recados adiciona permissões uma vez e preserva escolhas posteriores',async()=>{
             const ordinary=await Role.create({name:'Cargo anterior sem recados',maximum:false,permissions:['schedule.read']})

@@ -1,0 +1,21 @@
+<% const identityColors=typeof avatarOptions!=='undefined'?avatarOptions.colors:{teal:{label:'Verde petróleo',hex:'#28766D'}};
+const identityIcon=auth.account.avatar_icon==='female'?'female':'male';
+const identityColor=Object.hasOwn(identityColors,auth.account.avatar_color)?auth.account.avatar_color:'teal'; %>
+<details class="account-identity" data-account-identity data-account-id="<%= auth.account.id %>" data-avatar-icon="<%= identityIcon %>" data-avatar-color="<%= identityColor %>">
+    <summary class="account-identity-summary" title="Personalizar seu ícone">
+        <span class="account-avatar" data-account-avatar style="--account-avatar-background:<%= identityColors[identityColor].hex %>"><%- include('accountAvatar.ejs',{icon:identityIcon}) %></span>
+        <span class="account-identity-text"><strong title="<%= auth.user.name %>"><%= auth.user.name %></strong><% if(auth.account.username) { %><span class="account-username" title="@<%= auth.account.username %>">@<%= auth.account.username %></span><% } %><span class="account-role" title="<%= auth.role.name %>"><%= auth.role.name %></span><span class="account-customize-label">Personalizar ícone</span></span>
+        <svg class="account-identity-chevron" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="m4 6 4 4 4-4"/></svg>
+    </summary>
+    <form class="account-avatar-form" action="/api/auth/profile" method="POST" data-avatar-form>
+        <fieldset><legend>Ícone</legend><div class="account-icon-options">
+            <% [['male','Masculino'],['female','Feminino']].forEach(([value,label])=>{ %><label class="account-icon-option"><input type="radio" name="avatar_icon" value="<%= value %>" <%= identityIcon===value?'checked':'' %>><span><span class="account-avatar account-avatar-choice" style="--account-avatar-background:<%= identityColors[identityColor].hex %>" data-avatar-choice><%- include('accountAvatar.ejs',{icon:value}) %></span><span><%= label %></span></span></label><% }) %>
+        </div></fieldset>
+        <fieldset><legend>Cor de fundo</legend><div class="account-color-options">
+            <% Object.entries(identityColors).forEach(([value,color])=>{ %><label class="account-color-option" title="<%= color.label %>"><input type="radio" name="avatar_color" value="<%= value %>" data-avatar-hex="<%= color.hex %>" <%= identityColor===value?'checked':'' %>><span style="background-color:<%= color.hex %>"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m3 8 3 3 7-7"/></svg></span><span class="sr-only"><%= color.label %></span></label><% }) %>
+        </div></fieldset>
+        <div class="account-avatar-actions"><button type="submit" class="account-avatar-save" data-avatar-save disabled>Salvar</button><button type="button" class="account-avatar-cancel" data-avatar-cancel>Cancelar</button></div>
+        <p class="account-avatar-status" data-avatar-status role="status" aria-live="polite"></p>
+        <noscript><small>Ative o JavaScript para personalizar seu ícone.</small></noscript>
+    </form>
+</details>

@@ -12,6 +12,8 @@ export const Account = db.define('auth_accounts', {
     password_hash: {type:D.STRING(255),allowNull:false},
     role_id: {type:D.INTEGER,allowNull:false,references:{model:'auth_roles',key:'id'}},
     enabled: {type:D.BOOLEAN,allowNull:false,defaultValue:true},
+    avatar_icon: {type:D.STRING(12),allowNull:false,defaultValue:'male'},
+    avatar_color: {type:D.STRING(16),allowNull:false,defaultValue:'teal'},
     inspector: {type:D.BOOLEAN,allowNull:false,defaultValue:false}, // Legacy source for the one-time role permission migration.
     must_change_password: {type:D.BOOLEAN,allowNull:false,defaultValue:true}
 })

@@ -9,6 +9,12 @@ export async function migrateAuth() {
     const tables=await db.getQueryInterface().showAllTables()
     if(!tables.includes('users'))throw new Error('A tabela users deve existir. Restaure a base do Livro antes de migrar.')
     if(tables.includes('denunciations'))await migrateDenunciationCreators()
+    if(tables.includes(Account.tableName)){
+        const columns=await db.getQueryInterface().describeTable(Account.tableName)
+        for(const field of ['avatar_icon','avatar_color']){
+            if(!columns[field])await db.getQueryInterface().addColumn(Account.tableName,field,Account.rawAttributes[field])
+        }
+    }
     for(const model of authModels)await model.sync() // Never alter/drop existing tables.
     const columns=await db.getQueryInterface().describeTable(Setting.tableName)
     for(const field of ['role_receiving_migrated','fiscal_area_permissions_migrated','denunciation_edit_permissions_migrated','chat_permissions_migrated']){
