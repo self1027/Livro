@@ -4,6 +4,7 @@ import Report from '../models/reportsModel.js'
 import User from '../models/usersModel.js'
 import District from '../models/districtsModel.js'
 import { closedStatusSlugs } from '../utils/catalogRegistry.js'
+import {sivisaInclude} from '../models/sivisaModels.js'
 
 export function whereFor(filters) {
     const where = {}
@@ -45,6 +46,14 @@ async function findYears() {
     const rows = await Denunciation.findAll({ attributes: [[Sequelize.fn('DISTINCT', Sequelize.col('year')), 'year']], order: [['year', 'DESC']], raw: true })
     return rows.map(row => row.year)
 }
-export default { findDenunciations, findRecentReports, findYears,
+async function findSivisaReports(filters){
+    const where={type:1}
+    if(filters.userId)where.user_id=filters.userId==='unassigned'?null:Number(filters.userId)
+    const period=whereFor({start:filters.start,end:filters.end})
+    if(period.created_at)where.created_at=period.created_at
+    const reports=await Report.findAll({where,attributes:['id','user_id','type','created_at'],include:[...sivisaInclude.map(item=>({...item,attributes:item.as==='sivisa'?['applies']:['id']})),{model:Denunciation,as:'denunciation',where:whereFor({...filters,userId:'',start:'',end:''}),attributes:['id']} ]})
+    return reports.map(report=>report.get({plain:true}))
+}
+export default { findDenunciations, findRecentReports, findYears,findSivisaReports,
     findUsers: () => User.findAll({ attributes: ['id', 'name', 'ativo'], order: [['name', 'ASC']], raw: true }),
     findDistricts: () => District.findAll({ attributes: ['name'], order: [['name', 'ASC']], raw: true }) }

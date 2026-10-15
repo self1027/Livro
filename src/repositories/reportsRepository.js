@@ -1,11 +1,12 @@
 import Report from '../../src/models/reportsModel.js'
+import {sivisaInclude} from '../models/sivisaModels.js'
 
 function create(data,options={}) {
     return Report.create(data,options)
 }
 
 function findByPk(id,options={}) {
-    return Report.findByPk(id,options)
+    return Report.findByPk(id,{include:sivisaInclude,...options})
 }
 
 function update(id, data,options={}) {

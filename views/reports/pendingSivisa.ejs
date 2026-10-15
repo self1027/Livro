@@ -1,0 +1,18 @@
+<%- include('../partials/header.ejs') %>
+<%- include('../partials/navbar.ejs') %>
+<main class="container">
+    <%- include('../partials/pageHeading.ejs',{eyebrow:'MINHAS AÇÕES',title:'SIVISA pendentes',description:'Relatórios de sua autoria que cabem no SIVISA e ainda não têm protocolo, inclusive em denúncias finalizadas.'}) %>
+    <p role="status"><strong><%= locals.total||0 %></strong> relatório(s) aguardando registro. Adicionar o primeiro protocolo remove o lembrete.</p>
+    <% if(!reports.length) { %><div class="alert alert-success" role="status">Nenhuma pendência SIVISA.</div><% } %>
+    <% reports.forEach(report=>{ %><section class="card mb-3"><div class="card-body">
+        <h2 class="h5">Denúncia <%= report.denunciation.number %>/<%= report.denunciation.year %> — <%= report.denunciation.title %></h2>
+        <p class="small text-muted">Ação registrada em <%= new Date(report.created_at).toLocaleDateString('pt-BR',{timeZone:'America/Sao_Paulo'}) %></p>
+        <p class="ui-report-text"><%= report.description %></p>
+        <div class="d-flex flex-wrap" style="gap: 8px">
+            <a class="btn btn-primary" href="/relatorio/<%= report.id %>/sivisa">Registrar SIVISA</a>
+            <% if(typeof can!=='function'||can('denunciations.read')) { %><a class="btn btn-outline-secondary" href="/denuncias/<%= report.denunciation.id %>">Ver denúncia completa</a><% } %>
+        </div>
+    </div></section><% }) %>
+    <% if(locals.pages>1) { %><nav aria-label="Paginação das pendências"><% if(page>1) { %><a class="btn btn-outline-primary" href="/sivisa/pendencias?page=<%= page-1 %>">Anterior</a><% } %> Página <%= page %> de <%= pages %> <% if(page<pages) { %><a class="btn btn-outline-primary" href="/sivisa/pendencias?page=<%= page+1 %>">Próxima</a><% } %></nav><% } %>
+</main>
+<%- include('../partials/footer.ejs') %>

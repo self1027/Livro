@@ -2,6 +2,7 @@ import Denunciation from '../models/denunciationsModel.js'
 import {Op} from 'sequelize'
 import Report from '../models/reportsModel.js'
 import User from '../models/usersModel.js'
+import {sivisaInclude} from '../models/sivisaModels.js'
 
 function findAll(options = {}) {
     return Denunciation.findAll(options)
@@ -19,7 +20,7 @@ function findByIdWithRelations(id) {
                 model: Report,
                 as: 'reports',
                 attributes: ['id', 'user_id', 'description', 'created_at', 'type'],
-                include: [{model:User,as:'user',attributes:['name']}],
+                include: [{model:User,as:'user',attributes:['name']},...sivisaInclude],
                 separate: true,
                 order: [['created_at','DESC'],['id','DESC']]
             },

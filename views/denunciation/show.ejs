@@ -32,11 +32,12 @@
             <div class="card-body">
                 <% if (!denuncia.user_id) { %><div class="alert alert-info"><p>Atribua um fiscal responsável para adicionar relatórios ou alterar o status.</p><% if(detailAllowed('denunciations.assign')) { %><button class="btn btn-outline-primary" type="button" data-toggle="modal" data-target="#fiscalModal">Atribuir fiscal</button><% } %></div><% } %>
                 <p class="small text-muted">Escreva um relatório, atualize o status ou faça as duas ações.</p>
-                <form id="detail-report-form" action="/denuncias/<%= denuncia.id %>/adicionar-relatorio" method="POST" data-current-status="<%= denuncia.status %>">
+                <form id="detail-report-form" action="/denuncias/<%= denuncia.id %>/adicionar-relatorio" method="POST" data-current-status="<%= denuncia.status %>" data-sivisa-form>
                     <% if(typeof auth==='undefined'||!auth) { %><input type="hidden" name="user_id" value="<%= denuncia.user_id %>"><% } %>
                     <fieldset <%= !denuncia.user_id ? 'disabled' : '' %>>
                         <div class="form-group"><label for="detail-report-description">Relatório</label><textarea id="detail-report-description" class="form-control" name="description" rows="5" placeholder="Descreva a ação realizada ou o andamento da fiscalização." aria-describedby="detail-report-feedback"><%= locals.reportForm?.description||'' %></textarea></div>
                         <div class="form-group"><label for="detail-report-status">Status</label><select id="detail-report-status" class="form-control" name="status"><option value="">Manter status atual</option><% Object.entries(DENUNCIATION_STATUS).forEach(([slug,item]) => { %><option value="<%= slug %>" <%= locals.reportForm?.status===slug?'selected':'' %>><%= item.label %></option><% }) %></select></div>
+                        <%- include('../partials/sivisaFields',{sivisaForm:locals.reportForm||{},sivisaRequired:false}) %>
                         <p id="detail-report-feedback" class="small text-danger" role="alert" hidden></p>
                         <button class="btn btn-primary" type="submit" data-detail-submit>Salvar acompanhamento</button>
                         <p class="small text-muted mt-2 mb-0" data-detail-progress role="status" aria-live="polite"></p>
@@ -60,5 +61,6 @@
     </div></div>
 </div>
 <% } %>
+<script src="/js/sivisa-form.js" defer></script>
 <script src="/js/denunciation-detail.js" defer></script>
 <%- include('../partials/footer.ejs') %>

@@ -19,6 +19,7 @@
 .report-timeline-item::before { content: ''; position: absolute; width: 10px; height: 10px; border-radius: 50%; background: var(--ui-primary); left: -5px; top: 8px; }
 .report-timeline-item:last-child { padding-bottom: 0; }
 .report-history-heading time { font-size: 12px; color: var(--ui-muted); }
+.report-history-labels { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 8px; min-width: 0; }
 .report-history-author { font-size: 12px; color: var(--ui-muted); margin: 8px 0 12px; }
 .report-history-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
 .detail-history-empty h3 { font-size: 1.05rem; margin-bottom: 10px; }

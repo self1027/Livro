@@ -105,3 +105,14 @@
 }
 .autocomplete-list[hidden] { display: none; }
 .autocomplete-item[aria-selected="true"] { background: var(--ui-surface-muted); }
+.sivisa-tag { display: inline-flex; align-items: center; gap: 6px; padding: 4px 9px; border: 1px solid var(--ui-border); border-radius: 999px; background: var(--ui-surface-muted); color: var(--ui-muted); font-size: 11px; font-weight: 600; line-height: 1.4; text-decoration: none; vertical-align: middle; }
+a.sivisa-tag:hover { text-decoration: none; border-color: currentColor; }
+.sivisa-tag-pending { background: var(--ui-warning-background); color: var(--ui-warning); }
+.sivisa-tag-registered { background: var(--ui-success-background); color: var(--ui-success); }
+.sivisa-tag-details { display: inline-block; max-width: 100%; }
+.sivisa-tag-details > summary { cursor: pointer; list-style: none; }
+.sivisa-tag-details > summary::-webkit-details-marker { display: none; }
+.sivisa-tag-details > summary::after { content: '▾'; }
+.sivisa-tag-details[open] > summary::after { content: '▴'; }
+.sivisa-tag-content { max-width: 360px; padding: 10px 12px; margin-top: 8px; border: 1px solid var(--ui-border); border-radius: 8px; background: var(--ui-surface); font-size: 12px; overflow-wrap: anywhere; }
+.sivisa-tag-content ul { padding-left: 18px; margin: 0 0 6px; }

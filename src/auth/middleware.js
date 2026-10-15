@@ -4,6 +4,7 @@ import {can,canWorkOnDenunciation,canManageReport} from './permissions.js'
 import {randomToken} from './passwords.js'
 import Denunciation from '../models/denunciationsModel.js'
 import Report from '../models/reportsModel.js'
+import sivisaService from '../services/sivisaService.js'
 
 export const authEnabled=()=>process.env.AUTH_ENABLED==='true'
 export const secureCookies=()=>process.env.AUTH_COOKIE_SECURE!=='false'
@@ -56,6 +57,7 @@ export async function authContext(req,res,next){
         req.usingBearer=!!header
         if(!req.auth&&!header&&cookies(req).livro_session)res.clearCookie('livro_session',cookieOptions())
         res.locals.auth=req.auth||null;res.locals.can=p=>can(req.auth,p)
+        if(can(req.auth,'reports.edit'))res.locals.sivisaPendingCount=await sivisaService.countPending(req.auth.user.id)
         res.locals.canWorkOnDenunciation=(permission,denunciation)=>canWorkOnDenunciation(req.auth,permission,denunciation)
         res.locals.canManageReport=(permission,report)=>canManageReport(req.auth,permission,report)
         res.locals.canPath=path=>{

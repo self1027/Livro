@@ -49,6 +49,7 @@ paths:
         O sistema processa dois tipos de registros aqui:
         1. TEXTO: Relato livre do fiscal.
         2. STATUS_CHANGE: Gerado automaticamente se o campo 'status' for alterado.
+        Texto exige sivisa_state (pending, registered ou not_applicable). sivisa_protocol e sivisa_note aceitam listas correspondentes; registrado exige ao menos um protocolo. Um protocolo só pode pertencer a um relatório. Mudança somente de status não cabe no SIVISA.
       parameters:
         - $ref: '#/components/parameters/denunciationIdPath'
       requestBody:
@@ -63,6 +64,33 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'
 
+  /relatorio/{id}/sivisa:
+    get:
+      tags: [Reports]
+      summary: Gerenciar classificação e protocolos SIVISA do relatório
+      parameters:
+        - $ref: '#/components/parameters/reportId'
+      responses:
+        '200': {description: Formulário; exige reports.edit e autoria ou fiscal.all.}
+        '403': {description: Sem permissão para editar este relatório.}
+    post:
+      tags: [Reports]
+      summary: Salvar classificação e lista completa de protocolos SIVISA
+      description: O primeiro protocolo remove a pendência; remover o último faz a pendência voltar, exceto quando marcado explicitamente como not_applicable. Duplicidade entre relatórios é bloqueada no banco.
+      parameters:
+        - $ref: '#/components/parameters/reportId'
+      responses:
+        '302': {description: Retorna ao formulário com confirmação.}
+        '400': {description: Classificação inválida ou protocolo já vinculado.}
+        '403': {description: Sem permissão de edição ou sem autoria.}
+  /sivisa/pendencias:
+    get:
+      tags: [Reports]
+      summary: Listar pendências SIVISA do autor autenticado
+      parameters:
+        - {name: page, in: query, schema: {type: integer, minimum: 1, default: 1}}
+      responses:
+        '200': {description: Lista de 25 pendências por página, independentemente do status atual da denúncia.}
   /relatorio/{id}/editar:
     post:
       tags: [Reports]
@@ -130,7 +158,10 @@ components:
     ReportInput:
       type: object
       properties:
-        description: Obrigatório para novo relatório textual; independente do status da denúncia.
+        sivisa_state:
+          type: string
+          enum: [pending, registered, not_applicable]
+          description: Obrigatório para novo relatório textual; independente do status da denúncia.
         sivisa_protocol:
           type: array
           items: {type: string, maxLength: 64}

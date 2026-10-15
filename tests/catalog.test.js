@@ -15,6 +15,7 @@ import denunciationsRepo from '../src/repositories/denunciationsRepository.js'
 import { Op } from 'sequelize'
 import { hsvToRgb, rgbToHsv, rgbToHex, hexToRgb, contrastRatio } from '../public/js/colorMath.js'
 import db from '../src/database/database.js'
+import sivisaService from '../src/services/sivisaService.js'
 
 function memoryCatalog() {
     let rows = catalogDefaults.map((row, i) => ({ ...row, id:i + 1 }))
@@ -106,17 +107,18 @@ test('RGB, hexadecimal e quadrado HSV preservam as cores e calculam contraste', 
 
 test('tipo de relatório é definido pelo backend mesmo com tipo forjado na entrada', async () => {
     const find = denunciationsRepo.findByPk, create = reportsRepo.create
-    const transaction=db.transaction
+    const transaction=db.transaction,saveSivisa=sivisaService.saveForReport
     const writes = []
     denunciationsRepo.findByPk = async () => ({status:'REGISTRADA'})
     reportsRepo.create = async data => { writes.push(data); return data }
     db.transaction=async callback=>callback({LOCK:{UPDATE:'UPDATE'}})
+    sivisaService.saveForReport=async()=>{}
     try {
         const result = await reportsService.addReport({denunciationId:1,userId:1,description:'Texto',reportType:0,sivisa_state:'not_applicable'})
         assert.equal(result.ok,true)
         assert.equal(writes.length,1)
         assert.equal(writes[0].type,REPORT_TYPE.TEXT)
-    } finally { denunciationsRepo.findByPk = find; reportsRepo.create = create;db.transaction=transaction }
+    } finally { denunciationsRepo.findByPk = find; reportsRepo.create = create;db.transaction=transaction;sivisaService.saveForReport=saveSivisa }
 })
 test('painel renderiza categorias e mantém valores ao rejeitar alterações', async () => {
     const originalList = catalogService.list, originalSave = catalogService.save

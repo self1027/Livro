@@ -5,13 +5,18 @@ import DENUNCIATION_STATUS from '../constants/denunciationStatus.js'
 import { reportDetails } from '../utils/catalogRegistry.js'
 import {canWorkOnDenunciation} from '../auth/permissions.js'
 import db from '../database/database.js'
+import sivisaService from './sivisaService.js'
+import {normalizeSivisa,sivisaRows} from '../utils/sivisa.js'
 
-async function addReport({ denunciationId, userId, description, status, actor }) {
+async function addReport({ denunciationId, userId, description, status, actor, ...sivisaInput }) {
     if(description!=null&&typeof description!=='string')return {ok:false,status:400,message:'Informe um texto válido para o relatório.'}
     description=description?.trim()
     if (!userId) return { ok: false, status: 400, message: 'ID do usuário não informado' }
     if (status && !Object.hasOwn(DENUNCIATION_STATUS, status)) return { ok: false, status: 400, message: 'Status inválido' }
 
+    let sivisa
+    try{if(description)sivisa=normalizeSivisa(sivisaInput);else if(sivisaRows(sivisaInput).some(item=>item.protocol.trim()))return {ok:false,status:400,message:'Descreva a ação para vincular protocolos SIVISA.'}}
+    catch(error){return {ok:false,status:400,message:error.message}}
     try{return await db.transaction(async transaction=>{
         const denuncia = await denunciationsRepository.findByPk(denunciationId,{transaction,lock:transaction.LOCK.UPDATE})
         if (!denuncia) return { ok: false, status: 404, message: 'Denúncia não encontrada' }
@@ -27,6 +32,7 @@ async function addReport({ denunciationId, userId, description, status, actor })
                 user_id: userId,
                 type: REPORT_TYPE.TEXT
             },{transaction})
+            await sivisaService.saveForReport(report.id,sivisa,transaction,actor)
         }
 
         // cria relatório de mudança de status
@@ -50,7 +56,7 @@ async function addReport({ denunciationId, userId, description, status, actor })
         }
 
         return { ok: true, data: denuncia }
-    })}catch(error){throw error}
+    })}catch(error){if(error.name==='SequelizeUniqueConstraintError')return {ok:false,status:400,message:'Um dos protocolos SIVISA já está vinculado a outro relatório.'};throw error}
 }
 
 async function editReport(reportId, { description, status, actor }) {
@@ -80,6 +86,18 @@ async function editReport(reportId, { description, status, actor }) {
 
         return { ok: true, data: report }
     })
+}
+
+async function saveSivisa(reportId,input,actor){
+    let values
+    try{values=normalizeSivisa(input,{editing:true})}catch(error){return {ok:false,status:400,message:error.message}}
+    try{return await db.transaction(async transaction=>{
+        const report=await reportsRepository.findByPk(reportId,{transaction,lock:transaction.LOCK.UPDATE})
+        if(!report)return {ok:false,status:404,message:'Relatório não encontrado.'}
+        if(Number(report.type)!==REPORT_TYPE.TEXT)return {ok:false,status:400,message:'Registros automáticos de status não recebem protocolos SIVISA.'}
+        await sivisaService.saveForReport(report.id,values,transaction,actor)
+        return {ok:true,data:report}
+    })}catch(error){if(error.name==='SequelizeUniqueConstraintError')return {ok:false,status:400,message:'Um dos protocolos SIVISA já está vinculado a outro relatório.'};throw error}
 }
 
 async function deleteReport(reportId) {
@@ -118,6 +136,7 @@ export default {
     addReport,
     editReport,
     deleteReport,
+    saveSivisa,
     getReport,
     getReportsByDenunciationId 
 }

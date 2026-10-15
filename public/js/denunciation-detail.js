@@ -8,6 +8,7 @@
     const progress=form.querySelector('[data-detail-progress]')
     const feedback=document.getElementById('detail-report-feedback')
     form.addEventListener('submit',event => {
+        if(event.defaultPrevented)return
         const description=form.elements.description.value.trim(), status=form.elements.status.value
         if (!description && (!status || status === form.dataset.currentStatus)) {
             event.preventDefault()

@@ -1,4 +1,5 @@
 const actions={
+    'sivisa.saved':'Registro SIVISA atualizado',
     'account.saved':'Cadastro de acesso salvo',
     'staff.updated':'Cadastro de fiscal atualizado',
     login:'Entrada no sistema',
@@ -21,13 +22,15 @@ export function presentAudit(event,{accounts,users,roles}){
         return user?`${user.name} (@${account.username})`:`@${account.username}`
     }
     let target=''
-    if(event.action==='role.saved'){
+    if(event.action==='sivisa.saved')target=`Relatório #${details.report_id}`
+    else if(event.action==='role.saved'){
         target=details.name||roles.find(item=>item.id===event.target_id)?.name||`Responsabilidade #${event.target_id}`
     }else if(event.action==='staff.updated'){
         target=users.find(item=>item.id===details.user_id)?.name||(event.target_id?person(event.target_id):'Fiscal indisponível')
     }else if(event.target_id)target=person(event.target_id)
     else if(event.action.startsWith('recovery_email.'))target=details.email||'E-mail institucional do setor'
     const notes=[]
+    if(event.action==='sivisa.saved')notes.push(details.protocols?.length?`Protocolos: ${details.protocols.map(item=>item.protocol).join(', ')}`:details.applies?'SIVISA pendente':'Não cabe SIVISA')
     if(event.action==='account.saved'){
         const role=roles.find(item=>item.id===details.role_id)
         if(role)notes.push(`Responsabilidade: ${role.name}`)
