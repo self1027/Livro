@@ -1,10 +1,11 @@
 import { DataTypes as D } from 'sequelize'
 import db from '../database/database.js'
+import {jsonAttribute} from '../database/jsonAttribute.js'
 
 export const Role = db.define('auth_roles', {
     name: {type:D.STRING(80),allowNull:false,unique:true},
     maximum: {type:D.BOOLEAN,allowNull:false,defaultValue:false},
-    permissions: {type:D.JSON,allowNull:false,defaultValue:[]}
+    permissions: jsonAttribute(D.JSON,'permissions',{allowNull:false,defaultValue:[]})
 })
 export const Account = db.define('auth_accounts', {
     user_id: {type:D.INTEGER,allowNull:false,unique:true,references:{model:'users',key:'id'}},
@@ -44,6 +45,6 @@ export const Audit = db.define('auth_audits', {
     actor_id: {type:D.INTEGER,allowNull:true},
     action: {type:D.STRING(80),allowNull:false},
     target_id: {type:D.INTEGER,allowNull:true},
-    details: {type:D.JSON,allowNull:false,defaultValue:{}}
+    details: jsonAttribute(D.JSON,'details',{allowNull:false,defaultValue:{}})
 })
 export const authModels = [Role,Account,Session,Reset,Setting,Audit]

@@ -63,7 +63,7 @@ paths:
               required: [current_password, password]
               properties:
                 current_password: {type: string, format: password}
-                password: {type: string, format: password, minLength: 15, maxLength: 128}
+                password: {type: string, format: password, minLength: 8, maxLength: 128}
       responses:
         '200': {description: Senha alterada. Entre novamente.}
         '400': {description: Senha atual ou nova senha inválida}

@@ -1,8 +1,9 @@
 {
   "enabled": false,
   "weekdays": [
+    "QUI",
     "SEX"
   ],
   "paused": false,
-  "updated_at": "2026-10-14T14:04:39.323Z"
+  "updated_at": "2026-10-16T10:16:00.441Z"
 }

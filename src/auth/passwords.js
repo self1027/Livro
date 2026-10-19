@@ -14,7 +14,7 @@ async function derivePassword(value,salt){
 }
 export const randomToken = () => randomBytes(32).toString('base64url')
 export const tokenHash = value => createHash('sha256').update(value).digest('hex')
-export function validatePassword(value,{minLength=15}={}) {
+export function validatePassword(value,{minLength=8}={}) {
     if(typeof value!=='string'||value.length<minLength||value.length>128)throw new Error(`A senha deve ter de ${minLength} a 128 caracteres.`)
 }
 export function normalizeUsername(value) {

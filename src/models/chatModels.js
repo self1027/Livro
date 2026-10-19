@@ -1,5 +1,6 @@
 import {DataTypes as D} from 'sequelize'
 import db from '../database/database.js'
+import {jsonAttribute} from '../database/jsonAttribute.js'
 
 const userReference={model:'users',key:'id'}
 const textOptions={charset:'utf8mb4',collate:'utf8mb4_unicode_ci'}
@@ -12,7 +13,7 @@ export const ChatAnnouncement=db.define('chat_announcements',{
     sender_id:{type:D.INTEGER,allowNull:false,references:userReference},
     body:{type:D.TEXT,allowNull:false},
     denunciation_id:{type:D.INTEGER,allowNull:true,references:{model:'denunciations',key:'id'},onDelete:'SET NULL'},
-    audience:{type:D.JSON,allowNull:false},
+    audience:jsonAttribute(D.JSON,'audience',{allowNull:false}),
     client_id:{type:D.STRING(80),allowNull:false}
 },{...textOptions,indexes:[{unique:true,fields:['sender_id','client_id'],name:'chat_announcements_sender_client'}]})
 

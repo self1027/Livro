@@ -105,7 +105,7 @@ $env:BOOTSTRAP_USERNAME = 'chefia.inicial'
 $env:BOOTSTRAP_NAME = 'Nome da Chefia'
 # Opcional: ID real de um fiscal ativo existente. Omitir cria um novo cadastro.
 # $env:BOOTSTRAP_USER_ID = '17'
-$bootstrapSecret = Read-Host 'Senha inicial (15 a 128 caracteres)' -AsSecureString
+$bootstrapSecret = Read-Host 'Senha inicial (8 a 128 caracteres)' -AsSecureString
 $env:BOOTSTRAP_PASSWORD = [System.Net.NetworkCredential]::new('', $bootstrapSecret).Password
 try {
     npm run auth:bootstrap
@@ -160,7 +160,7 @@ A última Chefia ativa não pode perder autoridade ou ser desativada, incluindo 
 
 ## Senhas, tokens e recuperação
 
-- Senhas: 15 a 128 caracteres, scrypt com salt individual, N=131072/r=8/p=1. No máximo duas derivações simultâneas por processo, para controlar memória. Parâmetros seguem a alternativa scrypt da [OWASP](https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html).
+- Senhas: 8 a 128 caracteres, scrypt com salt individual, N=131072/r=8/p=1. No máximo duas derivações simultâneas por processo, para controlar memória. Parâmetros seguem a alternativa scrypt da [OWASP](https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html).
 - Bearer de acesso: 15 minutos. Renovação: 8 horas, com rotação de token; um token de renovação reutilizado encerra sua família, incluindo o acesso recém-emitido. A expiração de 8 horas é contada a partir de cada emissão.
 - Navegador: cookie `livro_session`, HttpOnly/Secure/SameSite=Strict, com sessão de 8 horas. Não armazena tokens no localStorage.
 - Formulários EJS recebem CSRF no servidor, inclusive sem JavaScript. O script compartilhado acrescenta o cabeçalho CSRF nas mutações fetch da mesma origem. APIs autenticadas por Bearer não usam CSRF de cookie.
