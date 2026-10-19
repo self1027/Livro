@@ -1,11 +1,12 @@
 import {DataTypes as D} from 'sequelize'
 import db from '../database/database.js'
 import Report from './reportsModel.js'
+import {jsonAttribute} from '../database/jsonAttribute.js'
 
 export const ReportSivisa=db.define('report_sivisa',{
     report_id:{type:D.INTEGER,primaryKey:true,references:{model:'reports',key:'id'},onDelete:'CASCADE'},
     applies:{type:D.BOOLEAN,allowNull:false},
-    notes:{type:D.JSON,allowNull:true}
+    notes:jsonAttribute(D.JSON,'notes',{allowNull:true})
 },{freezeTableName:true})
 export const SivisaProtocol=db.define('report_sivisa_protocols',{
     report_id:{type:D.INTEGER,allowNull:false,references:{model:'reports',key:'id'},onDelete:'CASCADE'},
