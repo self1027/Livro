@@ -6,8 +6,10 @@ import path from 'node:path'
 import fs from 'node:fs/promises'
 import vm from 'node:vm'
 import { Op } from 'sequelize'
-import { normalizeFilters, currentYearStart, summarize, selectQueue, mergeMonthlyReports } from '../src/utils/adminMetrics.js'
+import { normalizeFilters, currentYearStart, summarize, selectQueue, mergeMonthlyReports, summarizeMonthlyClosures } from '../src/utils/adminMetrics.js'
 import repo, { whereFor } from '../src/repositories/adminRepository.js'
+import Report from '../src/models/reportsModel.js'
+import {applyCatalog, catalogDefaults} from '../src/utils/catalogRegistry.js'
 import attendance from '../src/services/attendanceService.js'
 import router, { adminUrl } from '../src/controllers/adminController.js'
 import {can,canManageReport} from '../src/auth/permissions.js'
@@ -75,15 +77,65 @@ test('preenche meses intermediários e contabiliza status desconhecido', () => {
     assert.deepEqual(metrics.monthly.map(m => m.total), [1, 0, 1])
     assert.equal(metrics.statusStats.reduce((sum, s) => sum + s.count, 0), 2)
 })
-test('comparativo mensal inclui meses só com relatório e preenche lacunas nas duas séries',()=>{
+test('comparativo mensal inclui meses só com relatório ou finalização e preenche lacunas nas três séries',()=>{
     assert.deepEqual(mergeMonthlyReports([{month:'2026-02',total:3}],[{month:'2025-12',total:'2'},{month:'2026-03',total:'4'}]),[
-        {month:'2025-12',total:0,withReport:2},
-        {month:'2026-01',total:0,withReport:0},
-        {month:'2026-02',total:3,withReport:0},
-        {month:'2026-03',total:0,withReport:4}
+        {month:'2025-12',total:0,withReport:2,closed:0},
+        {month:'2026-01',total:0,withReport:0,closed:0},
+        {month:'2026-02',total:3,withReport:0,closed:0},
+        {month:'2026-03',total:0,withReport:4,closed:0}
     ])
-    assert.deepEqual(mergeMonthlyReports([],[{month:'2026-10',total:'1'}]),[{month:'2026-10',total:0,withReport:1}])
+    assert.deepEqual(mergeMonthlyReports([],[{month:'2026-10',total:'1'}]),[{month:'2026-10',total:0,withReport:1,closed:0}])
+    assert.deepEqual(mergeMonthlyReports([],[],[{month:'2026-02',total:'2'},{month:'2026-04',total:'1'}]),[
+        {month:'2026-02',total:0,withReport:0,closed:2},
+        {month:'2026-03',total:0,withReport:0,closed:0},
+        {month:'2026-04',total:0,withReport:0,closed:1}
+    ])
     assert.deepEqual(mergeMonthlyReports([],[]),[])
+})
+
+test('finalizações mensais usam o destino da mudança, deduplicam denúncias e respeitam a virada do mês em São Paulo',()=>{
+    const event=(id,description,created_at='2026-02-12T12:00:00Z',type=0)=>({denunciation_id:id,type,description,created_at})
+    assert.deepEqual(summarizeMonthlyClosures([
+        event(1,'Status alterado de "Em Andamento" para "Finalizada"'),
+        event(1,'Status alterado de "Finalizada" para "Registrada"'),
+        event(1,'Status alterado de "Registrada" para "Finalizada"','2026-02-20T12:00:00Z'),
+        event(2,'Status alterado para "Finalizada"','2026-02-12T12:00:00Z',1),
+        event(3,'Status alterado para "Finalizada"','2026-03-01T02:59:59Z'),
+        event(1,'Status alterado para "Finalizada"','2026-03-01T03:00:00Z'),
+        event(4,'Status alterado de "Finalizada" para "Em Andamento"'),
+        event(5,'Fiscal atribuído. Finalizada'),
+        event(6,'Foi solicitada a alteração para "Finalizada"')
+    ]),[{month:'2026-02',total:2},{month:'2026-03',total:1}])
+    assert.deepEqual(summarizeMonthlyClosures([]),[])
+})
+
+test('finalizações reconhecem o nome atual do catálogo e o nome original do histórico',()=>{
+    try{
+        applyCatalog(catalogDefaults.map(status=>status.slug==='FINALIZADA'?{...status,label:'Encerrada'}:status))
+        const events=['Finalizada','Encerrada','FINALIZADA','Em Andamento'].map((label,index)=>({denunciation_id:index,type:0,description:`Status alterado para "${label}"`,created_at:'2026-02-12T12:00:00Z'}))
+        assert.deepEqual(summarizeMonthlyClosures(events),[{month:'2026-02',total:3}])
+    }finally{applyCatalog(catalogDefaults)}
+})
+
+test('consulta de finalizações filtra a data da mudança e mantém o fiscal responsável e os demais filtros na denúncia',async()=>{
+    const original=Report.findAll
+    let options
+    Report.findAll=async input=>{options=input;return [{denunciation_id:1,type:0,description:'Status alterado para "Finalizada"',created_at:'2026-03-01T03:00:00Z'}]}
+    try{
+        const result=await repo.findMonthlyClosedDenunciations(normalizeFilters({start:'2026-03-01',end:'2026-03-31',year:'2024',userId:'2',bairro:'Centro',registration_type:'OFICIO'}))
+        assert.deepEqual(result,[{month:'2026-03',total:1}])
+        assert.equal(options.where.type,0)
+        assert.equal(options.where.created_at[Op.gte].toISOString(),'2026-03-01T03:00:00.000Z')
+        assert.equal(options.where.created_at[Op.lt].toISOString(),'2026-04-01T03:00:00.000Z')
+        assert.equal(options.where.user_id,undefined)
+        const complaint=options.include[0].where
+        assert.equal(complaint.created_at,undefined)
+        assert.equal(complaint.status,undefined) // Reopened complaints still have historical closures.
+        assert.equal(complaint.year,2024)
+        assert.equal(complaint.user_id,2)
+        assert.equal(complaint.bairro,'Centro')
+        assert.equal(complaint.registration_type,'OFICIO')
+    }finally{Report.findAll=original}
 })
 
 test('painel, paginação, exports e atendimento funcionam sem banco', async t => {
@@ -102,6 +154,7 @@ test('painel, paginação, exports e atendimento funcionam sem banco', async t =
     repo.findSivisaReports = async filters => {calls.push(['sivisa',filters]);return actionReports.filter(report=>!filters.userId||String(report.user_id)===filters.userId)}
     repo.findActionReports = async ids => {calls.push(['actionDetails',ids]);return ids.map(id=>actionReports.find(report=>report.id===id))}
     repo.findMonthlyReportedDenunciations = async filters => {calls.push(['monthlyReports',filters]);return [{month:'2026-10',total:'2'}]}
+    repo.findMonthlyClosedDenunciations = async filters => {calls.push(['monthlyClosed',filters]);return [{month:'2026-10',total:'1'}]}
     attendance.get = async () => {calls.push(['attendance']);return { weekdays: [], paused: false, updated_at: null }}
     attendance.update = async () => {}
     const app = express()
@@ -151,14 +204,17 @@ test('painel, paginação, exports e atendimento funcionam sem banco', async t =
             assert.equal(res.status,200)
             const html=await res.text()
             assert.ok(html.includes(marker))
-            assert.deepEqual(calls.map(([name])=>name),view==='analytics'?[queryName,'monthlyReports']:[queryName])
+            assert.deepEqual(calls.map(([name])=>name),view==='analytics'?[queryName,'monthlyReports','monthlyClosed']:[queryName])
             assert.equal(calls[0][1].start,'')
             assert.match(html,/Desde o início do livro/)
             if(view==='analytics'){
                 const payload=JSON.parse(html.match(/<script id="admin-chart-data" type="application\/json">([\s\S]*?)<\/script>/)[1])
-                assert.deepEqual(payload.monthly,[{month:'2026-10',total:0,withReport:2}])
+                assert.deepEqual(payload.monthly,[{month:'2026-10',total:0,withReport:2,closed:1}])
                 assert.match(html,/Com relatório registrado/)
+                assert.match(html,/<th>Denúncias finalizadas<\/th>/)
+                assert.match(html,/<td>2<\/td><td>1<\/td>/)
                 assert.equal(calls[1][1].start,'')
+                assert.equal(calls[2][1].start,'')
             }
         }
     })
@@ -275,7 +331,7 @@ test('gráficos preservam os filtros e usam os limites do mês escolhido', async
     const filters = normalizeFilters({ view:'analytics', year: '2026', start: '2026-02-10', end: '2026-02-20', queue: 'inactive', userId: '2' })
     const window = { location: { href: '' } }
     const context = { window, URLSearchParams, Chart: function (_canvas, config) { configs.push(config) },
-        document: { getElementById: id => id === 'admin-chart-data' ? { textContent: JSON.stringify({ filters, monthly: [{ month: '2026-02', total: 1, withReport: 2 }], bairros: [{ bairro: 'Centro', total: 1 }], statusStats: [{ slug: 'REGISTRADA', label: 'Registrada', count: 1 }] }) } : {} } }
+        document: { getElementById: id => id === 'admin-chart-data' ? { textContent: JSON.stringify({ filters, monthly: [{ month: '2026-02', total: 1, withReport: 2, closed: 3 }], bairros: [{ bairro: 'Centro', total: 1 }], statusStats: [{ slug: 'REGISTRADA', label: 'Registrada', count: 1 }] }) } : {} } }
     vm.runInNewContext(await fs.readFile('public/js/admin.js', 'utf8'), context)
     configs[0].options.onClick(null, [{ index: 0 }])
     let params = new URL(window.location.href, 'http://localhost').searchParams
@@ -284,12 +340,16 @@ test('gráficos preservam os filtros e usam os limites do mês escolhido', async
     assert.equal(params.get('userId'), '2')
     assert.equal(params.get('queue'), '')
     assert.equal(params.get('view'), 'overview')
-    assert.equal(configs[0].data.datasets.length,2)
+    assert.equal(configs[0].data.datasets.length,3)
     assert.equal(configs[0].data.datasets[0].data[0],1)
     assert.equal(configs[0].data.datasets[1].data[0],2)
+    assert.equal(configs[0].data.datasets[2].data[0],3)
+    assert.equal(configs[0].data.datasets[2].label,'Denúncias finalizadas')
     window.location.href=''
     configs[0].options.onClick(null,[{index:0,datasetIndex:1}])
     assert.equal(window.location.href,'') // A report month must not open a list filtered by complaint creation date.
+    configs[0].options.onClick(null,[{index:0,datasetIndex:2}])
+    assert.equal(window.location.href,'') // Closure dates also differ from complaint creation dates.
     configs[1].options.onClick(null, [{ index: 0 }])
     params = new URL(window.location.href, 'http://localhost').searchParams
     assert.equal(params.get('bairro'), 'Centro')

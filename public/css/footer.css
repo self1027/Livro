@@ -79,7 +79,7 @@
 .footer-links { display: flex; flex-wrap: wrap; gap: 8px 16px; padding: 4px 0 8px; border-bottom: 1px solid var(--ui-border); }
 .footer-credits-panel a { color: var(--ui-primary); text-decoration: none; }
 .footer-credits-panel a:hover { color: var(--ui-primary-hover); text-decoration: underline; }
-.footer-attribution, .footer-credits-panel small { font-size: 11px; }
+.footer-credits-panel small { font-size: 11px; }
 
 @media (max-width: 991px) {
     .footer-inner { flex-wrap: wrap; gap: 4px 24px; }

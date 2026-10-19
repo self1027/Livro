@@ -1,31 +1,42 @@
-﻿/* Troque os tokens deste arquivo para alterar o tema de todas as telas. */
+@font-face { font-family: "IBM Plex Sans"; font-style: normal; font-weight: 400; font-display: swap; src: url("/fonts/ibm-plex-sans-400.ttf") format("truetype"); }
+@font-face { font-family: "IBM Plex Sans"; font-style: normal; font-weight: 500; font-display: swap; src: url("/fonts/ibm-plex-sans-500.ttf") format("truetype"); }
+@font-face { font-family: "IBM Plex Sans"; font-style: normal; font-weight: 600; font-display: swap; src: url("/fonts/ibm-plex-sans-600.ttf") format("truetype"); }
+@font-face { font-family: "IBM Plex Sans"; font-style: normal; font-weight: 700; font-display: swap; src: url("/fonts/ibm-plex-sans-600.ttf") format("truetype"); }
+/* Troque os tokens deste arquivo para alterar o tema de todas as telas. */
 :root {
-    --ui-primary: #17665e;
-    --ui-primary-hover: #104c46;
-    --ui-background: #f6f5f1;
+    --ui-primary: #226b45;
+    --ui-primary-hover: #174e31;
+    --ui-background: #eaf3ed;
     --ui-surface: #ffffff;
-    --ui-surface-muted: #f0f2ec;
-    --ui-surface-hover: #f8faf5;
-    --ui-text: #263c38;
-    --ui-muted: #596b64;
-    --ui-border: #dce2d9;
-    --ui-input-border: #a4bab0;
-    --ui-sidebar: #183e38;
-    --ui-sidebar-text: #d9e6df;
-    --ui-sidebar-muted: #b9cec3;
-    --ui-sidebar-active: #30574d;
-    --ui-accent: #e4efbe;
-    --ui-accent-text: #263e22;
-    --ui-accent-hover: #d4e49f;
-    --ui-info-background: #e8eee6;
+    --ui-surface-muted: #edf5ef;
+    --ui-surface-hover: #f0f8f2;
+    --ui-text: #203c2b;
+    --ui-muted: #536b5b;
+    --ui-border: #d6e5da;
+    --ui-input-border: #8fa898;
+    --ui-sidebar: #dcece1;
+    --ui-sidebar-text: #2a5139;
+    --ui-sidebar-muted: #4b6956;
+    --ui-sidebar-active: #bfdcc9;
+    --ui-sidebar-hover: #cfe4d6;
+    --ui-accent: #226b45;
+    --ui-accent-text: #ffffff;
+    --ui-accent-hover: #174e31;
+    --ui-info-background: #e1f0e6;
+    --ui-brand-panel: #205c3c;
+    --ui-on-brand-panel: #ffffff;
+    --ui-on-brand-panel-muted: #d0e7d8;
     --ui-danger: #963b38;
     --ui-danger-background: #fbe6e3;
     --ui-warning: #795116;
     --ui-warning-background: #fff0d6;
     --ui-success: #245d45;
     --ui-success-background: #e1eee7;
-    --ui-focus: #9a7621;
-    --ui-focus-shadow: 0 0 0 3px rgba(23, 102, 94, .18);
-    --ui-radius: 12px;
-    --ui-shadow: 0 4px 20px rgba(24, 62, 56, .05);
+    --ui-focus: #226b45;
+    --ui-focus-shadow: 0 0 0 3px rgba(34, 107, 69, .18);
+    --ui-radius: 10px;
+    --ui-shadow: none;
+    --ui-motion-fast: 120ms;
+    --ui-motion-menu: 180ms;
+    --ui-easing: cubic-bezier(.2, .8, .2, 1);
 }

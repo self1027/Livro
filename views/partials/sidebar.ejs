@@ -2,23 +2,22 @@
 const adminItems=[['Painel Administrativo','/admin','dashboard.read'],['Atendimento','/admin?tab=attendance','attendance.manage'],['Cadastros e cores','/admin/catalogs','catalogs.manage'],['Escala administrativa','/admin/schedule','schedule.manage'],['Atribuição','/admin/assignments','denunciations.assign']];
 const adminEntry=adminItems.find(item=>navAllowed(item[2]));
 const adminHref=typeof auth!=='undefined'&&auth?.role.maximum?'/admin':adminEntry?.[1];
-const groups=[{name:'Fiscal',items:[['Área do Fiscal','/area-fiscal','fiscal.area.own'],['Escala','/escala','schedule.read']]},{name:'Administrativo',items:adminHref?[['Painel Administrativo',adminHref,adminEntry?.[2]||'dashboard.read']]:[]}]; %>
+const groups=[{name:'Fiscal',items:[['Área do Fiscal','/area-fiscal','fiscal.area.own','user'],['Escala','/escala','schedule.read','calendar']]},{name:'Administrativo',items:adminHref?[['Painel Administrativo',adminHref,adminEntry?.[2]||'dashboard.read','chart']]:[]}]; %>
 <aside class="app-sidebar">
     <div class="app-sidebar-heading">
-    <a class="app-brand" href="<%= navAllowed('denunciations.read')?'/':navAllowed('fiscal.area.own')?'/area-fiscal':adminHref|| (navAllowed('denunciations.create')?'/denuncias/new':typeof auth!=='undefined'&&auth&&navAllowed('chat.use')?'/recados':'/auth/password') %>">Livro <span>VISA Andradina</span></a>
-    <button class="app-menu-toggle" type="button" aria-expanded="false" aria-controls="app-navigation">Menu</button>
+    <a class="app-brand" href="<%= navAllowed('denunciations.read')?'/':navAllowed('fiscal.area.own')?'/area-fiscal':adminHref|| (navAllowed('denunciations.create')?'/denuncias/new':typeof auth!=='undefined'&&auth&&navAllowed('chat.use')?'/recados':'/auth/password') %>"><%- include('icon.ejs',{name:'brand'}) %><span class="app-brand-name">Livro <span>VISA Andradina</span></span></a>
+    <button class="app-menu-toggle" type="button" aria-expanded="false" aria-controls="app-navigation"><%- include('icon.ejs',{name:'menu'}) %><span>Menu</span></button>
     </div>
     <div id="app-navigation" class="app-sidebar-body">
     <nav class="app-navigation-links" aria-label="Navegação principal">
-        <% if(navAllowed('denunciations.create')) { %><a class="app-create" href="/denuncias/new">+ Nova Denúncia</a><% } %>
-        <% if(navAllowed('denunciations.read')) { %><a class="app-nav-link" href="/">Listagem de denúncias</a><% } %>
-        <% if(typeof auth!=='undefined' && auth && !auth.account.must_change_password && navAllowed('chat.use')) { %><a class="app-nav-link" href="/recados" data-recados-link>Recados <span class="badge badge-warning" data-recados-count hidden aria-label="Mensagens não lidas">0</span></a><button class="app-notification-toggle" type="button" data-enable-notifications hidden>Ativar notificações</button><small class="app-notification-status" data-notification-status role="status"></small><% } %>
+        <% if(navAllowed('denunciations.create')) { %><a class="app-create" href="/denuncias/new"><%- include('icon.ejs',{name:'plus'}) %>Nova Denúncia</a><% } %>
+        <% if(navAllowed('denunciations.read')) { %><a class="app-nav-link" href="/"><%- include('icon.ejs',{name:'list'}) %><span>Listagem de denúncias</span></a><% } %>
+        <% if(typeof auth!=='undefined' && auth && !auth.account.must_change_password && navAllowed('chat.use')) { %><a class="app-nav-link" href="/recados" data-recados-link><%- include('icon.ejs',{name:'message'}) %><span>Recados</span><span class="badge badge-warning" data-recados-count hidden aria-label="Mensagens não lidas">0</span></a><button class="app-notification-toggle" type="button" data-enable-notifications hidden>Ativar notificações</button><small class="app-notification-status" data-notification-status role="status"></small><% } %>
         <% groups.forEach(group=>{const items=group.items.filter(item=>navAllowed(item[2]));if(!items.length)return; %>
         <div class="app-nav-group"><h2><%= group.name %></h2>
-            <% items.forEach(item=>{ %><a class="app-nav-link" href="<%= item[1] %>"><%= item[0] %></a><% }) %>
-            <% if(group.name==='Fiscal') { %><span class="app-nav-disabled" aria-disabled="true">Números <small>Em breve</small></span><% } %>
+            <% items.forEach(item=>{ %><a class="app-nav-link" href="<%= item[1] %>"><%- include('icon.ejs',{name:item[3]}) %><span><%= item[0] %></span></a><% }) %>
         </div><% }) %>
-        <% if(navAllowed('reports.edit')) { %><a class="app-nav-link" href="/sivisa/pendencias">SIVISA pendentes<% if(locals.sivisaPendingCount) { %> <span class="badge badge-warning"><%= sivisaPendingCount %></span><% } %></a><% } %>
+        <% if(navAllowed('reports.edit')) { %><a class="app-nav-link" href="/sivisa/pendencias"><%- include('icon.ejs',{name:'clock'}) %><span>SIVISA pendentes</span><% if(locals.sivisaPendingCount) { %> <span class="badge badge-warning"><%= sivisaPendingCount %></span><% } %></a><% } %>
     </nav>
         <% if(typeof authEnabled!=='undefined'&&authEnabled) { %><section class="app-sidebar-account" aria-labelledby="sidebar-account-title"><h2 id="sidebar-account-title">Minha conta</h2>
         <% if(auth) { %><%- include('accountIdentity.ejs') %><div class="app-account-actions"><a class="app-nav-link" href="/auth/password">Alterar senha</a><form method="POST" action="/auth/logout"><button class="app-account-logout" type="submit">Sair</button></form></div>

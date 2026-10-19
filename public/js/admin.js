@@ -16,12 +16,14 @@
     const primary = theme?.getPropertyValue('--ui-primary').trim() || '#17665e'
     const chartFill = theme?.getPropertyValue('--ui-info-background').trim() || '#e8eee6'
     const reportColor = theme?.getPropertyValue('--ui-warning').trim() || '#795116'
+    const closedColor = theme?.getPropertyValue('--ui-text').trim() || '#243530'
     const options = { responsive: true, maintainAspectRatio: false }
     new Chart(document.getElementById('monthChart'), {
         type: 'line',
         data: { labels: monthly.map(m => m.month), datasets: [
             { label: 'Denúncias registradas', data: monthly.map(m => m.total), borderColor: primary, backgroundColor: chartFill, fill: false, tension: .2 },
-            { label: 'Denúncias com relatório registrado', data: monthly.map(m => m.withReport ?? 0), borderColor: reportColor, backgroundColor: reportColor, borderDash: [6, 4], pointStyle: 'rectRot', fill: false, tension: .2 }
+            { label: 'Denúncias com relatório registrado', data: monthly.map(m => m.withReport ?? 0), borderColor: reportColor, backgroundColor: reportColor, borderDash: [6, 4], pointStyle: 'rectRot', fill: false, tension: .2 },
+            { label: 'Denúncias finalizadas', data: monthly.map(m => m.closed ?? 0), borderColor: closedColor, backgroundColor: closedColor, borderDash: [2, 3], pointStyle: 'triangle', fill: false, tension: .2 }
         ] },
         options: { ...options, interaction: { mode: 'nearest', intersect: true }, plugins: { tooltip: { mode: 'index', intersect: false } }, scales: { y: { beginAtZero: true, ticks: { precision: 0 } } },
             onClick: (_event, elements) => {

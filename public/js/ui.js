@@ -23,11 +23,15 @@
         }
     });
     const path = location.pathname;
+    const query = new URLSearchParams(location.search);
     let best;
+    let bestScore = -1;
     document.querySelectorAll('.app-nav-link, .app-create').forEach(link => {
-        const target = link.getAttribute('href');
-        if (path === target || (target !== '/' && path.startsWith(target + '/'))) {
-            if (!best || target.length > best.getAttribute('href').length) best = link;
+        const target = new URL(link.getAttribute('href'), location.origin);
+        if (path === target.pathname || (target.pathname !== '/' && path.startsWith(target.pathname + '/'))) {
+            if (![...target.searchParams].every(([key, value]) => query.get(key) === value)) return;
+            const score = target.pathname.length + target.searchParams.size;
+            if (score > bestScore) { best = link; bestScore = score; }
         }
     });
     if (!best && (path === '/buscar' || /^\/denuncias\/[^/]+/.test(path))) best = document.querySelector('.app-nav-link[href="/"]');

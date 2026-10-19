@@ -1,6 +1,7 @@
 import STATUS from '../constants/denunciationStatus.js'
 import SENDERS from '../constants/denunciationSenders.js'
-import { isClosedStatus } from './catalogRegistry.js'
+import { isClosedStatus, closedStatusSlugs } from './catalogRegistry.js'
+import REPORT_TYPE from '../constants/reportType.js'
 import { SIVISA_METRICS } from './sivisa.js'
 
 const scalar = value => typeof value === 'string' ? value.trim() : ''
@@ -36,19 +37,37 @@ const calendarDay = value => {
 const daysBetween = (now, date) => Math.max(0, Math.round((Date.parse(calendarDay(now)) - Date.parse(calendarDay(date))) / 86400000))
 export const isOpen = row => !isClosedStatus(row.status)
 export const isProgress = row => STATUS[row.status]?.behavior === 'progress'
-export function mergeMonthlyReports(registrations, reported) {
-    const months = new Map(registrations.map(row => [row.month, { ...row, withReport: 0 }]))
-    for (const row of reported) {
-        const entry = months.get(row.month) || { month: row.month, total: 0, withReport: 0 }
-        entry.withReport = Number(row.total)
-        months.set(row.month, entry)
+export function summarizeMonthlyClosures(events) {
+    // Status history predates structured status fields: read the destination, never
+    // the complaint's current status or the previous status mentioned in the text.
+    const labels = new Set(closedStatusSlugs().flatMap(slug => [slug, STATUS[slug].label]))
+    labels.add('Finalizada') // Preserve the original label if the catalog was renamed.
+    const months = new Map()
+    for (const event of events) {
+        if (Number(event.type) !== REPORT_TYPE.STATUS_CHANGE) continue
+        const target = event.description?.match(/^Status alterado (?:de "[\s\S]*" )?para "([\s\S]*)"$/)?.[1]
+        if (!labels.has(target)) continue
+        const month = calendarDay(event.created_at).slice(0, 7)
+        if (!months.has(month)) months.set(month, new Set())
+        months.get(month).add(event.denunciation_id)
+    }
+    return [...months].sort(([a], [b]) => a.localeCompare(b)).map(([month, ids]) => ({month, total: ids.size}))
+}
+export function mergeMonthlyReports(registrations, reported, closed = []) {
+    const months = new Map(registrations.map(row => [row.month, { ...row, withReport: 0, closed: 0 }]))
+    for (const [rows, field] of [[reported, 'withReport'], [closed, 'closed']]) {
+        for (const row of rows) {
+            const entry = months.get(row.month) || { month: row.month, total: 0, withReport: 0, closed: 0 }
+            entry[field] = Number(row.total)
+            months.set(row.month, entry)
+        }
     }
     const keys = [...months.keys()].sort()
     if (keys.length) {
         const cursor = new Date(`${keys[0]}-01T12:00:00Z`)
         while (cursor.toISOString().slice(0, 7) <= keys.at(-1)) {
             const month = cursor.toISOString().slice(0, 7)
-            if (!months.has(month)) months.set(month, { month, total: 0, withReport: 0 })
+            if (!months.has(month)) months.set(month, { month, total: 0, withReport: 0, closed: 0 })
             cursor.setUTCMonth(cursor.getUTCMonth() + 1)
         }
     }

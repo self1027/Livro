@@ -21,12 +21,12 @@
             for (const row of rows) {
                 const tr = document.createElement('tr');
                 const status = config.statuses[row.status?.trim()] || {label:'Desconhecido', slug:'UNKNOWN'};
-                const cells = [['Ano',row.year],['Número',row.number],['Tipo',config.senders[row.registration_type] || row.registration_type || 'Não informado'],['Título',row.title],['Endereço',`${row.endereco || ''}, ${row.numero || ''} — ${row.bairro || ''}`],['Data',new Date(row.created_at).toLocaleDateString('pt-BR', {timeZone:'America/Sao_Paulo'})],['Status',status.label],['Fiscal',row.user?.name || 'Não atribuído'],['Ações','']];
+                const cells = [['Protocolo',`${row.number}/${row.year}`],['Tipo',config.senders[row.registration_type] || row.registration_type || 'Não informado'],['Título',row.title],['Endereço',`${row.endereco || ''}, ${row.numero || ''} — ${row.bairro || ''}`],['Data',new Date(row.created_at).toLocaleDateString('pt-BR', {timeZone:'America/Sao_Paulo'})],['Status',status.label],['Fiscal',row.user?.name || 'Não atribuído'],['Ações','']];
                 for (const [label,value] of cells) {
                     const td = document.createElement('td');
                     td.dataset.label = label;
                     td.textContent = value ?? '';
-                    if (label === 'Número') td.className = 'home-protocol';
+                    if (label === 'Protocolo') td.className = 'home-protocol';
                     if (label === 'Título') td.className = 'home-title';
                     if (label === 'Status' || label === 'Tipo') {
                         td.textContent = '';
@@ -52,6 +52,8 @@
                 fragment.append(tr);
             }
             tbody.append(fragment);
+            const count = document.getElementById('home-record-count');
+            if (count) count.textContent = `${tbody.rows.length} ${tbody.rows.length === 1 ? 'registro exibido' : 'registros exibidos'}`;
             offset += config.limit;
             finished = rows.length < config.limit;
             feedback.textContent = rows.length ? `${rows.length} registros adicionados.` : 'Não há mais registros.';

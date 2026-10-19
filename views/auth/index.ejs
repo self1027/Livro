@@ -1,7 +1,7 @@
 <%- include('../partials/header.ejs') %>
 <% const mandatory=mode==='password'&&typeof auth!=='undefined'&&auth?.account.must_change_password;
 const standalone=mode!=='password'||mandatory; %>
-<% if(standalone) { %><div class="auth-shell"><div class="auth-content"><% } else { %><%- include('../partials/navbar.ejs') %><% } %>
+<% if(standalone) { %><div class="auth-shell"><aside class="auth-intro" aria-label="Vigilância Sanitária de Andradina"><%- include('../partials/icon.ejs',{name:'brand'}) %><p class="auth-intro-name">Livro <span>VISA Andradina</span></p><p class="auth-intro-title">Informação que cuida da cidade.</p><p>Denúncias, fiscalização e acompanhamento em um só lugar. Um trabalho em equipe pela saúde de Andradina.</p><span class="auth-intro-caption">Vigilância Sanitária · Andradina, SP</span></aside><div class="auth-content"><% } else { %><%- include('../partials/navbar.ejs') %><% } %>
 <link rel="stylesheet" href="/css/auth.css">
 <main class="container auth-page">
     <% if(standalone) { %><div class="auth-brand">Livro <span>Vigilância Sanitária</span></div><% } %>

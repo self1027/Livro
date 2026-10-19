@@ -1,25 +1,25 @@
 <%- include('partials/header.ejs') %>
 <%- include('partials/navbar.ejs') %>
     <main id="home-content" class="home-content">
-        <%- include('partials/pageHeading.ejs', {eyebrow: 'ACOMPANHAMENTO', title: 'Listagem de Denúncias', description: 'Consulte os registros e acompanhe a fiscalização.', actionHref: '/buscar', actionLabel: 'Buscar Denúncias'}) %>
+        <%- include('partials/pageHeading.ejs', {eyebrow: 'Vigilância Sanitária · Andradina', title: 'Listagem de Denúncias', description: 'Cada registro, um cuidado com a cidade.', actionHref: '/buscar', actionLabel: 'Buscar Denúncias'}) %>
         <% if (attendance?.enabled !== false) { %>
         <section class="home-attendance" aria-label="Atendimento de Denúncias">
-            <strong>Atendimento de Denúncias</strong>
+            <div class="home-attendance-title"><%- include('partials/icon.ejs',{name:'calendar'}) %><strong>Atendimento de Denúncias</strong></div>
             <% if (attendance?.paused) { %><span class="attendance-paused">Atendimento pausado</span>
             <% } else if (!attendance || !attendance.weekdays.length) { %><span>Nenhum dia definido</span>
             <% } else { %><span>Atendimento em: <b><%= attendance.weekdays.join(' e ') %></b></span><% } %>
         </section>
         <% } %>
         <section class="home-registers" aria-label="Denúncias registradas">
+            <div class="home-registers-heading"><div><h2>Registros recentes</h2><p>Acompanhe os protocolos e seus responsáveis.</p></div><span class="home-record-count" id="home-record-count"><%= denuncias?.length || 0 %> <%= denuncias?.length === 1 ? 'registro exibido' : 'registros exibidos' %></span></div>
             <% if (denuncias && denuncias.length) { %>
             <div class="home-table-wrap"><table class="home-table" id="tabela-denuncias">
                 <caption>Registros de denúncias e responsáveis</caption>
-                <thead><tr><% ['Ano','Número','Tipo','Título','Endereço','Data','Status','Fiscal','Ações'].forEach(label => { %><th scope="col"><%= label %></th><% }) %></tr></thead>
+                <thead><tr><% ['Protocolo','Tipo','Título','Endereço','Data','Status','Fiscal','Ações'].forEach(label => { %><th scope="col"><%= label %></th><% }) %></tr></thead>
                 <tbody>
                 <% denuncias.forEach(denuncia => { const status = DENUNCIATION_STATUS[denuncia.status?.trim()] || {label:'Desconhecido', slug:'UNKNOWN'}; %>
                     <tr>
-                        <td data-label="Ano"><%= denuncia.year %></td>
-                        <td data-label="Número" class="home-protocol"><%= denuncia.number %></td>
+                        <td data-label="Protocolo" class="home-protocol"><%= denuncia.number %><span class="home-protocol-year">/<%= denuncia.year %></span></td>
                         <td data-label="Tipo"><%- include('partials/statusBadge.ejs', {status:SENDER_DETAILS[denuncia.registration_type] || {label:denuncia.registration_type || 'Não informado'}}) %></td>
                         <td data-label="Título" class="home-title"><%= denuncia.title %></td>
                         <td data-label="Endereço"><%= denuncia.endereco %>, <%= denuncia.numero %><br><span class="home-muted"><%= denuncia.bairro %></span></td>
@@ -31,8 +31,8 @@
                 <% }) %>
                 </tbody>
             </table></div>
-            <div class="home-load"><p id="load-feedback" role="status" aria-live="polite"></p><button id="carregarMais" class="home-button secondary" type="button">Carregar mais</button></div>
-            <% } else { %><div class="home-empty"><h2>Nenhuma denúncia encontrada.</h2><p>Você pode buscar outros registros ou cadastrar uma nova denúncia.</p><a href="/denuncias/new" class="home-button">Nova Denúncia</a></div><% } %>
+            <div class="home-load"><span>Os registros mais recentes aparecem primeiro.</span><p id="load-feedback" role="status" aria-live="polite"></p><button id="carregarMais" class="home-button secondary" type="button">Carregar mais</button></div>
+            <% } else { %><div class="home-empty"><%- include('partials/icon.ejs',{name:'archive'}) %><h2>Nenhuma denúncia encontrada.</h2><p>Os registros e o andamento da fiscalização aparecerão aqui.</p><% if(typeof can!=='function'||can('denunciations.create')) { %><a href="/denuncias/new" class="home-button">Nova Denúncia</a><% } %></div><% } %>
         </section>
     </main>
 <script id="home-data" type="application/json"><%- JSON.stringify({statuses:DENUNCIATION_STATUS, senders:DENUNCIATION_SENDER, senderDetails:SENDER_DETAILS, offset, limit}).replace(/</g, '\\u003c') %></script>

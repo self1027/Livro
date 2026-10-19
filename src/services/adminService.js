@@ -6,11 +6,12 @@ async function getDashboard(query = {}, { exporting = false } = {}) {
     const filters = normalizeFilters(query)
     const needsDenunciations = exporting || ['overview', 'analytics'].includes(filters.view)
     const needsMonthlyReports = !exporting && filters.view === 'analytics'
-    const [denuncias, users, districts, years, reports,sivisaReports, monthlyReports] = await Promise.all([
+    const [denuncias, users, districts, years, reports,sivisaReports, monthlyReports, monthlyClosed] = await Promise.all([
         needsDenunciations ? repo.findDenunciations(filters) : [], repo.findUsers(), repo.findDistricts(),
         repo.findYears(), !exporting && filters.view === 'reports' ? repo.findRecentReports(filters) : [],
         !exporting && filters.view === 'sivisa' ? repo.findSivisaReports(filters) : [],
-        needsMonthlyReports ? repo.findMonthlyReportedDenunciations(filters) : []
+        needsMonthlyReports ? repo.findMonthlyReportedDenunciations(filters) : [],
+        needsMonthlyReports ? repo.findMonthlyClosedDenunciations(filters) : []
     ])
     const metrics = summarize(denuncias, users, filters)
     const selected = selectQueue(metrics.rows, filters.queue)
@@ -31,7 +32,7 @@ async function getDashboard(query = {}, { exporting = false } = {}) {
     }
     return {
         filters: { ...filters, page: actionDetails?.page || page }, users, districts, years, reports, ...metrics, actionDetails,
-        monthly: needsMonthlyReports ? mergeMonthlyReports(metrics.monthly, monthlyReports) : metrics.monthly,
+        monthly: needsMonthlyReports ? mergeMonthlyReports(metrics.monthly, monthlyReports, monthlyClosed) : metrics.monthly,
         sivisaMetrics: filters.view === 'sivisa' && !exporting ? summarizeSivisa(sivisaReports,users) : null,
         selectedCount: selected.length, pages: Math.max(1, Math.ceil(selected.length / 25)),
         selectedRows: selected.slice((page - 1) * 25, page * 25), exportRows: selected

@@ -633,6 +633,26 @@ test('MySQL isolado: migração, acessos, revogação, permissões, CSRF e recup
             assert.deepEqual(await adminRepo.findMonthlyReportedDenunciations({...filters,year:'2026'}),[])
             assert.deepEqual(await adminRepo.findMonthlyReportedDenunciations({...filters,registration_type:'OUTRA_ORIGEM'}),[])
         })
+        await t.test('gráfico mensal conta finalizações pela data da mudança, sem duplicar reaberturas e incluindo denúncias antigas',async()=>{
+            const fixture=await Denunciation.create({year:2024,number:8003,title:'Denúncia antiga reaberta',description:'Texto',endereco:'Rua',numero:'1',bairro:'Bairro teste finalizações',user_id:17,status:'EM_ANDAMENTO',registration_type:'OUTROS',created_at:new Date('2024-05-01T12:00:00Z')})
+            const create=(description,date,type=0)=>Report.create({denunciation_id:fixture.id,user_id:fiscal.user_id,type,description,created_at:new Date(date)})
+            try{
+                await create('Status alterado de "Em Andamento" para "Finalizada"','2026-02-12T12:00:00Z')
+                await create('Status alterado de "Finalizada" para "Em Andamento"','2026-02-13T12:00:00Z')
+                await create('Status alterado para "Finalizada"','2026-03-01T02:59:59Z')
+                await create('Status alterado para "Finalizada"','2026-03-01T03:00:00Z')
+                await create('Status alterado para "Finalizada"','2026-01-10T12:00:00Z',1)
+                await create('Status alterado de "Finalizada" para "Registrada"','2026-04-01T12:00:00Z')
+                await create('Status alterado para "Finalizada"','2026-04-02T12:00:00Z')
+                const filters={start:'2026-01-01',end:'2026-03-31',bairro:fixture.bairro,userId:'17'}
+                assert.deepEqual(await adminRepo.findMonthlyClosedDenunciations(filters),[{month:'2026-02',total:1},{month:'2026-03',total:1}])
+                assert.deepEqual(await adminRepo.findMonthlyClosedDenunciations({...filters,start:'2026-03-01',end:'2026-03-01'}),[{month:'2026-03',total:1}])
+                assert.deepEqual(await adminRepo.findMonthlyClosedDenunciations({...filters,start:'2026-04-01',end:'2026-04-01'}),[])
+                assert.deepEqual(await adminRepo.findMonthlyClosedDenunciations({...filters,userId:String(fiscal.user_id)}),[])
+                assert.deepEqual(await adminRepo.findMonthlyClosedDenunciations({...filters,year:'2026'}),[])
+                assert.deepEqual(await adminRepo.findMonthlyClosedDenunciations({...filters,registration_type:'OUTRA_ORIGEM'}),[])
+            }finally{await Report.destroy({where:{denunciation_id:fixture.id}});await fixture.destroy()}
+        })
         await t.test('migração separa consulta das áreas e não restaura permissões removidas depois',async()=>{
             const own=await Role.create({name:'Consulta própria antiga',permissions:['fiscal.read'],maximum:false})
             const all=await Role.create({name:'Consulta geral antiga',permissions:['fiscal.read','fiscal.all'],maximum:false})

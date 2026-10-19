@@ -6,6 +6,8 @@ import usersRepository from './usersRepository.js'
 import District from '../models/districtsModel.js'
 import { closedStatusSlugs } from '../utils/catalogRegistry.js'
 import {sivisaInclude} from '../models/sivisaModels.js'
+import REPORT_TYPE from '../constants/reportType.js'
+import {summarizeMonthlyClosures} from '../utils/adminMetrics.js'
 
 export function whereFor(filters) {
     const where = {}
@@ -74,6 +76,16 @@ async function findMonthlyReportedDenunciations(filters) {
         group: [month], order: [[month, 'ASC']], raw: true
     })
 }
+async function findMonthlyClosedDenunciations(filters) {
+    const events = await Report.findAll({
+        where: { type: REPORT_TYPE.STATUS_CHANGE, ...whereFor({ start: filters.start, end: filters.end }) },
+        attributes: ['denunciation_id', 'type', 'description', 'created_at'],
+        include: [{ model: Denunciation, as: 'denunciation',
+            where: whereFor({ ...filters, start: '', end: '' }), attributes: [] }],
+        raw: true
+    })
+    return summarizeMonthlyClosures(events)
+}
 async function findSivisaReports(filters){
     const where={type:1}
     if(filters.userId)where.user_id=filters.userId==='unassigned'?null:Number(filters.userId)
@@ -94,6 +106,6 @@ async function findActionReports(ids) {
     })
     return reports.map(report=>report.get({plain:true}))
 }
-export default { findDenunciations, findRecentReports, findYears,findSivisaReports, findMonthlyReportedDenunciations, findActionReports,
+export default { findDenunciations, findRecentReports, findYears,findSivisaReports, findMonthlyReportedDenunciations, findMonthlyClosedDenunciations, findActionReports,
     findUsers: () => usersRepository.findAll({ attributes: ['id', 'name', 'ativo'], order: [['name', 'ASC']], raw: true }),
     findDistricts: () => District.findAll({ attributes: ['name'], order: [['name', 'ASC']], raw: true }) }

@@ -32,7 +32,7 @@
 .admin-metric-label { display: block; font-size: .85rem; color: var(--ui-muted); margin-bottom: 12px; }
 .admin-metric-value { display: block; font-size: 2rem; line-height: 1.2; color: var(--ui-text); }
 .admin-panel .nav-tabs { margin-bottom: 28px !important; }
-.admin-panel .card-header { background: var(--ui-surface); }
+.admin-panel .card-header { background: var(--ui-surface-muted); }
 .admin-panel .admin-filters .card-body > .btn { margin-bottom: 8px; }
 .admin-panel th { white-space: normal; }
 .admin-panel #denuncias { scroll-margin-top: 24px; }

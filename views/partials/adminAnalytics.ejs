@@ -5,12 +5,12 @@
         </tbody></table></div>
     </div></section>
     <div class="row"><section class="col-lg-6 mb-4"><div class="card h-100"><div class="card-header"><h2 class="ui-section-title">Registros e relatórios por mês</h2></div><div class="card-body">
-        <p class="small text-muted">Compare as denúncias criadas no mês com as que receberam pelo menos um relatório textual no mês, incluindo denúncias antigas. Cada denúncia conta uma vez por mês em cada série, independentemente do status ou do SIVISA.</p>
-        <div class="chart-wrap"><canvas id="monthChart" role="img" aria-label="Denúncias registradas e denúncias com relatório textual registrado por mês" aria-describedby="monthly-counts-help"></canvas></div>
-        <p id="monthly-counts-help" class="small text-muted mt-2">Usa a data de registro do relatório. Alterações automáticas de status e atribuições não contam. O fiscal e os demais filtros consideram os dados atuais da denúncia. A mesma denúncia pode aparecer em meses diferentes; somar os meses não representa o total de denúncias únicas.</p>
-        <details class="mt-2"><summary>Ver valores por mês</summary><div class="table-responsive"><table class="table table-sm mt-2"><thead><tr><th>Mês</th><th>Denúncias registradas</th><th>Com relatório registrado</th></tr></thead><tbody>
-            <% monthly.forEach(m => { %><tr><th scope="row"><%= m.month %></th><td><%= m.total %></td><td><%= m.withReport %></td></tr><% }) %>
-            <% if(!monthly.length) { %><tr><td colspan="3">Nenhum registro ou relatório textual no período.</td></tr><% } %>
+        <p class="small text-muted">Compare as denúncias criadas, as que receberam relatório textual e as finalizadas em cada mês, incluindo denúncias antigas. Cada denúncia conta uma vez por mês em cada série.</p>
+        <div class="chart-wrap"><canvas id="monthChart" role="img" aria-label="Denúncias registradas, com relatório textual e finalizadas por mês" aria-describedby="monthly-counts-help"></canvas></div>
+        <p id="monthly-counts-help" class="small text-muted mt-2">Relatórios usam a data de registro do texto; finalizações usam a data da mudança para um status finalizado, mesmo que a denúncia tenha sido reaberta depois. Alterações de status não contam como relatório textual. O fiscal e os demais filtros consideram os dados atuais da denúncia. A mesma denúncia pode aparecer em meses diferentes; somar os meses não representa o total de denúncias únicas.</p>
+        <details class="mt-2"><summary>Ver valores por mês</summary><div class="table-responsive"><table class="table table-sm mt-2"><thead><tr><th>Mês</th><th>Denúncias registradas</th><th>Com relatório registrado</th><th>Denúncias finalizadas</th></tr></thead><tbody>
+            <% monthly.forEach(m => { %><tr><th scope="row"><%= m.month %></th><td><%= m.total %></td><td><%= m.withReport %></td><td><%= m.closed %></td></tr><% }) %>
+            <% if(!monthly.length) { %><tr><td colspan="4">Nenhum registro, relatório textual ou finalização no período.</td></tr><% } %>
         </tbody></table></div></details>
     </div></div></section>
     <section class="col-lg-6 mb-4"><div class="card h-100"><div class="card-header"><h2 class="ui-section-title">Bairros com mais denúncias</h2></div><div class="card-body"><p class="small text-muted">Os dez maiores volumes nos filtros atuais.</p><div class="chart-wrap"><canvas id="districtChart" role="img" aria-label="Volume de denúncias por bairro"></canvas></div><div class="mt-2"><% bairros.forEach(b => { %><a class="badge badge-light mr-2" href="<%= adminUrl(filters,{view:'overview',bairro:b.bairro,queue:''}) %>#denuncias"><%= b.bairro %>: <%= b.total %></a><% }) %></div></div></div></section></div>

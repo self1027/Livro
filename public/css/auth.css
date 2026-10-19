@@ -1,7 +1,20 @@
 .auth-page { max-width: 620px; }
-.auth-shell { display: grid; place-items: center; flex: 1; width: 100%; padding: 32px 16px; }
+.auth-shell { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: center; flex: 1; width: 100%; padding: 24px; gap: 24px; }
+.auth-intro { display: flex; flex-direction: column; justify-content: center; align-self: stretch; min-height: 560px; padding: clamp(32px, 5vw, 80px); border-radius: 16px; background: var(--ui-brand-panel); color: var(--ui-on-brand-panel); }
+.auth-intro > .ui-icon { width: 40px; height: 40px; color: var(--ui-primary); margin-bottom: 16px; }
+.auth-intro-name { font-size: 28px; font-weight: 600; margin-bottom: 56px; letter-spacing: -1px; }
+.auth-intro-name span { display: block; font-size: 13px; font-weight: 400; letter-spacing: 0; color: var(--ui-on-brand-panel-muted); }
+.auth-intro-title { font-size: clamp(30px, 3.2vw, 46px); letter-spacing: -1.3px; line-height: 1.15; max-width: 420px; font-weight: 500; margin-bottom: 24px; text-wrap: balance; }
+.auth-intro > p:not([class]) { color: var(--ui-on-brand-panel-muted); font-size: 15px; max-width: 360px; }
+.auth-intro-caption { color: var(--ui-on-brand-panel-muted); font-size: 12px; margin-top: 56px; }
+.auth-intro > img.ui-icon { filter: brightness(0) invert(1); }
 .auth-content { width: 100%; }
-.auth-shell .auth-page { max-width: 540px; padding: 16px 0; }
+.auth-shell .auth-page { max-width: 420px; padding: 32px 16px; }
+.auth-shell .card { border: 0; box-shadow: none; background: transparent; }
+.auth-shell .card-body { padding: 0; }
+.auth-shell .form-group { margin-bottom: 24px; }
+.auth-shell .form-control { background: var(--ui-surface); }
+.auth-shell .btn-link { display: block; margin-top: 12px; font-size: 13px; }
 .auth-brand { color: var(--ui-primary); font-size: 1.65rem; font-weight: 700; margin-bottom: 24px; }
 .auth-brand span { display: block; color: var(--ui-muted); font-size: .85rem; font-weight: 400; }
 .auth-shell .ui-page-heading { margin-bottom: 24px; }
@@ -17,3 +30,8 @@
 .access-account .card-body, .access-role .card-body { border-top: 1px solid var(--ui-border); }
 .access-account small { font-weight: 400; }
 .access-audit { max-height: 400px; overflow-y: auto; }
+@media (max-width: 767px) {
+    .auth-shell { grid-template-columns: minmax(0, 1fr); padding: 24px 16px; }
+    .auth-intro { display: none; }
+    .auth-shell .auth-page { padding: 16px 0; }
+}
