@@ -4,6 +4,8 @@
   "type": "module",
   "main": "index.js",
   "scripts": {
+    "assets:charts": "node scripts/vendorCharts.js",
+    "prestart": "npm run assets:charts",
     "start": "node --env-file-if-exists=.env src/index.js",
     "test": "node --test",
     "migrate:catalogs": "node src/database/migrateCatalogs.js",
@@ -17,12 +19,15 @@
     "test:auth:db": "node scripts/testAuthDb.js",
     "test:chat:db": "node --env-file-if-exists=.env scripts/testChatDb.js"
   },
-  "engines": {"node": ">=22"},
+  "engines": {
+    "node": ">=22"
+  },
   "author": "",
   "license": "ISC",
   "description": "",
   "dependencies": {
     "body-parser": "^2.2.0",
+    "chart.js": "^4.5.1",
     "ejs": "^3.1.10",
     "express": "^5.1.0",
     "livro": "file:",

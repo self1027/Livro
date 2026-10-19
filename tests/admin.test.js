@@ -9,6 +9,7 @@ import { Op } from 'sequelize'
 import { normalizeFilters, currentYearStart, summarize, selectQueue, mergeMonthlyReports, summarizeMonthlyClosures } from '../src/utils/adminMetrics.js'
 import repo, { whereFor } from '../src/repositories/adminRepository.js'
 import Report from '../src/models/reportsModel.js'
+import Denunciation from '../src/models/denunciationsModel.js'
 import {applyCatalog, catalogDefaults} from '../src/utils/catalogRegistry.js'
 import attendance from '../src/services/attendanceService.js'
 import router, { adminUrl } from '../src/controllers/adminController.js'
@@ -19,6 +20,58 @@ const now = new Date('2026-10-14T15:00:00Z')
 const users = [{ id: 1, name: 'Fiscal A', ativo: true }, { id: 2, name: 'Fiscal B', ativo: false }]
 const row = (id, status, days, userId = null, activity = null) => ({ id, number: id, year: 2026, title: 'Denúncia', bairro: 'Centro', status, user_id: userId,
     created_at: new Date(now.getTime() - days * 86400000), last_activity: activity, user: users.find(u => u.id === userId) })
+
+test('curadoria separa atribuição, idade, ausência de texto e mediana do primeiro relatório', () => {
+    const withText = (item, days) => ({...item, first_text_report_at: new Date(item.created_at.getTime() + days * 86400000)})
+    const data = [
+        {...withText(row(1, 'REGISTRADA', 80, 1), 5), registration_type: 'OFICIO'},
+        {...row(2, 'REGISTRADA', 10), first_text_report_at: null, registration_type: 'OFICIO'},
+        withText(row(3, 'FINALIZADA', 30, 1), 0),
+        withText(row(4, 'EM_ANDAMENTO', 20, 2), 1),
+        withText(row(5, 'REGISTRADA', 1), 2)
+    ]
+    const metrics = summarize(data, users, normalizeFilters({}), now)
+    assert.deepEqual(metrics.curation, {medianOpenAge:15, assignedOpen:2, assignedPercent:50, openWithoutText:1, firstReportMedian:1, firstReportSample:3})
+    assert.deepEqual(selectQueue(metrics.rows, 'noText').map(row=>row.id), [2])
+    assert.equal(normalizeFilters({queue:'noText'}).queue, 'noText')
+    assert.equal(metrics.origins.reduce((sum, origin)=>sum+origin.count,0), data.length)
+    assert.equal(metrics.origins.find(origin=>origin.slug==='OFICIO').count, 2)
+    assert.notEqual(metrics.origins.find(origin=>origin.slug==='OFICIO').label, 'Origem não informada')
+})
+
+test('curadoria diferencia ausência de amostra de zero dias e exclui datas inválidas ou anteriores ao registro', () => {
+    const empty = summarize([], users, normalizeFilters({}), now)
+    assert.deepEqual(empty.curation, {medianOpenAge:null, assignedOpen:0, assignedPercent:null, openWithoutText:0, firstReportMedian:null, firstReportSample:0})
+    const data = [
+        {...row(1,'FINALIZADA',1),first_text_report_at:null},
+        {...row(2,'REGISTRADA',1),created_at:new Date('2026-10-14T03:05:00Z'), first_text_report_at:new Date('2026-10-14T04:00:00Z')},
+        {...row(3,'REGISTRADA',1),first_text_report_at:'inválida'},
+        {...row(4,'REGISTRADA',1),first_text_report_at:new Date(now.getTime()-2*86400000)},
+        row(5,'REGISTRADA',1) // A field not loaded is not evidence of absence.
+    ]
+    const {curation} = summarize(data, users, normalizeFilters({}), now)
+    assert.equal(curation.firstReportSample,1)
+    assert.equal(curation.firstReportMedian,0)
+    assert.equal(curation.openWithoutText,0)
+    const boundary = summarize([{...data[1],created_at:new Date('2026-10-14T02:59:00Z')}],users,normalizeFilters({}),now)
+    assert.equal(boundary.curation.firstReportMedian,1)
+})
+
+test('primeiro relatório usa apenas texto e só é consultado para distribuições ou a fila correspondente', async () => {
+    const original = Denunciation.findAll
+    const queries = []
+    Denunciation.findAll = async options => {queries.push(options);return []}
+    try {
+        for(const query of [{view:'analytics'},{view:'overview',queue:'noText'},{view:'overview'}]) await repo.findDenunciations(normalizeFilters(query))
+        for(const options of queries.slice(0,2)) {
+            const first = options.attributes.find(attr=>Array.isArray(attr)&&attr[1]==='first_text_report_at')
+            assert.match(first[0].val, /MIN\(r.created_at\)/)
+            assert.match(first[0].val, /r.type = 1/)
+            assert.match(first[0].val, /r.denunciation_id = denunciations.id/)
+        }
+        assert.ok(!queries[2].attributes.some(attr=>Array.isArray(attr)&&attr[1]==='first_text_report_at'))
+    } finally { Denunciation.findAll = original }
+})
 
 test('métricas distinguem abertas, andamento, finalizadas e filas por idade', () => {
     const data = [row(1, 'FINALIZADA', 80), row(2, 'REGISTRADA', 7), row(3, 'PENDENTE', 30, 1), row(4, 'EM_ANDAMENTO', 60, 1), row(5, 'NOTIFICADA', 61, 2, now)]
@@ -233,6 +286,23 @@ test('painel, paginação, exports e atendimento funcionam sem banco', async t =
         const payload = analytics.match(/<script id="admin-chart-data" type="application\/json">([\s\S]*?)<\/script>/)[1]
         assert.equal(JSON.parse(payload).filters.bairro, '</script><script>alert(1)</script>')
     })
+    await t.test('fila sem texto e exportação conservam apenas as abertas sem relatório textual', async () => {
+        const previous = data
+        data = [
+            {...row(1,'REGISTRADA',20),first_text_report_at:null},
+            {...row(2,'REGISTRADA',20),first_text_report_at:now},
+            {...row(3,'FINALIZADA',20),first_text_report_at:null}
+        ]
+        try {
+            const html = await (await fetch(`${base}/admin?queue=noText&start=&end=`)).text()
+            assert.match(html,/Abertas sem nenhum relatório textual/)
+            assert.match(html,/href="\/denuncias\/1"/)
+            assert.doesNotMatch(html,/href="\/denuncias\/[23]"/)
+            assert.match(html,/queue=noText/)
+            const csv = await (await fetch(`${base}/admin/export/csv?queue=noText&start=&end=`)).text()
+            assert.equal(csv.split('\r\n').length,2)
+        } finally {data=previous}
+    })
     await t.test('exports incluem todas as páginas e bloqueiam fórmulas CSV', async () => {
         data[0].title = '=HYPERLINK("test")'
         calls.length=0
@@ -329,9 +399,9 @@ test('painel, paginação, exports e atendimento funcionam sem banco', async t =
 test('gráficos preservam os filtros e usam os limites do mês escolhido', async () => {
     const configs = []
     const filters = normalizeFilters({ view:'analytics', year: '2026', start: '2026-02-10', end: '2026-02-20', queue: 'inactive', userId: '2' })
-    const window = { location: { href: '' } }
+    const window = { location: { href: '' }, matchMedia: () => ({matches:true}) }
     const context = { window, URLSearchParams, Chart: function (_canvas, config) { configs.push(config) },
-        document: { getElementById: id => id === 'admin-chart-data' ? { textContent: JSON.stringify({ filters, monthly: [{ month: '2026-02', total: 1, withReport: 2, closed: 3 }], bairros: [{ bairro: 'Centro', total: 1 }], statusStats: [{ slug: 'REGISTRADA', label: 'Registrada', count: 1 }] }) } : {} } }
+        document: { getElementById: id => id === 'admin-chart-data' ? { textContent: JSON.stringify({ filters, monthly: [{ month: '2026-02', total: 1, withReport: 2, closed: 3 }], bairros: [{ bairro: 'Centro', total: 1 }], statusStats: [{ slug: 'REGISTRADA', label: 'Registrada', count: 1 }], ages:[{label:'Mais de 60 dias',queue:'age3',count:1}],origins:[{slug:'OFICIO',label:'Ofício',count:1}] }) } : {} } }
     vm.runInNewContext(await fs.readFile('public/js/admin.js', 'utf8'), context)
     configs[0].options.onClick(null, [{ index: 0 }])
     let params = new URL(window.location.href, 'http://localhost').searchParams
@@ -356,4 +426,29 @@ test('gráficos preservam os filtros e usam os limites do mês escolhido', async
     configs[2].options.onClick(null, [{ index: 0 }])
     params = new URL(window.location.href, 'http://localhost').searchParams
     assert.equal(params.get('status'), 'REGISTRADA')
+    configs[3].options.onClick(null,[{index:0}])
+    params = new URL(window.location.href, 'http://localhost').searchParams
+    assert.equal(params.get('queue'),'age3')
+    assert.equal(params.get('userId'),'2')
+    configs[4].options.onClick(null,[{index:0}])
+    params = new URL(window.location.href, 'http://localhost').searchParams
+    assert.equal(params.get('registration_type'),'OFICIO')
+    assert.equal(params.get('start'),'2026-02-10')
+    assert.ok(configs.every(config=>config.options.animation===false))
+})
+
+test('gráfico SIVISA abre a categoria de ações preservando autor e período', async () => {
+    let config
+    const filters=normalizeFilters({view:'sivisa',userId:'2',start:'2026-02-01',end:'2026-03-31'})
+    const window={location:{href:''}}
+    const context={window,URLSearchParams,Chart:function(_canvas,input){config=input},document:{getElementById:id=>id==='admin-chart-data'?{textContent:JSON.stringify({filters,sivisa:[{key:'pending',label:'Aguardando SIVISA',count:2}]})}:{}}}
+    vm.runInNewContext(await fs.readFile('public/js/admin.js','utf8'),context)
+    config.options.onClick(null,[{index:0}])
+    const url=new URL(window.location.href,'http://localhost')
+    assert.equal(url.searchParams.get('view'),'sivisa')
+    assert.equal(url.searchParams.get('actionMetric'),'pending')
+    assert.equal(url.searchParams.get('userId'),'2')
+    assert.equal(url.searchParams.get('start'),'2026-02-01')
+    assert.equal(url.searchParams.get('end'),'2026-03-31')
+    assert.equal(url.hash,'#acoes')
 })

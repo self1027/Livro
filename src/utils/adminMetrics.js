@@ -19,7 +19,7 @@ export function normalizeFilters(query = {}, now = new Date()) {
         status: Object.hasOwn(STATUS, scalar(query.status)) ? scalar(query.status) : '',
         registration_type: Object.hasOwn(SENDERS, scalar(query.registration_type)) ? scalar(query.registration_type) : '',
         scope: query.scope === 'open' ? 'open' : 'all',
-        queue: ['unassigned', 'inactive', 'old', 'closed', 'open', 'progress', 'age0', 'age1', 'age2', 'age3'].includes(query.queue) ? query.queue : '',
+        queue: ['unassigned', 'inactive', 'noText', 'old', 'closed', 'open', 'progress', 'age0', 'age1', 'age2', 'age3'].includes(query.queue) ? query.queue : '',
         inactivityDays: [7, 15, 30, 60].includes(Number(query.inactivityDays)) ? Number(query.inactivityDays) : 30,
         page: /^\d+$/.test(scalar(query.page)) && Number.isSafeInteger(Number(query.page)) ? Math.max(1, Number(query.page)) : 1
     }
@@ -77,6 +77,7 @@ export function selectQueue(rows, queue) {
     const checks = {
         unassigned: row => isOpen(row) && !row.user_id,
         inactive: row => isOpen(row) && row.inactive,
+        noText: row => isOpen(row) && row.first_text_report_at === null,
         old: row => isOpen(row) && row.age > 60,
         closed: row => !isOpen(row), open: isOpen, progress: isProgress,
         age0: row => isOpen(row) && row.age <= 7,
@@ -115,7 +116,30 @@ export function summarize(data, users, filters, now = new Date()) {
         return { ...user, open: open.length, closed: assigned.length - open.length, inactive: open.filter(row => row.inactive).length,
             statuses: statusStats.filter(s => !isClosedStatus(s.slug) && s.slug).map(s => ({ ...s, count: open.filter(row => row.status === s.slug).length })) }
     }).sort((a, b) => b.open - a.open || a.name.localeCompare(b.name, 'pt-BR'))
+    const median = values => {
+        if (!values.length) return null
+        const sorted = [...values].sort((a, b) => a - b), middle = Math.floor(sorted.length / 2)
+        return sorted.length % 2 ? sorted[middle] : (sorted[middle - 1] + sorted[middle]) / 2
+    }
+    const openRows = rows.filter(isOpen)
+    const responseRows = rows.filter(row => row.first_text_report_at &&
+        Number.isFinite(new Date(row.first_text_report_at).getTime()) &&
+        new Date(row.first_text_report_at) >= new Date(row.created_at) && new Date(row.first_text_report_at) <= now)
+    const originCounts = new Map()
+    rows.forEach(row => {
+        const slug = Object.hasOwn(SENDERS, row.registration_type) ? row.registration_type : ''
+        originCounts.set(slug, (originCounts.get(slug) || 0) + 1)
+    })
     return { rows, statusStats, workload,
+        curation: {
+            medianOpenAge: median(openRows.map(row => row.age)),
+            assignedOpen: openRows.filter(row => row.user_id).length,
+            assignedPercent: openRows.length ? Math.round(openRows.filter(row => row.user_id).length / openRows.length * 100) : null,
+            openWithoutText: selectQueue(rows, 'noText').length,
+            firstReportMedian: median(responseRows.map(row => daysBetween(row.first_text_report_at, row.created_at))),
+            firstReportSample: responseRows.length
+        },
+        origins: [...originCounts].map(([slug, count]) => ({slug, label: SENDERS[slug] || 'Origem não informada', count})).sort((a,b) => b.count - a.count),
         monthly: [...months].sort(([a], [b]) => a.localeCompare(b)).map(([month, total]) => ({ month, total })),
         bairros: [...districts].map(([bairro, total]) => ({ bairro, total })).sort((a, b) => b.total - a.total).slice(0, 10),
         ages: ['Até 7 dias', '8 a 30 dias', '31 a 60 dias', 'Mais de 60 dias'].map((label, i) => ({ label, queue: `age${i}`, count: selectQueue(rows, `age${i}`).length })),

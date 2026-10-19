@@ -32,7 +32,10 @@ async function findDenunciations(filters) {
     const rows = await Denunciation.findAll({
         where: whereFor(filters),
         attributes: ['id', 'number', 'year', 'title', 'status', 'bairro', 'endereco', 'numero', 'user_id', 'registration_type', 'created_at',
-            [Sequelize.literal('(SELECT MAX(r.created_at) FROM reports AS r WHERE r.denunciation_id = denunciations.id)'), 'last_activity']],
+            [Sequelize.literal('(SELECT MAX(r.created_at) FROM reports AS r WHERE r.denunciation_id = denunciations.id)'), 'last_activity'],
+            ...(['analytics'].includes(filters.view) || filters.queue === 'noText' ? [
+                [Sequelize.literal('(SELECT MIN(r.created_at) FROM reports AS r WHERE r.denunciation_id = denunciations.id AND r.type = 1)'), 'first_text_report_at']
+            ] : [])],
         include: [{ model: User, as: 'user', attributes: ['id', 'name', 'ativo'] }]
     })
     return rows.map(row => row.get({ plain: true }))

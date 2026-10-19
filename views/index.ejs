@@ -1,7 +1,7 @@
 <%- include('partials/header.ejs') %>
 <%- include('partials/navbar.ejs') %>
     <main id="home-content" class="home-content">
-        <%- include('partials/pageHeading.ejs', {eyebrow: 'Vigilância Sanitária · Andradina', title: 'Listagem de Denúncias', description: 'Cada registro, um cuidado com a cidade.', actionHref: '/buscar', actionLabel: 'Buscar Denúncias'}) %>
+        <%- include('partials/pageHeading.ejs', {eyebrow: '', title: 'Denúncias', description: 'Consulte os registros e acompanhe o andamento da fiscalização.', actionHref: '/buscar', actionLabel: 'Busca avançada'}) %>
         <% if (attendance?.enabled !== false) { %>
         <section class="home-attendance" aria-label="Atendimento de Denúncias">
             <div class="home-attendance-title"><%- include('partials/icon.ejs',{name:'calendar'}) %><strong>Atendimento de Denúncias</strong></div>
@@ -11,7 +11,7 @@
         </section>
         <% } %>
         <section class="home-registers" aria-label="Denúncias registradas">
-            <div class="home-registers-heading"><div><h2>Registros recentes</h2><p>Acompanhe os protocolos e seus responsáveis.</p></div><span class="home-record-count" id="home-record-count"><%= denuncias?.length || 0 %> <%= denuncias?.length === 1 ? 'registro exibido' : 'registros exibidos' %></span></div>
+            <div class="home-registers-heading"><h2>Registros recentes</h2><span class="home-record-count" id="home-record-count"><%= denuncias?.length || 0 %> <%= denuncias?.length === 1 ? 'registro exibido' : 'registros exibidos' %></span></div>
             <% if (denuncias && denuncias.length) { %>
             <div class="home-table-wrap"><table class="home-table" id="tabela-denuncias">
                 <caption>Registros de denúncias e responsáveis</caption>

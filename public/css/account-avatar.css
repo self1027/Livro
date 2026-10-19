@@ -22,13 +22,13 @@
 .account-icon-option > span { display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 5px; padding: 7px 3px; border: 1px solid var(--ui-input-border); border-radius: 7px; color: var(--ui-sidebar-text); font-size: 11px; }
 .account-avatar-choice { width: 33px; height: 33px; }
 .account-avatar-choice > svg { width: 27px; height: 27px; }
-.account-icon-option > input:checked + span { border-color: var(--ui-accent); background: #ffffff0c; box-shadow: 0 0 0 1px var(--ui-accent); }
-.account-icon-option > input:focus-visible + span, .account-color-option > input:focus-visible + span { outline: 2px solid var(--ui-accent); outline-offset: 3px; }
+.account-icon-option > input:checked + span { border-color: var(--ui-focus); background: var(--ui-surface-muted); box-shadow: 0 0 0 1px var(--ui-focus); }
+.account-icon-option > input:focus-visible + span, .account-color-option > input:focus-visible + span { outline: 2px solid var(--ui-focus); outline-offset: 3px; }
 .account-color-options { display: flex; flex-wrap: wrap; gap: 8px; }
 .account-color-option { position: relative; margin: 0; cursor: pointer; }
 .account-color-option > span:first-of-type { display: flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 50%; border: 1px solid #ffffff40; color: #fff; }
 .account-color-option svg { width: 14px; height: 14px; visibility: hidden; }
-.account-color-option > input:checked + span { outline: 2px solid var(--ui-accent); outline-offset: 2px; }
+.account-color-option > input:checked + span { outline: 2px solid var(--ui-focus); outline-offset: 2px; }
 .account-color-option > input:checked + span svg { visibility: visible; }
 .account-avatar-actions { display: flex; align-items: center; gap: 10px; }
 .account-avatar-save { min-height: 44px; padding: 5px 13px; border-radius: 5px; border: 1px solid var(--ui-accent); background: var(--ui-accent); color: var(--ui-accent-text); font-size: 12px; font-weight: 600; }

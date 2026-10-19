@@ -18,4 +18,16 @@
         </tbody></table></div>
     </div>
 </section>
+<% const sivisaStates=[{key:'registered',label:'Com SIVISA',count:sivisaMetrics.registered},{key:'pending',label:'Aguardando SIVISA',count:sivisaMetrics.pending},{key:'notApplicable',label:'Não cabe SIVISA',count:sivisaMetrics.notApplicable},{key:'unclassified',label:'Sem classificação',count:sivisaMetrics.unclassified}]; %>
+<section class="card mb-4"><div class="card-header"><h2 class="ui-section-title">Situação das ações no SIVISA</h2></div><div class="card-body">
+    <p class="small text-muted">Cada ação aparece em uma única categoria. O total corresponde aos <%= sivisaMetrics.actions %> relatórios textuais do período e dos filtros selecionados.</p>
+    <div class="admin-sivisa-visual">
+        <div class="chart-wrap chart-sivisa"><canvas id="sivisaChart" role="img" aria-label="Ações com SIVISA, aguardando, não aplicáveis e sem classificação" aria-describedby="sivisa-chart-values"></canvas></div>
+        <ul id="sivisa-chart-values" class="admin-chart-values"><% sivisaStates.forEach(state=>{ %><li><a href="<%= actionLink(state.key) %>"><span><i class="admin-chart-swatch" aria-hidden="true"></i><%= state.label %></span><strong><%= state.count %></strong></a></li><% }) %></ul>
+    </div>
+    <p class="small text-muted mb-0">Protocolos não formam uma categoria: uma mesma ação pode ter vários. Relatórios antigos sem classificação continuam separados das pendências.</p>
+</div></section>
+<script id="admin-chart-data" type="application/json"><%- JSON.stringify({sivisa:sivisaStates,filters}).replace(/</g, '\\u003c') %></script>
+<script src="/vendor/chartjs/chart.umd.js" defer></script>
+<script src="/js/admin.js" defer></script>
 <% if(locals.actionDetails) { %><%- include('adminActionDetails.ejs',{panelAllowed,panelCanEditReport}) %><% } %>
