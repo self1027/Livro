@@ -1,11 +1,12 @@
 <% const protocols=report.sivisaProtocols||[];
+const notes=report.sivisa?.notes||[];
 const classification=Number(report.type)===0?'not_applicable':protocols.length?'registered':report.sivisa?.applies===true||report.sivisa?.applies===1?'pending':report.sivisa?.applies===false||report.sivisa?.applies===0?'not_applicable':'unclassified';
 const labels={pending:'SIVISA pendente',registered:'SIVISA registrado',not_applicable:'Não cabe SIVISA',unclassified:'SIVISA não classificado'};
 const manageHref=locals.sivisaHref||null; %>
-<% if(protocols.length) { %>
+<% if(protocols.length||notes.length) { %>
 <details class="sivisa-tag-details" data-sivisa-summary>
-    <summary class="sivisa-tag sivisa-tag-registered" title="Ver protocolos SIVISA"><span>SIVISA · <%= protocols.length %></span></summary>
-    <div class="sivisa-tag-content"><ul><% protocols.forEach(item=>{ %><li><strong><%= item.protocol %></strong><% if(item.note) { %> — <%= item.note %><% } %></li><% }) %></ul>
+    <summary class="sivisa-tag sivisa-tag-<%= classification %>" title="Ver protocolos e observações SIVISA"><span><%= protocols.length?'SIVISA · '+protocols.length:labels[classification] %></span></summary>
+    <div class="sivisa-tag-content"><ul><% protocols.forEach(item=>{ %><li><strong><%= item.protocol %></strong><% if(item.note) { %> — <%= item.note %><% } %></li><% }) %><% notes.forEach(note=>{ %><li><%= note %></li><% }) %></ul>
     <% if(manageHref) { %><a href="<%= manageHref %>">Gerenciar SIVISA</a><% } %></div>
 </details>
 <% } else if(manageHref) { %><a class="sivisa-tag sivisa-tag-<%= classification %>" href="<%= manageHref %>" title="Gerenciar SIVISA deste relatório" data-sivisa-summary><%= labels[classification] %></a>

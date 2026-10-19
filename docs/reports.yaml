@@ -49,7 +49,7 @@ paths:
         O sistema processa dois tipos de registros aqui:
         1. TEXTO: Relato livre do fiscal.
         2. STATUS_CHANGE: Gerado automaticamente se o campo 'status' for alterado.
-        Texto exige sivisa_state (pending, registered ou not_applicable). sivisa_protocol e sivisa_note aceitam listas correspondentes; registrado exige ao menos um protocolo. Um protocolo só pode pertencer a um relatório. Mudança somente de status não cabe no SIVISA.
+        Texto assume sivisa_state pending quando omitido ou vazio (aceita pending, registered ou not_applicable). sivisa_protocol e sivisa_note aceitam listas correspondentes; observações podem ser salvas sem protocolo e não removem a pendência. O estado explícito registered exige ao menos um protocolo. Um protocolo só pode pertencer a um relatório. Mudança somente de status não cabe no SIVISA.
         Texto e mudança de status enviados juntos compartilham uma operação interna, gerada no servidor. No painel de atividade recente, somente o texto desse envio aparece; mudanças de status isoladas continuam aparecendo. Ambos os registros permanecem no histórico completo da denúncia.
       parameters:
         - $ref: '#/components/parameters/denunciationIdPath'
@@ -162,7 +162,7 @@ components:
         sivisa_state:
           type: string
           enum: [pending, registered, not_applicable]
-          description: Obrigatório para novo relatório textual; independente do status da denúncia.
+          description: Padrão pending quando omitido ou vazio; independente do status da denúncia.
         sivisa_protocol:
           type: array
           items: {type: string, maxLength: 64}
@@ -170,7 +170,7 @@ components:
         sivisa_note:
           type: array
           items: {type: string, maxLength: 500}
-          description: Observações na mesma ordem dos protocolos.
+          description: Observações na mesma ordem dos protocolos. Podem ser preenchidas sem protocolo, sem contar como registro SIVISA.
         description: 
           type: string
           description: Conteúdo textual da fiscalização.

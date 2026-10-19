@@ -48,7 +48,8 @@ async function sivisaPage(req,res,{status=200,error='',input}={}){
     if(!result.ok)return res.status(result.status).send(result.message)
     if(Number(result.data.report.type)!==1)return res.status(400).send('Registros de status não recebem protocolos SIVISA.')
     const report=result.data.report
-    const sivisaForm=input||{sivisa_state:sivisaState(report),sivisa_protocol:report.sivisaProtocols.map(item=>item.protocol),sivisa_note:report.sivisaProtocols.map(item=>item.note)}
+    const notes=report.sivisa?.notes||[]
+    const sivisaForm=input||{sivisa_state:sivisaState(report),sivisa_protocol:[...report.sivisaProtocols.map(item=>item.protocol),...notes.map(()=>'')],sivisa_note:[...report.sivisaProtocols.map(item=>item.note),...notes]}
     res.status(status).render('reports/sivisa',{...result.data,sivisaForm,error,success:req.query.saved==='1'})
 }
 router.get('/relatorio/:id/sivisa',(req,res)=>sivisaPage(req,res))

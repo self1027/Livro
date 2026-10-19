@@ -5,10 +5,10 @@ import {ReportSivisa,SivisaProtocol} from '../models/sivisaModels.js'
 import {Audit} from '../auth/models.js'
 
 async function saveForReport(reportId,values,transaction,actor){
-    await ReportSivisa.upsert({report_id:reportId,applies:values.applies},{transaction})
+    await ReportSivisa.upsert({report_id:reportId,applies:values.applies,notes:values.notes},{transaction})
     await SivisaProtocol.destroy({where:{report_id:reportId},transaction})
     if(values.protocols.length)await SivisaProtocol.bulkCreate(values.protocols.map(item=>({...item,report_id:reportId})),{transaction})
-    if(actor)await Audit.create({actor_id:actor.account.id,action:'sivisa.saved',details:{report_id:reportId,applies:values.applies,protocols:values.protocols}},{transaction})
+    if(actor)await Audit.create({actor_id:actor.account.id,action:'sivisa.saved',details:{report_id:reportId,applies:values.applies,protocols:values.protocols,notes:values.notes}},{transaction})
 }
 const pendingWhere=userId=>({type:1,user_id:userId,[Op.and]:literal('NOT EXISTS (SELECT 1 FROM report_sivisa_protocols AS sp WHERE sp.report_id = reports.id)')})
 const pendingInclude=()=>[{model:ReportSivisa,as:'sivisa',required:true,where:{applies:true}}]

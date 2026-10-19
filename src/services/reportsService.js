@@ -16,7 +16,7 @@ async function addReport({ denunciationId, userId, description, status, actor, .
     if (status && !Object.hasOwn(DENUNCIATION_STATUS, status)) return { ok: false, status: 400, message: 'Status inválido' }
 
     let sivisa
-    try{if(description)sivisa=normalizeSivisa(sivisaInput);else if(sivisaRows(sivisaInput).some(item=>item.protocol.trim()))return {ok:false,status:400,message:'Descreva a ação para vincular protocolos SIVISA.'}}
+    try{if(description)sivisa=normalizeSivisa(sivisaInput);else if(sivisaRows(sivisaInput).some(item=>item.protocol.trim()||item.note.trim()))return {ok:false,status:400,message:'Descreva a ação para vincular protocolos ou observações SIVISA.'}}
     catch(error){return {ok:false,status:400,message:error.message}}
     try{return await db.transaction(async transaction=>{
         const denuncia = await denunciationsRepository.findByPk(denunciationId,{transaction,lock:transaction.LOCK.UPDATE})

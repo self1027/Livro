@@ -15,7 +15,9 @@ Remover o último protocolo mantém o relatório aplicável e faz a pendência v
 
 ## Uso e permissões
 
-No formulário **Atualizar acompanhamento**, o relatório textual exige escolha explícita. Para “registrado”, informe pelo menos um protocolo. Podem ser incluídos vários protocolos, cada um com observação opcional de até 500 caracteres.
+No formulário **Atualizar acompanhamento**, marque **Não cabe SIVISA** somente para dispensar a ação. Com a opção desmarcada e sem protocolos, o relatório textual fica automaticamente com SIVISA pendente. Informar um protocolo regulariza a ação automaticamente. Podem ser incluídos vários protocolos, cada um com observação opcional de até 500 caracteres. O formulário **Gerenciar SIVISA** usa a mesma regra.
+
+A observação pode ser salva sem preencher o protocolo, inclusive em ações dispensadas. Ela permanece disponível no histórico e na edição, mas não conta como protocolo nem remove uma pendência. Ao preencher um protocolo na mesma linha posteriormente, a observação fica vinculada a ele. Observações SIVISA exigem um relatório textual; um envio somente de status não pode recebê-las.
 
 O histórico mostra a situação e os protocolos. **Gerenciar SIVISA** abre um formulário separado que preserva o texto do relatório. Esta ação e a lista **SIVISA pendentes** exigem `reports.edit`; a autoria é validada, inclusive após reatribuição da denúncia. `fiscal.all` amplia o alcance, em conjunto com a permissão de edição. O menu e a própria área fiscal mostram um lembrete das pendências do autor.
 
@@ -23,7 +25,7 @@ Na criação, `reports.create` permite registrar a classificação e os protocol
 
 ## Dados, migração e concorrência
 
-Execute `npm run migrate:sivisa` para preparar uma instalação existente. O comando é repetível e cria somente `report_sivisa` e `report_sivisa_protocols`. Não altera textos, autores, responsáveis ou status anteriores. A inicialização normal também cria essas tabelas se ainda não existirem, conforme a política de sincronização dos modelos operacionais do projeto.
+Execute `npm run migrate:sivisa` para preparar uma instalação existente. O comando é repetível, cria `report_sivisa` e `report_sivisa_protocols` e adiciona a coluna JSON `report_sivisa.notes` para observações sem protocolo caso ainda não exista. Não altera textos, autores, responsáveis ou status anteriores. A inicialização normal também prepara essas tabelas e a coluna, conforme a política de sincronização dos modelos operacionais do projeto.
 
 Os protocolos são normalizados removendo espaços e convertendo letras para maiúsculas, preservando zeros à esquerda e pontuação. O índice único no banco impede vínculos duplicados mesmo com gravações simultâneas. Gravações do acompanhamento e dos vínculos ocorrem em transação; uma duplicidade desfaz a operação inteira. Excluir o relatório remove seus vínculos por chave estrangeira com cascata.
 
@@ -42,7 +44,7 @@ Com autenticação ativa, cada gravação SIVISA também registra na auditoria q
 }
 ```
 
-`sivisa_state` aceita `pending`, `registered` ou `not_applicable`. Os campos de protocolo e observação aceitam uma string ou arrays correspondentes. Formulários HTML usam nomes repetidos. A lista admite até 100 protocolos por relatório, com até 64 caracteres cada. Informar protocolo em `pending` regulariza automaticamente a ação.
+`sivisa_state` aceita `pending`, `registered` ou `not_applicable`. Omitir o campo ou enviá-lo vazio equivale a `pending`: sem protocolos, gera pendência; com protocolos, a ação fica registrada. O checkbox HTML envia `not_applicable` somente quando marcado. O valor explícito `registered` continua exigindo pelo menos um protocolo na criação. Os campos de protocolo e observação aceitam uma string ou arrays correspondentes. Formulários HTML usam nomes repetidos. A lista admite até 100 protocolos por relatório, com até 64 caracteres cada. Informar protocolo em `pending` regulariza automaticamente a ação.
 
 `GET/POST /relatorio/:id/sivisa` consulta ou substitui a classificação e a lista completa de protocolos. Na edição, `registered` com lista vazia resulta em pendência. Uma lista vazia em `not_applicable` dispensa a ação.
 

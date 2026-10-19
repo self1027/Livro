@@ -9,7 +9,7 @@
         <% if(locals.error) { %><div class="alert alert-danger" role="alert"><%= error %></div><% } %>
         <% if(locals.success) { %><div class="alert alert-success" role="status">Registro SIVISA atualizado.</div><% } %>
         <form method="POST" action="/relatorio/<%= report.id %>/sivisa" data-sivisa-form>
-            <%- include('../partials/sivisaFields',{sivisaForm:locals.sivisaForm||{},sivisaRequired:true}) %>
+            <%- include('../partials/sivisaFields',{sivisaForm:locals.sivisaForm||{}}) %>
             <button class="btn btn-primary" type="submit">Salvar SIVISA</button>
             <% if(typeof can!=='function'||can('denunciations.read')) { %><a class="btn btn-link" href="/denuncias/<%= denuncia.id %>#reports-section">Voltar à denúncia</a><% } %>
         </form>

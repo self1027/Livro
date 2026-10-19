@@ -14,27 +14,27 @@ export function sivisaState(report){
 const list=value=>value==null?[]:Array.isArray(value)?value:[value]
 export function sivisaRows(input={}){
     const protocols=list(input.sivisa_protocol),notes=list(input.sivisa_note)
-    return protocols.map((protocol,index)=>({protocol:typeof protocol==='string'?protocol:'',note:typeof notes[index]==='string'?notes[index]:''}))
+    return Array.from({length:Math.max(protocols.length,notes.length)},(_,index)=>({protocol:typeof protocols[index]==='string'?protocols[index]:'',note:typeof notes[index]==='string'?notes[index]:''}))
 }
 export function normalizeSivisa(input,{editing=false}={}){
-    const state=input.sivisa_state
+    const state=input.sivisa_state==null||input.sivisa_state===''?'pending':input.sivisa_state
     if(!['pending','registered','not_applicable'].includes(state))throw new Error('Informe se a ação cabe no SIVISA e se já foi registrada.')
     const rawProtocols=list(input.sivisa_protocol),rawNotes=list(input.sivisa_note)
     if(rawProtocols.length>100||rawNotes.length>100)throw new Error('Informe no máximo 100 protocolos por relatório.')
-    const protocols=[]
-    for(let index=0;index<rawProtocols.length;index++){
-        const value=rawProtocols[index],noteValue=rawNotes[index]??''
+    const protocols=[],notes=[]
+    for(let index=0;index<Math.max(rawProtocols.length,rawNotes.length);index++){
+        const value=rawProtocols[index]??'',noteValue=rawNotes[index]??''
         if(typeof value!=='string'||typeof noteValue!=='string')throw new Error('Protocolo ou observação SIVISA inválidos.')
         const protocol=value.trim().replace(/\s+/g,'').toUpperCase(),note=noteValue.trim()
-        if(!protocol){if(note)throw new Error('Informe o protocolo correspondente à observação.');continue}
-        if(protocol.length>64||!/^[A-Z0-9]+(?:[./-][A-Z0-9]+)*$/.test(protocol))throw new Error('Informe um protocolo SIVISA válido, com até 64 caracteres, como 01.000917/26.')
         if(note.length>500)throw new Error('A observação do protocolo deve ter até 500 caracteres.')
+        if(!protocol){if(note)notes.push(note);continue}
+        if(protocol.length>64||!/^[A-Z0-9]+(?:[./-][A-Z0-9]+)*$/.test(protocol))throw new Error('Informe um protocolo SIVISA válido, com até 64 caracteres, como 01.000917/26.')
         protocols.push({protocol,note})
     }
     if(new Set(protocols.map(item=>item.protocol)).size!==protocols.length)throw new Error('O mesmo protocolo SIVISA foi informado mais de uma vez.')
     if(state==='not_applicable'&&protocols.length)throw new Error('Remova os protocolos antes de marcar que não cabe SIVISA.')
     if(state==='registered'&&!protocols.length&&!editing)throw new Error('Informe pelo menos um protocolo para marcar SIVISA registrado.')
-    return {applies:state!=='not_applicable',protocols}
+    return {applies:state!=='not_applicable',protocols,notes}
 }
 export function summarizeSivisa(reports,users=[]){
     const textual=reports.filter(report=>Number(report.type)===1)

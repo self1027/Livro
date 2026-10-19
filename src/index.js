@@ -27,6 +27,7 @@ import {authContext,protectRoutes,authEnabled} from './auth/middleware.js'
 import {authRouter,accessRouter} from './auth/controller.js'
 import {assertAuthReady} from './auth/service.js'
 import {migrateReportOperations} from './database/migrateReportOperations.js'
+import {migrateSivisa} from './database/migrateSivisa.js'
 import {migrateDenunciationCreators} from './database/migrateDenunciationCreators.js'
 import chatController from './controllers/chatController.js'
 import {notifications as chatNotifications} from './services/chatService.js'
@@ -135,6 +136,7 @@ try {
     if(!models)throw new Error('Dependências circulares entre tabelas.')
     for(const model of models.reverse())if(!model.tableName.startsWith('auth_'))await model.sync()
     await migrateReportOperations()
+    await migrateSivisa()
     await migrateDenunciationCreators()
     await catalogService.initialize()
     app.listen(80, () => console.log('Livro disponível em http://localhost'))
