@@ -1,7 +1,33 @@
 import {test} from 'node:test'
 import assert from 'node:assert/strict'
 import {createSeed, complaintDraft, calendarDay} from '../src/demo/data.js'
-import {createComplaint, assignComplaint, addReport, saveSivisa, dashboard, loadState, saveState} from '../src/demo/store.js'
+import {createComplaint, assignComplaint, addReport, saveSivisa, dashboard, loadState, saveState, filterComplaints} from '../src/demo/store.js'
+import {pageContext} from '../src/demo/pages.js'
+import {localApi} from '../src/demo/api.js'
+
+test('listagem e paginação mostram os protocolos mais recentes primeiro, inclusive nos dados salvos',()=>{
+  const original=createSeed(),state=loadState({getItem:()=>JSON.stringify(original)})
+  const home=pageContext(state,new URL('http://localhost/')).data
+  assert.deepEqual(home.denuncias.slice(0,3).map(r=>r.number),[48,47,46])
+  assert.equal(home.denuncias.at(-1).number,29)
+  const next=localApi(state,new URL('http://localhost/api/denuncias?offset=20&limit=20'))
+  assert.equal(next[0].number,28);assert.equal(next.at(-1).number,9)
+  const last=localApi(state,new URL('http://localhost/api/denuncias?offset=40&limit=20'))
+  assert.deepEqual(last.map(r=>r.number),[8,7,6,5,4,3,2,1])
+  const fiscal=pageContext(state,new URL('http://localhost/area-fiscal/2')).data
+  assert.deepEqual(fiscal.denuncias.slice(0,3).map(r=>r.number),[45,42,39])
+  const search=pageContext(state,new URL('http://localhost/buscar?status=REGISTRADA')).data
+  assert.deepEqual(search.denuncias.slice(0,3).map(r=>r.number),[48,41,34])
+  const added=createComplaint(state,complaintDraft)
+  assert.equal(filterComplaints(state,{})[0].id,added.id)
+  assert.equal(state.complaints.length,49)
+})
+
+test('ordenação considera primeiro o ano, depois o número, sem depender dos IDs',()=>{
+  const state=createSeed()
+  state.complaints=state.complaints.slice(0,3).map((r,i)=>({...r,...[{id:100,year:2025,number:999},{id:200,year:2026,number:1},{id:1,year:2026,number:2}][i]}))
+  assert.deepEqual(filterComplaints(state,{}).map(r=>r.id),[1,200,100])
+})
 
 test('cadastro atribuição relatório SIVISA e conclusão atualizam as métricas',()=>{
   const state=createSeed(), before=dashboard(state,{}).stats

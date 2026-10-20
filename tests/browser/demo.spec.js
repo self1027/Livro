@@ -1,5 +1,20 @@
 import {test,expect} from '@playwright/test'
 
+test('listagem começa pelas mais recentes e mantém a ordem ao carregar mais',async({page})=>{
+  await page.goto('/');await page.getByRole('button',{name:'Entrar e explorar',exact:true}).click()
+  const protocols=page.locator('#tabela-denuncias tbody .home-protocol')
+  await expect(protocols).toHaveCount(20)
+  await expect(protocols.first()).toHaveText(/^48\s*\//)
+  await expect(protocols.last()).toHaveText(/^29\s*\//)
+  await page.getByRole('button',{name:'Carregar mais',exact:true}).click()
+  await expect(protocols).toHaveCount(40)
+  await expect(protocols.last()).toHaveText(/^9\s*\//)
+  await page.getByRole('button',{name:'Carregar mais',exact:true}).click()
+  await expect(protocols).toHaveCount(48)
+  await expect(protocols.last()).toHaveText(/^1\s*\//)
+  await page.reload();await expect(protocols.first()).toHaveText(/^48\s*\//)
+})
+
 test('roteiro completo produz denúncia, atribuição, relatório, protocolo e métricas',async({page})=>{
   const errors=[];page.on('pageerror',e=>errors.push(e.message))
   await page.goto('/')

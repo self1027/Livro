@@ -67,7 +67,7 @@ export function filterComplaints(state,filters,{author=false,period=true}={}){
     if(filters.scope==='open'&&isClosedStatus(r.status))return false
     const day=calendarDay(r.created_at)
     return !period||(!filters.start||day>=filters.start)&&(!filters.end||day<=filters.end)
-  }).sort((a,b)=>b.id-a.id)
+  }).sort((a,b)=>b.year-a.year||b.number-a.number||b.id-a.id)
 }
 export function dashboard(state,query){
   applyCatalog(state.catalogs)
