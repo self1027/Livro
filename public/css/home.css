@@ -1,0 +1,78 @@
+.app-create, .home-button { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; padding: 10px 18px; background: var(--ui-accent); border: 1px solid var(--ui-accent); color: var(--ui-accent-text); border-radius: 6px; font-size: 14px; font-weight: 500; text-decoration: none; }
+.app-create { display: flex; }
+.home-content { min-width: 0; flex: 1; padding: 0; container-type: inline-size; }
+.home-button.secondary { color: var(--ui-text); background: var(--ui-surface); border-color: var(--ui-input-border); }
+.home-button:hover { background: var(--ui-accent-hover); color: var(--ui-accent-text); text-decoration: none; }
+.home-button:disabled { opacity: .65; cursor: default; }
+.home-attendance { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; padding: 12px 16px; background: var(--ui-surface-muted); border: 1px solid var(--ui-border); border-radius: 6px; margin-bottom: 28px; font-size: 13px; color: var(--ui-muted); }
+.home-attendance-title { display: flex; align-items: center; gap: 10px; }
+.home-attendance strong { color: var(--ui-text); font-weight: 500; }
+.attendance-paused { color: var(--ui-danger); font-weight: 500; }
+.home-registers { background: var(--ui-surface); border: 1px solid var(--ui-border); border-radius: 8px; }
+.home-registers-heading { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 18px 20px; border-bottom: 1px solid var(--ui-border); }
+.home-registers-heading h2 { font-size: 14px; font-weight: 500; margin: 0; }
+.home-registers-heading p { font-size: 13px; color: var(--ui-muted); margin: 0; }
+.home-record-count { font-size: 12px; color: var(--ui-muted); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.home-table-wrap { width: 100%; }
+.home-table { width: 100%; table-layout: fixed; font-size: 13px; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+.home-table caption { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+.home-table th { padding: 12px 10px; color: var(--ui-muted); background: var(--ui-surface-muted); font-size: 12px; font-weight: 400; overflow-wrap: anywhere; }
+.home-table th:nth-child(1) { width: 9%; }
+.home-table th:nth-child(2) { width: 14%; }
+.home-table th:nth-child(3) { width: 21%; }
+.home-table th:nth-child(4) { width: 18%; }
+.home-table th:nth-child(5) { width: 10%; }
+.home-table th:nth-child(6) { width: 12%; }
+.home-table th:nth-child(7) { width: 11%; }
+.home-table th:nth-child(8) { width: 5%; }
+.home-table td { padding: 16px 10px; border-top: 1px solid var(--ui-border); vertical-align: middle; overflow-wrap: anywhere; }
+.home-table td[data-label="Tipo"] .ui-status { padding: 0; background: transparent; font-weight: 400; font-size: 12px; }
+.home-table th:first-child, .home-table td:first-child { text-align: right; padding-left: 16px; padding-right: 16px; }
+.home-table th:last-child, .home-table td:last-child { padding-right: 16px; text-align: right; }
+.home-table th:last-child { white-space: nowrap; }
+.home-table tbody tr:hover { background: var(--ui-surface-hover); }
+.home-title { font-weight: 500; line-height: 1.5; }
+.home-protocol { font-weight: 500; white-space: nowrap; }
+.home-protocol-year { color: var(--ui-muted); font-weight: 400; }
+.home-muted { color: var(--ui-muted); font-size: 12px; }
+.home-view { display: inline-flex; align-items: center; justify-content: center; gap: 5px; min-width: 44px; min-height: 44px; padding: 6px; color: var(--ui-primary); font-weight: 500; white-space: nowrap; border-radius: 6px; }
+.home-view:hover { background: var(--ui-info-background); text-decoration: none; }
+.home-load { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; padding: 16px 20px; border-top: 1px solid var(--ui-border); font-size: 12px; color: var(--ui-muted); }
+.home-load p { margin: 0; }
+.home-load p:empty { display: none; }
+.home-empty { padding: 56px 24px; text-align: center; border: 1px solid var(--ui-border); border-radius: 10px; }
+.home-empty > .ui-icon { width: 32px; height: 32px; color: var(--ui-muted); margin-bottom: 16px; }
+.home-empty h2 { font-size: 20px; margin-bottom: 12px; }
+.home-empty p { color: var(--ui-muted); margin-bottom: 24px; }
+.home-attendance, .home-empty, .home-load { overflow-wrap: anywhere; }
+@container (max-width: 1020px) {
+    .home-table thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+    .home-table, .home-table tbody { display: block; }
+    .home-table tr { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px 20px; padding: 20px; border-top: 1px solid var(--ui-border); }
+    .home-table td, .home-table td:first-child, .home-table td:last-child { display: block; min-width: 0; padding: 4px 0; border: 0; text-align: left; }
+    .home-table td::before { display: block; content: attr(data-label); color: var(--ui-muted); font-size: 12px; font-weight: 400; margin-bottom: 4px; }
+    .home-table td[data-label="Título"] { grid-column: 1 / -1; grid-row: 1; font-size: 15px; }
+    .home-table td[data-label="Título"]::before, .home-table td[data-label="Ações"]::before { display: none; }
+    .home-table td[data-label="Endereço"] { grid-column: span 2; }
+    .home-table td[data-label="Ações"] { justify-self: end; align-self: end; }
+}
+@media (max-width: 767px) {
+    .home-table tr { grid-template-columns: minmax(0, 1fr) auto; gap: 8px 16px; padding: 16px; }
+    .home-table td::before { display: none; }
+    .home-table td[data-label="Título"] { font-size: 14px; }
+    .home-table td[data-label="Protocolo"] { grid-row: 2; grid-column: 1; }
+    .home-table td[data-label="Status"] { grid-row: 2; grid-column: 2; text-align: right; }
+    .home-table td[data-label="Tipo"] { grid-row: 3; grid-column: 1 / -1; }
+    .home-table td[data-label="Endereço"] { grid-row: 4; grid-column: 1 / -1; }
+    .home-table td[data-label="Data"] { grid-row: 5; grid-column: 1; color: var(--ui-muted); font-size: 12px; }
+    .home-table td[data-label="Fiscal"] { grid-row: 6; grid-column: 1; color: var(--ui-muted); font-size: 12px; }
+    .home-table td[data-label="Fiscal"]::before { display: inline; content: 'Fiscal: '; }
+    .home-table td[data-label="Ações"] { grid-row: 5 / 7; grid-column: 2; }
+}
+@media (max-width: 575px) {
+    .home-attendance { align-items: flex-start; flex-direction: column; padding: 16px; }
+    .home-registers-heading { align-items: flex-start; flex-direction: column; gap: 8px; }
+    .home-registers-heading p { display: none; }
+    .home-load { align-items: flex-start; flex-direction: column; }
+    .home-load .home-button { width: 100%; }
+}

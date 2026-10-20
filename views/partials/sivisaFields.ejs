@@ -1,0 +1,21 @@
+<% const sivisaValues=locals.sivisaForm||{};
+const protocolValues=Array.isArray(sivisaValues.sivisa_protocol)?[...sivisaValues.sivisa_protocol]:[sivisaValues.sivisa_protocol||''];
+const noteValues=Array.isArray(sivisaValues.sivisa_note)?sivisaValues.sivisa_note:[sivisaValues.sivisa_note||''];
+while(protocolValues.length<Math.max(1,noteValues.length))protocolValues.push(''); %>
+<fieldset class="sivisa-fields border rounded p-3 my-3" data-sivisa-fields>
+    <legend class="h6 w-auto px-2">Registro da ação no SIVISA</legend>
+    <div class="form-check">
+        <input class="form-check-input" type="checkbox" id="sivisa-state" name="sivisa_state" value="not_applicable" data-sivisa-state aria-describedby="sivisa-help" <%= sivisaValues.sivisa_state==='not_applicable'?'checked':'' %>>
+        <label class="form-check-label" for="sivisa-state">Não cabe SIVISA</label>
+    </div>
+    <p id="sivisa-help" class="small text-muted mt-2">Sem marcar esta opção e sem informar protocolo, o relatório ficará com SIVISA pendente. Se já registrou a ação, informe o protocolo abaixo para remover a pendência.</p>
+    <div data-sivisa-rows>
+        <% protocolValues.forEach((protocol,index)=>{ %><div class="border rounded p-3 mb-2" data-sivisa-row>
+            <label class="d-block">Protocolo SIVISA<input class="form-control" name="sivisa_protocol" maxlength="64" value="<%= protocol %>" placeholder="01.000917/26" autocomplete="off" data-sivisa-protocol></label>
+            <label class="d-block">Observação (opcional, mesmo sem protocolo)<input class="form-control" name="sivisa_note" maxlength="500" value="<%= noteValues[index]||'' %>" placeholder="Ex.: Fui com o Ricardo e o Eduardo"></label>
+            <button type="button" class="btn btn-sm btn-outline-danger" data-sivisa-remove>Remover protocolo</button>
+        </div><% }) %>
+    </div>
+    <button type="button" class="btn btn-sm btn-outline-secondary" data-sivisa-add>Adicionar outro protocolo</button>
+    <p class="small text-muted mt-2 mb-0">Você pode adicionar outros protocolos depois. Remover o último faz a pendência voltar. Para marcar “Não cabe SIVISA”, deixe a lista vazia. Alterações somente de status não geram pendência.</p>
+</fieldset>

@@ -1,0 +1,36 @@
+@font-face { font-family: 'Inter'; font-style: normal; font-weight: 100 900; font-display: swap; src: url('/fonts/inter-latin.woff2') format('woff2'); }
+/* Modelo Supabase importado em DESIGN.md: esmeralda nas ações, superfícies neutras. */
+:root {
+    --ui-primary: #18794e;
+    --ui-primary-hover: #115437;
+    --ui-background: #ffffff;
+    --ui-surface: #ffffff;
+    --ui-surface-muted: #fafafa;
+    --ui-surface-hover: #f7f7f7;
+    --ui-text: #171717;
+    --ui-muted: #6b6b6b;
+    --ui-border: #dfdfdf;
+    --ui-input-border: #b0b0b0;
+    --ui-sidebar: #fafafa;
+    --ui-sidebar-text: #404040;
+    --ui-sidebar-muted: #666666;
+    --ui-sidebar-active: #ededed;
+    --ui-sidebar-hover: #f0f0f0;
+    --ui-accent: #3ecf8e;
+    --ui-accent-text: #171717;
+    --ui-accent-hover: #24b47e;
+    --ui-info-background: #f5f7f6;
+    --ui-danger: #963b38;
+    --ui-danger-background: #fbe6e3;
+    --ui-warning: #795116;
+    --ui-warning-background: #fff0d6;
+    --ui-success: #245d45;
+    --ui-success-background: #e1eee7;
+    --ui-focus: #18794e;
+    --ui-focus-shadow: 0 0 0 3px rgba(62, 207, 142, .18);
+    --ui-radius: 8px;
+    --ui-shadow: none;
+    --ui-motion-fast: 120ms;
+    --ui-motion-menu: 180ms;
+    --ui-easing: cubic-bezier(.2, .8, .2, 1);
+}

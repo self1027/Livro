@@ -1,0 +1,49 @@
+<%- include('../partials/header.ejs') %>
+<%- include('../partials/navbar.ejs') %>
+<link rel="stylesheet" href="/css/admin.css">
+<main class="container admin-panel">
+    <% const panelAllowed=typeof can==='function'?can:()=>true;const panelCanEditReport=report=>typeof canManageReport==='function'?canManageReport('reports.edit',report):panelAllowed('reports.edit');filters.view=filters.view||'overview'; %>
+    <%- include('../partials/pageHeading.ejs', {eyebrow: 'ADMINISTRATIVO', title: 'Painel Administrativo', description: 'Acompanhe as denúncias, organize a fiscalização e gerencie o atendimento.', actionHref: '/admin/assignments', actionLabel: 'Atribuir fiscal', actionPrimary: true}) %>
+    <%- include('../partials/adminTabs.ejs', {activeTab:tab,overviewUrl:adminUrl(filters),attendanceUrl:adminUrl(filters,{tab:'attendance'})}) %>
+    <% if (notice) { %><div class="alert <%= noticeError ? 'alert-danger' : 'alert-success' %>" role="status"><%= notice %></div><% } %>
+    <% if (tab === 'attendance') { %>
+    <section class="card">
+        <div class="card-header"><h2 class="ui-section-title">Configuração de atendimento de denúncias</h2></div>
+        <div class="card-body">
+        <p class="text-muted">Esta configuração aparece na página inicial e vale para todos os anos.</p>
+        <form method="POST" action="/admin/attendance">
+            <div class="form-check mb-2"><input class="form-check-input" id="attendance-disabled" type="checkbox" name="module_disabled" aria-describedby="attendance-module-help" <%= attendance.enabled === false ? 'checked' : '' %>><label class="form-check-label" for="attendance-disabled">Desabilitar módulo de atendimento</label></div>
+            <p id="attendance-module-help" class="small text-muted">Oculta o bloco de atendimento na página inicial e preserva os dias configurados.</p>
+            <fieldset id="attendance-options" <%= attendance.enabled === false ? 'disabled' : '' %>>
+            <fieldset class="form-group"><legend class="h6">Dias de atendimento</legend><div class="d-flex flex-wrap">
+                <% ['SEG','TER','QUA','QUI','SEX'].forEach(day => { %>
+                <div class="form-check mr-4 mb-2"><input class="form-check-input" id="day-<%= day %>" type="checkbox" name="weekdays" value="<%= day %>" <%= attendance.weekdays.includes(day) ? 'checked' : '' %>><label class="form-check-label" for="day-<%= day %>"><%= day %></label></div>
+                <% }) %>
+            </div></fieldset>
+            <div class="form-check mb-3"><input class="form-check-input" id="paused" type="checkbox" name="paused" <%= attendance.paused ? 'checked' : '' %>><label for="paused" class="form-check-label">Atendimento pausado</label></div>
+            </fieldset>
+            <button class="btn btn-primary">Salvar configuração</button>
+        </form>
+        <div class="alert alert-info mt-3 mb-0">Situação: <%= attendance.enabled === false ? 'Módulo de atendimento desabilitado' : attendance.paused ? 'Atendimento pausado' : attendance.weekdays.length ? 'Atendimento em ' + attendance.weekdays.join(', ') : 'Nenhum dia definido' %></div>
+        <% if (attendance.updated_at) { %><small class="text-muted">Última alteração: <%= formatDate(attendance.updated_at) %></small><% } %>
+    </div></section>
+    <script src="/js/attendance.js" defer></script>
+    <% } else { %>
+    <nav class="admin-views" aria-label="Análises do painel">
+        <% [['overview','Resumo e filas'],['sivisa','Ações e SIVISA'],['analytics','Distribuições'],['reports','Atividade recente']].forEach(([view,label])=>{ %>
+        <a class="btn btn-sm <%= filters.view===view?'btn-primary':'btn-outline-secondary' %>" href="<%= adminUrl(filters,{view,queue:'',actionMetric:''}) %>" <%- filters.view===view?'aria-current="page"':'' %>><%= label %></a>
+        <% }) %>
+    </nav>
+    <%- include('../partials/adminFilters.ejs') %>
+    <% if(filters.view==='sivisa') { %>
+        <%- include('../partials/adminSivisa.ejs',{panelAllowed,panelCanEditReport}) %>
+    <% } else if(filters.view==='analytics') { %>
+        <%- include('../partials/adminAnalytics.ejs') %>
+    <% } else if(filters.view==='reports') { %>
+        <%- include('../partials/adminReports.ejs',{panelAllowed,panelCanEditReport}) %>
+    <% } else { %>
+        <%- include('../partials/adminOverview.ejs',{panelAllowed}) %>
+    <% } %>
+    <% } %>
+</main>
+<%- include('../partials/footer.ejs') %>

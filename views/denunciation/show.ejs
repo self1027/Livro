@@ -1,0 +1,67 @@
+﻿<%- include('../partials/header.ejs') %>
+<%- include('../partials/navbar.ejs') %>
+<link rel="stylesheet" href="/css/denunciation-detail.css">
+<main class="container denunciation-detail">
+    <% const detailAllowed=typeof can==='function'?can:()=>true;const workAllowed=permission=>typeof canWorkOnDenunciation==='function'?canWorkOnDenunciation(permission,denuncia):detailAllowed(permission)&&(typeof auth==='undefined'||!auth||detailAllowed('fiscal.all')||String(denuncia.user_id)===String(auth.user.id));const canWork=workAllowed('reports.create'); %>
+    <nav class="detail-breadcrumb" aria-label="Localização na navegação"><a href="/">Denúncias</a><span aria-hidden="true">/</span><span aria-current="page"><%= denuncia.number %>/<%= denuncia.year %></span></nav>
+    <%- include('../partials/pageHeading.ejs', {eyebrow:'', title:denuncia.title, description:'Registrada em ' + new Date(denuncia.created_at).toLocaleDateString('pt-BR', {timeZone:'America/Sao_Paulo'}) + ' · Cadastrada por ' + (denuncia.creator?.name || 'autor não identificado'), actionHref:workAllowed('denunciations.edit.own')?'/denuncias/' + denuncia.id + '/edit':null, actionLabel:'Editar denúncia'}) %>
+    <% if (locals.successMessages) { successMessages.forEach(message => { %><div class="alert alert-success" role="status"><%= message %></div><% }) } %>
+    <% if (locals.error) { %><div class="alert alert-danger" role="alert"><%= error %></div><% } %>
+    <% if(typeof auth!=='undefined' && auth && detailAllowed('chat.use')) { %><p class="mb-3"><a class="btn btn-sm btn-outline-secondary" href="/recados?denunciationId=<%= denuncia.id %>">Conversar sobre esta denúncia</a></p><% } %>
+    <section class="detail-summary" aria-label="Situação e responsabilidade">
+        <div><span class="detail-label">Status atual</span><%- include('../partials/statusBadge.ejs', {status:DENUNCIATION_STATUS[denuncia.status?.trim()] || {label:'Desconhecido'}}) %></div>
+        <div class="detail-assignee"><span class="detail-label">Fiscal responsável</span><strong><%= denuncia.user?.name || 'Não atribuído' %></strong></div>
+        <div class="detail-summary-actions"><% if(detailAllowed('denunciations.assign')) { %><button type="button" class="btn btn-outline-secondary" data-toggle="modal" data-target="#fiscalModal"><%= denuncia.user ? 'Trocar fiscal' : 'Atribuir fiscal' %></button><% } %><a class="btn btn-primary" href="<%= canWork?'#new-report':'#reports-section' %>"><%= canWork&&denuncia.user_id ? 'Adicionar relatório' : 'Ver acompanhamento' %></a></div>
+    </section>
+    <div class="detail-grid">
+        <section class="card" aria-labelledby="detail-description-title">
+            <div class="card-header"><h2 id="detail-description-title" class="ui-section-title">Situação denunciada</h2></div>
+            <div class="card-body"><p class="detail-description"><%= denuncia.description || 'Descrição não informada.' %></p><div class="detail-origin"><span class="detail-label">Origem da denúncia</span><%- include('../partials/statusBadge.ejs', {status:SENDER_DETAILS[denuncia.registration_type] || {label:denuncia.registration_type || 'Não informado'}}) %></div></div>
+        </section>
+        <section class="card" aria-labelledby="detail-location-title">
+            <div class="card-header"><h2 id="detail-location-title" class="ui-section-title">Localização</h2></div>
+            <div class="card-body"><dl class="detail-location"><div><dt>Logradouro</dt><dd><%= denuncia.endereco %></dd></div><div><dt>Número</dt><dd><%= denuncia.numero %></dd></div><div><dt>Bairro</dt><dd><%= denuncia.bairro %></dd></div><div><dt>Complemento</dt><dd><%= denuncia.complemento || 'Não informado' %></dd></div></dl></div>
+        </section>
+    </div>
+    <div class="detail-followup-grid">
+        <section class="card" id="reports-section" aria-labelledby="detail-history-title">
+            <div class="card-header detail-section-heading"><h2 id="detail-history-title" class="ui-section-title">Histórico de acompanhamento</h2><span class="small text-muted"><%= (reports || []).length %> <%= (reports || []).length === 1 ? 'registro' : 'registros' %></span></div>
+            <div class="card-body"><%- include('../partials/reportHistory.ejs', {reports:reports || [],REPORT_DETAILS}) %></div>
+        </section>
+        <% if(canWork) { %><section class="card" id="new-report" aria-labelledby="detail-report-title">
+            <div class="card-header"><h2 id="detail-report-title" class="ui-section-title">Atualizar acompanhamento</h2></div>
+            <div class="card-body">
+                <% if (!denuncia.user_id) { %><div class="alert alert-info"><p>Atribua um fiscal responsável para adicionar relatórios ou alterar o status.</p><% if(detailAllowed('denunciations.assign')) { %><button class="btn btn-outline-primary" type="button" data-toggle="modal" data-target="#fiscalModal">Atribuir fiscal</button><% } %></div><% } %>
+                <p class="small text-muted">Escreva um relatório, atualize o status ou faça as duas ações.</p>
+                <form id="detail-report-form" action="/denuncias/<%= denuncia.id %>/adicionar-relatorio" method="POST" data-current-status="<%= denuncia.status %>" data-sivisa-form>
+                    <% if(typeof auth==='undefined'||!auth) { %><input type="hidden" name="user_id" value="<%= denuncia.user_id %>"><% } %>
+                    <fieldset <%= !denuncia.user_id ? 'disabled' : '' %>>
+                        <div class="form-group"><label for="detail-report-description">Relatório</label><textarea id="detail-report-description" class="form-control" name="description" rows="5" placeholder="Descreva a ação realizada ou o andamento da fiscalização." aria-describedby="detail-report-feedback"><%= locals.reportForm?.description||'' %></textarea></div>
+                        <div class="form-group"><label for="detail-report-status">Status</label><select id="detail-report-status" class="form-control" name="status"><option value="">Manter status atual</option><% Object.entries(DENUNCIATION_STATUS).forEach(([slug,item]) => { %><option value="<%= slug %>" <%= locals.reportForm?.status===slug?'selected':'' %>><%= item.label %></option><% }) %></select></div>
+                        <%- include('../partials/sivisaFields',{sivisaForm:locals.reportForm||{}}) %>
+                        <p id="detail-report-feedback" class="small text-danger" role="alert" hidden></p>
+                        <button class="btn btn-primary" type="submit" data-detail-submit>Salvar acompanhamento</button>
+                        <p class="small text-muted mt-2 mb-0" data-detail-progress role="status" aria-live="polite"></p>
+                    </fieldset>
+                </form>
+            </div>
+        </section><% } %>
+    </div>
+</main>
+<% if(detailAllowed('denunciations.assign')) { %>
+<div class="modal fade" id="fiscalModal" tabindex="-1" role="dialog" aria-labelledby="fiscal-modal-title" aria-hidden="true">
+    <div class="modal-dialog"><div class="modal-content">
+        <form action="/admin/assignments/<%= denuncia.id %>" method="POST"><input type="hidden" name="redirectToShow" value="true">
+            <div class="modal-header"><h2 id="fiscal-modal-title" class="modal-title ui-section-title"><%= denuncia.user ? 'Trocar fiscal responsável' : 'Atribuir fiscal responsável' %></h2><button type="button" class="close" data-dismiss="modal" aria-label="Fechar">&times;</button></div>
+            <div class="modal-body">
+                <% if (fiscais.length) { %><label for="detail-fiscal">Fiscal responsável</label><select id="detail-fiscal" name="userId" class="form-control" required><option value="">Selecione um fiscal</option><% fiscais.forEach(user => { %><option value="<%= user.id %>" <%= String(denuncia.user_id) === String(user.id) ? 'selected' : '' %>><%= user.name %></option><% }) %></select>
+                <% } else { %><p class="text-muted">Nenhuma pessoa ativa com acesso habilitado e cargo que permita receber denúncias.</p><% if(typeof auth!=='undefined'&&auth?.role.maximum) { %><a href="/admin/access">Gerenciar usuários e acessos</a><% } %><% } %>
+            </div>
+            <div class="modal-footer"><button type="button" class="btn btn-outline-secondary" data-dismiss="modal">Cancelar</button><button type="submit" class="btn btn-primary" <%= !fiscais.length ? 'disabled' : '' %>>Salvar responsável</button></div>
+        </form>
+    </div></div>
+</div>
+<% } %>
+<script src="/js/sivisa-form.js" defer></script>
+<script src="/js/denunciation-detail.js" defer></script>
+<%- include('../partials/footer.ejs') %>

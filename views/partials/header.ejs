@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <% if(typeof csrfToken !== 'undefined' && csrfToken) { %><meta name="csrf-token" content="<%= csrfToken %>"><script src="/js/auth.js" defer></script><% } %>
+    <% if(typeof auth !== 'undefined' && auth) { %><meta name="authenticated-session" content="true"><% } %>
+    <% if(typeof auth !== 'undefined' && auth && !auth.account.must_change_password) { %><script src="/js/account-avatar.js" defer></script><link rel="stylesheet" href="/css/account-avatar.css"><% } %>
+    <% if(typeof auth !== 'undefined' && auth && !auth.account.must_change_password && typeof can==='function' && can('chat.use')) { %><meta name="recados-user" content="<%= auth.user.id %>"><script src="/js/notifications.js" defer></script><link rel="stylesheet" href="/css/notifications.css"><% } %>
+    <title>Livro · Vigilância Sanitária de Andradina</title>
+    <link rel="icon" href="/favicon/livro.svg" type="image/svg+xml" sizes="any">
+<!-- Bootstrap 4 CSS -->
+    <link rel="stylesheet" href="/css/bootstrap.min.css">
+    <link rel="preload" href="/fonts/inter-latin.woff2" as="font" type="font/woff2" crossorigin>
+    <!-- Font Awesome 5 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link rel="stylesheet" href="/css/theme.css">
+    <!-- Meu Style -->
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/components.css">
+    <link rel="stylesheet" href="/css/footer.css">
+    <link rel="stylesheet" href="/css/home.css">
+</head>
+<body>

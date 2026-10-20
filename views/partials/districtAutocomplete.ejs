@@ -1,0 +1,8 @@
+﻿<% const inputId = typeof id !== 'undefined' ? id : 'autocomplete-input'; const inputName = typeof name !== 'undefined' ? name : 'bairro'; const initialValue = typeof value !== 'undefined' ? value : ''; const listId = inputId + 'Suggestions'; %>
+<div class="autocomplete-wrapper" data-district-autocomplete>
+    <input class="form-control <%= typeof invalid !== 'undefined' && invalid ? 'is-invalid' : '' %>" type="text" id="<%= inputId %>" name="<%= inputName %>" placeholder="<%= typeof placeholder !== 'undefined' ? placeholder : 'Digite o bairro' %>" autocomplete="off" required value="<%= initialValue %>" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="<%= listId %>" aria-describedby="<%= typeof describedBy !== 'undefined' ? describedBy + ' ' : '' %><%= listId %>Error" data-district-input>
+    <div id="<%= listId %>" class="autocomplete-list" role="listbox" aria-label="Bairros cadastrados" hidden></div>
+    <div id="<%= listId %>Error" class="invalid-feedback" data-district-error hidden>Selecione um bairro cadastrado.</div>
+    <script type="application/json" data-district-options><%- JSON.stringify(districts.map(d => d.name)).replace(/</g, '\\u003c') %></script>
+</div>
+<script src="/js/district-autocomplete.js" defer></script>

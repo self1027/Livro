@@ -1,0 +1,39 @@
+<section class="card" aria-labelledby="district-title">
+    <div class="card-header"><h2 id="district-title" class="ui-section-title">Bairros</h2></div>
+    <div class="card-body">
+        <form method="POST" action="/bairros" class="mb-4">
+            <div class="form-row align-items-end">
+                <div class="form-group col-md-9"><label for="district-name">Nome do bairro</label><input id="district-name" type="text" class="form-control" name="name" placeholder="Digite o nome do bairro" required></div>
+                <div class="form-group col-md-3"><button class="btn btn-primary btn-block" type="submit">Cadastrar bairro</button></div>
+            </div>
+        </form>
+        <div class="form-group"><label for="searchDistrict">Buscar bairro</label><input type="search" id="searchDistrict" class="form-control" placeholder="Buscar na lista de bairros"></div>
+        <p id="districtSearchFeedback" class="small text-muted" role="status" aria-live="polite"></p>
+        <div class="table-responsive">
+            <table class="table table-striped" id="districtTable">
+                <thead><tr><th scope="col">ID</th><th scope="col">Bairro</th><th scope="col">Slug</th><th scope="col">Ações</th></tr></thead>
+                <tbody>
+                    <% districts.forEach(district => { %>
+                    <tr data-district-row data-district-name="<%= district.name %>">
+                        <td><%= district.id %></td><td><strong><%= district.name %></strong></td><td><code><%= district.slug %></code></td>
+                        <td><div class="district-actions">
+                            <button type="button" class="btn btn-outline-secondary btn-sm" data-toggle="modal" data-target="#editModal" data-edit-district="<%= district.id %>" data-name="<%= district.name %>" aria-label="Editar bairro <%= district.name %>">Editar</button>
+                            <form method="POST" action="/bairros/<%= district.id %>/delete" data-delete-district><button class="btn btn-danger btn-sm" type="submit" aria-label="Excluir bairro <%= district.name %>">Excluir</button></form>
+                        </div></td>
+                    </tr>
+                    <% }) %>
+                </tbody>
+            </table>
+        </div>
+        <% if (!districts.length) { %><p class="text-muted">Nenhum bairro cadastrado. Use o formulário acima para adicionar o primeiro.</p><% } %>
+    </div>
+</section>
+<div class="modal fade" id="editModal" tabindex="-1" role="dialog" aria-labelledby="editDistrictTitle" aria-hidden="true">
+    <div class="modal-dialog"><div class="modal-content">
+        <form method="POST" id="editForm">
+            <div class="modal-header"><h2 id="editDistrictTitle" class="modal-title ui-section-title">Editar bairro</h2><button type="button" class="close" data-dismiss="modal" aria-label="Fechar">&times;</button></div>
+            <div class="modal-body"><label for="editName">Nome do bairro</label><input type="text" name="name" id="editName" class="form-control" required></div>
+            <div class="modal-footer"><button type="button" class="btn btn-outline-secondary" data-dismiss="modal">Cancelar</button><button class="btn btn-primary" type="submit">Salvar alterações</button></div>
+        </form>
+    </div></div>
+</div>

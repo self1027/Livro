@@ -1,0 +1,29 @@
+<section class="card mb-4" id="acoes" aria-labelledby="action-details-title">
+    <div class="card-header d-flex flex-wrap justify-content-between align-items-center">
+        <h2 class="ui-section-title" id="action-details-title"><%= actionDetails.label %><%= actionDetails.author?' · '+actionDetails.author:'' %> <small class="text-muted">(<%= actionDetails.count %>)</small></h2>
+        <a href="<%= adminUrl(filters,{actionMetric:''}) %>">Fechar detalhamento</a>
+    </div>
+    <div class="card-body">
+        <% if(actionDetails.metric==='protocols') { %><p class="small text-muted"><%= actionDetails.count %> <%= actionDetails.count===1?'protocolo':'protocolos' %> em <%= actionDetails.actionCount %> <%= actionDetails.actionCount===1?'ação':'ações' %>. Cada ação pode ter vários protocolos, apresentados abaixo.</p><% } else { %><p class="small text-muted"><%= actionDetails.actionCount %> <%= actionDetails.actionCount===1?'relatório textual nos filtros atuais.':'relatórios textuais nos filtros atuais, ordenados do mais recente para o mais antigo.' %></p><% } %>
+        <% actionDetails.reports.forEach(report=>{ %>
+        <article class="admin-action border rounded p-3 mb-3">
+            <div class="d-flex flex-wrap justify-content-between align-items-start mb-2">
+                <div><h3 class="h6 mb-1">Denúncia <%= report.denunciation.number %>/<%= report.denunciation.year %> · <%= report.denunciation.title %></h3><p class="small text-muted mb-2"><%= report.user?.name||'Autor indisponível' %> · <%= formatDate(report.created_at) %></p></div>
+                <%- include('sivisaSummary.ejs',{report,sivisaHref:panelCanEditReport(report)?'/relatorio/'+report.id+'/sivisa':null}) %>
+            </div>
+            <p class="admin-action-description"><%= (report.description||'').slice(0,240) %><%= (report.description||'').length>240?'…':'' %></p>
+            <% if((report.description||'').length>240) { %><details class="mb-3"><summary>Ver relatório completo</summary><div class="admin-action-description mt-2"><%= report.description %></div></details><% } %>
+            <% if(actionDetails.metric==='protocols') { %><ul><% (report.sivisaProtocols||[]).forEach(protocol=>{ %><li><strong><%= protocol.protocol %></strong><% if(protocol.note) { %> — <%= protocol.note %><% } %></li><% }) %></ul><% } %>
+            <div class="admin-action-links">
+                <% if(panelAllowed('denunciations.read')) { %><a class="btn btn-sm btn-outline-primary" href="/denuncias/<%= report.denunciation.id %>">Ver denúncia completa</a><% } %>
+                <% if(panelCanEditReport(report)) { %><a class="btn btn-sm btn-outline-secondary" href="/relatorio/<%= report.id %>">Editar relatório</a><% } %>
+            </div>
+        </article>
+        <% }) %>
+        <% if(!actionDetails.reports.length) { %><p class="text-muted" role="status">Nenhuma ação encontrada para esta seleção.</p><% } %>
+        <nav class="d-flex flex-wrap align-items-center justify-content-between" aria-label="Paginação de ações"><span>Página <%= actionDetails.page %> de <%= actionDetails.pages %></span><div>
+            <% if(actionDetails.page>1) { %><a class="btn btn-sm btn-outline-primary" href="<%= adminUrl(filters,{page:actionDetails.page-1}) %>#acoes">Anterior</a><% } %>
+            <% if(actionDetails.page<actionDetails.pages) { %><a class="btn btn-sm btn-outline-primary" href="<%= adminUrl(filters,{page:actionDetails.page+1}) %>#acoes">Próxima</a><% } %>
+        </div></nav>
+    </div>
+</section>

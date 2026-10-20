@@ -1,0 +1,30 @@
+﻿<%- include('../partials/header.ejs') %>
+<%- include('../partials/navbar.ejs') %>
+<link rel="stylesheet" href="/css/admin.css">
+<link rel="stylesheet" href="/css/admin-staff.css">
+<main class="container admin-panel">
+    <%- include('../partials/pageHeading.ejs', {eyebrow:'ADMINISTRATIVO',title:denunciaSelecionada?'Atribuir fiscal':'Fila de atribuição',description:denunciaSelecionada?'Selecione um fiscal ativo para acompanhar esta denúncia.':'Organize as denúncias que ainda não têm fiscal responsável.',actionHref:denunciaSelecionada?'/admin/assignments':'/buscar',actionLabel:denunciaSelecionada?'Voltar à fila':'Buscar denúncias'}) %>
+    <%- include('../partials/adminTabs.ejs', {activeTab:'assignments'}) %>
+    <% if (locals.success) { %><div class="alert alert-success" role="status"><%= success %></div><% } %>
+    <% if (locals.error) { %><div class="alert alert-danger" role="alert"><%= error %></div><% } %>
+    <% if (denunciaSelecionada) { %>
+    <div class="admin-staff-layout">
+        <section class="card"><div class="card-header"><h2 class="ui-section-title">Denúncia <%= denunciaSelecionada.number %>/<%= denunciaSelecionada.year %></h2></div><div class="card-body"><h3 class="assignment-title"><%= denunciaSelecionada.title %></h3><p><%= denunciaSelecionada.endereco %>, <%= denunciaSelecionada.numero %><br><span class="text-muted"><%= denunciaSelecionada.bairro %></span></p><p class="small text-muted">Registrada em <%= new Date(denunciaSelecionada.created_at).toLocaleDateString('pt-BR',{timeZone:'America/Sao_Paulo'}) %></p><p class="assignment-description"><%= denunciaSelecionada.description %></p><% if (denunciaSelecionada.user) { %><p class="small text-muted">Responsável atual: <strong><%= denunciaSelecionada.user.name %></strong></p><% } %><a class="btn btn-outline-secondary" href="/denuncias/<%= denunciaSelecionada.id %>">Ver denúncia</a></div></section>
+        <section class="card"><div class="card-header"><h2 class="ui-section-title">Fiscal responsável</h2></div><div class="card-body">
+            <% if (!fiscais.length) { %><div class="alert alert-info">Nenhuma pessoa habilitada a receber denúncias. É necessário cadastro e acesso ativos e um cargo com permissão de recebimento.</div><% if(typeof auth!=='undefined'&&auth?.role.maximum) { %><a class="btn btn-outline-primary" href="/admin/access">Gerenciar usuários e acessos</a><% } %><% } else { %>
+            <form method="POST" action="/admin/assignments/<%= denunciaSelecionada.id %>" data-admin-save><div class="form-group"><label for="assignment-user">Selecione um fiscal *</label><select id="assignment-user" name="userId" class="form-control" required><option value="">Selecione</option><% fiscais.forEach(user=>{ %><option value="<%= user.id %>" <%= String(denunciaSelecionada.user_id)===String(user.id)?'selected':'' %>><%= user.name %></option><% }) %></select></div><p class="small text-muted">A denúncia ficará disponível na área do fiscal escolhido.</p><div class="admin-row-actions"><button type="submit" class="btn btn-primary">Confirmar atribuição</button><a class="btn btn-outline-secondary" href="/admin/assignments">Cancelar</a></div></form>
+            <% } %>
+        </div></section>
+    </div>
+    <% } else { %>
+    <section class="card"><div class="card-header admin-section-heading"><h2 class="ui-section-title">Denúncias sem fiscal</h2><span class="small text-muted"><%= total %> <%= total===1?'denúncia':'denúncias' %></span></div><div class="card-body">
+        <% if (denuncias.length) { %><div class="form-group"><label for="assignment-search">Buscar nesta página</label><input class="form-control" type="search" id="assignment-search" placeholder="Protocolo, título ou bairro"></div><p class="small text-muted" id="assignment-filter-feedback" role="status" aria-live="polite"></p><div class="table-responsive"><table class="table table-hover ui-responsive-table assignment-table"><thead><tr><% ['Protocolo','Denúncia','Localização','Origem','Registro','Ações'].forEach(label=>{ %><th scope="col"><%= label %></th><% }) %></tr></thead><tbody>
+            <% denuncias.forEach(denuncia=>{ %><tr data-assignment-row><td data-label="Protocolo"><strong><%= denuncia.number %>/<%= denuncia.year %></strong></td><td data-label="Denúncia"><a class="font-weight-bold" href="/denuncias/<%= denuncia.id %>"><%= denuncia.title %></a><div class="mt-2"><%- include('../partials/statusBadge.ejs',{status:DENUNCIATION_STATUS[denuncia.status]||{label:'Desconhecido'}}) %></div><details class="assignment-note"><summary>Ver descrição</summary><p><%= denuncia.description %></p></details></td><td data-label="Localização"><%= denuncia.endereco %>, <%= denuncia.numero %><br><span class="text-muted"><%= denuncia.bairro %></span></td><td data-label="Origem"><%- include('../partials/statusBadge.ejs',{status:SENDER_DETAILS[denuncia.registration_type]||{label:denuncia.registration_type||'Não informado'}}) %></td><td data-label="Registro"><%= new Date(denuncia.created_at).toLocaleDateString('pt-BR',{timeZone:'America/Sao_Paulo'}) %></td><td data-label="Ações"><a class="btn btn-sm btn-outline-primary" href="/admin/assignments?denunciaId=<%= denuncia.id %>">Atribuir fiscal</a></td></tr><% }) %>
+        </tbody></table></div>
+        <% } else { %><div class="admin-empty"><h3>Nenhuma denúncia pendente de atribuição</h3><p class="text-muted mb-0">As denúncias sem fiscal aparecerão nesta fila.</p></div><% } %>
+        <nav class="admin-pagination" aria-label="Paginação da fila de atribuição"><span class="small text-muted">Página <%= page %> de <%= pages %> · até 25 denúncias por página</span><div class="admin-row-actions"><% if(page>1) { %><a class="btn btn-sm btn-outline-secondary" href="/admin/assignments?page=<%= page-1 %>">Anterior</a><% } %><% if(page<pages) { %><a class="btn btn-sm btn-outline-primary" href="/admin/assignments?page=<%= page+1 %>">Próxima</a><% } %></div></nav>
+    </div></section>
+    <% } %>
+</main>
+<script src="/js/admin-staff.js" defer></script>
+<%- include('../partials/footer.ejs') %>

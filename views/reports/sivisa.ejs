@@ -1,0 +1,19 @@
+<%- include('../partials/header.ejs') %>
+<%- include('../partials/navbar.ejs') %>
+<link rel="stylesheet" href="/css/auth.css">
+<main class="container auth-page">
+    <%- include('../partials/pageHeading.ejs',{eyebrow:'ACOMPANHAMENTO',title:'SIVISA do relatório',description:'Vincule os protocolos desta ação. A pendência independe do status da denúncia.',actionHref:'/sivisa/pendencias',actionLabel:'Minhas pendências'}) %>
+    <p>Denúncia <strong><%= denuncia.number %>/<%= denuncia.year %></strong> — <%= denuncia.title %></p>
+    <section class="card"><div class="card-body">
+        <p class="ui-report-text"><%= report.description %></p>
+        <% if(locals.error) { %><div class="alert alert-danger" role="alert"><%= error %></div><% } %>
+        <% if(locals.success) { %><div class="alert alert-success" role="status">Registro SIVISA atualizado.</div><% } %>
+        <form method="POST" action="/relatorio/<%= report.id %>/sivisa" data-sivisa-form>
+            <%- include('../partials/sivisaFields',{sivisaForm:locals.sivisaForm||{}}) %>
+            <button class="btn btn-primary" type="submit">Salvar SIVISA</button>
+            <% if(typeof can!=='function'||can('denunciations.read')) { %><a class="btn btn-link" href="/denuncias/<%= denuncia.id %>#reports-section">Voltar à denúncia</a><% } %>
+        </form>
+    </div></section>
+</main>
+<script src="/js/sivisa-form.js" defer></script>
+<%- include('../partials/footer.ejs') %>

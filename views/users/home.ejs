@@ -1,0 +1,38 @@
+﻿<%- include('../partials/header.ejs') %>
+<%- include('../partials/navbar.ejs') %>
+<link rel="stylesheet" href="/css/fiscal.css">
+<main class="container fiscal-page fiscal-area" data-fiscal-id="<%= fiscal.id %>" data-selected-status="<%= selectedStatus %>" data-total="<%= total %>">
+    <% const canBrowseAll=typeof can!=='function'||can('fiscal.area.all');const canReadDenunciations=typeof can!=='function'||can('denunciations.read'); %>
+    <nav class="fiscal-breadcrumb" aria-label="Localização na navegação"><% if(canBrowseAll) { %><a href="/area-fiscal">Fiscais</a><% } else { %><span>Minha área fiscal</span><% } %><span aria-hidden="true">/</span><span aria-current="page"><%= fiscal.name %></span></nav>
+    <%- include('../partials/pageHeading.ejs', {eyebrow:'FISCALIZAÇÃO', title:fiscal.name, description:'Consulte as denúncias atribuídas e registre o andamento nas páginas de detalhe.', actionHref:canBrowseAll?'/area-fiscal':null, actionLabel:'Selecionar outro fiscal'}) %>
+    <% if(typeof auth!=='undefined'&&auth&&String(auth.user.id)===String(fiscal.id)&&locals.sivisaPendingCount>0) { %><div class="alert alert-warning" role="status">Você tem <strong><%= sivisaPendingCount %></strong> relatório(s) aguardando registro SIVISA, inclusive em denúncias já finalizadas. <a href="/sivisa/pendencias">Ver minhas pendências</a>.</div><% } %>
+    <section class="fiscal-filter-bar" aria-label="Filtrar denúncias atribuídas">
+        <form method="GET" action="/area-fiscal/<%= fiscal.id %>" data-fiscal-filter-form>
+            <div><label for="statusFilter">Status das denúncias</label><select id="statusFilter" name="status" class="form-control"><option value="ALL" <%= selectedStatus === 'ALL' ? 'selected' : '' %>>Todos os status</option><% Object.entries(DENUNCIATION_STATUS).forEach(([slug,item]) => { %><option value="<%= slug %>" <%= selectedStatus === slug ? 'selected' : '' %>><%= item.label %></option><% }) %></select></div>
+            <button class="btn btn-primary" type="submit" data-fiscal-filter-submit>Aplicar filtro</button>
+        </form>
+        <a class="btn btn-outline-secondary" href="/denuncias/pdf?fiscalId=<%= fiscal.id %>&amp;status=<%= encodeURIComponent(selectedStatus) %>" target="_blank" rel="noopener" data-fiscal-export>Exportar PDF</a>
+    </section>
+    <p class="small text-muted" data-fiscal-filter-feedback role="status" aria-live="polite" hidden></p>
+    <section class="card" aria-labelledby="fiscal-results-title" data-fiscal-results>
+        <div class="card-header fiscal-section-heading"><h2 id="fiscal-results-title" class="ui-section-title">Denúncias atribuídas</h2><span class="small text-muted" data-fiscal-count><%= denuncias.length %> de <%= total %> <%= total === 1 ? 'denúncia exibida' : 'denúncias exibidas' %></span></div>
+        <% if (denuncias.length) { %>
+        <div class="table-responsive"><table class="table table-hover ui-responsive-table fiscal-table mb-0" id="fiscal-denunciations">
+            <caption class="sr-only">Denúncias atribuídas a <%= fiscal.name %>, com os filtros atuais</caption>
+            <thead><tr><% ['Protocolo','Denúncia','Localização','Status','Ações'].forEach(label => { %><th scope="col"><%= label %></th><% }) %></tr></thead>
+            <tbody><% denuncias.forEach(denuncia => { %><tr>
+                <td data-label="Protocolo"><strong><%= denuncia.number %>/<%= denuncia.year %></strong></td>
+                <td data-label="Denúncia"><% if(canReadDenunciations) { %><a class="fiscal-result-title" href="/denuncias/<%= denuncia.id %>"><%= denuncia.title %></a><% } else { %><strong><%= denuncia.title %></strong><% } %></td>
+                <td data-label="Localização"><%= denuncia.endereco %>, <%= denuncia.numero %><br><span class="text-muted"><%= denuncia.bairro %></span></td>
+                <td data-label="Status"><%- include('../partials/statusBadge.ejs', {status:DENUNCIATION_STATUS[denuncia.status?.trim()] || {label:'Desconhecido'}}) %></td>
+                <td data-label="Ações"><% if(canReadDenunciations) { %><a class="btn btn-sm btn-outline-primary" href="/denuncias/<%= denuncia.id %>" aria-label="Ver denúncia <%= denuncia.number %>/<%= denuncia.year %>">Ver</a><% } else { %><span class="text-muted">Consulta resumida</span><% } %></td>
+            </tr><% }) %></tbody>
+        </table></div>
+        <% if (hasMore) { %><div class="fiscal-load"><p class="small text-muted" data-fiscal-feedback role="status" aria-live="polite"></p><button class="btn btn-outline-primary" type="button" data-fiscal-more data-next-page="<%= nextPage %>">Carregar mais</button><noscript><a href="/area-fiscal/<%= fiscal.id %>?status=<%= encodeURIComponent(selectedStatus) %>&amp;page=<%= nextPage %>">Próxima página</a></noscript></div><% } %>
+        <% } else { %>
+        <div class="fiscal-empty"><h3><%= selectedStatus === 'ALL' ? 'Nenhuma denúncia atribuída a este fiscal' : 'Nenhuma denúncia encontrada para este status' %></h3><p class="text-muted"><%= selectedStatus === 'ALL' ? 'As denúncias aparecerão aqui quando forem atribuídas.' : 'Escolha outro status ou consulte todas as denúncias atribuídas.' %></p><% if (selectedStatus !== 'ALL') { %><a class="btn btn-outline-primary" href="/area-fiscal/<%= fiscal.id %>?status=ALL">Ver todos os status</a><% } %></div>
+        <% } %>
+    </section>
+</main>
+<script src="/js/fiscal.js" defer></script>
+<%- include('../partials/footer.ejs') %>

@@ -1,0 +1,7 @@
+<%- include('partials/header.ejs') %>
+<%- include('partials/navbar.ejs') %>
+<main class="container">
+    <%- include('partials/pageHeading.ejs',{eyebrow:'LIVRO',title:locals.title||'Operação concluída',description:locals.message||'A alteração foi salva.',actionHref:locals.actionHref||null,actionLabel:locals.actionLabel||'Continuar'}) %>
+    <div class="alert alert-success" role="status"><%= locals.message||'A alteração foi salva.' %></div>
+</main>
+<%- include('partials/footer.ejs') %>

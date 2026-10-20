@@ -1,0 +1,20 @@
+﻿.admin-staff-layout { display: grid; grid-template-columns: minmax(0, .8fr) minmax(0, 1.6fr); gap: 24px; align-items: start; }
+.admin-section-heading, .admin-pagination { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px; }
+.admin-row-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.assignment-table th { background: var(--ui-surface-muted); color: var(--ui-muted); font-size: 12px; }
+.assignment-title { font-size: 1.15rem; margin-bottom: 16px; }
+.assignment-description, .assignment-note p { white-space: pre-line; overflow-wrap: anywhere; }
+.assignment-note { font-size: 12px; margin-top: 12px; }
+.assignment-note summary { cursor: pointer; color: var(--ui-primary); }
+.assignment-table th:nth-child(1) { width: 12%; }
+.assignment-table th:nth-child(2) { width: 24%; }
+.assignment-table th:nth-child(3) { width: 22%; }
+.assignment-table th:nth-child(4) { width: 16%; }
+.assignment-table th:nth-child(5) { width: 11%; }
+.assignment-table th:nth-child(6) { width: 15%; }
+.assignment-table .btn { padding: 8px 10px; }
+.assignment-table td[data-label="Registro"] { font-size: 12px; }
+.admin-pagination { border-top: 1px solid var(--ui-border); padding-top: 20px; margin-top: 20px; }
+.admin-empty { text-align: center; padding: 32px 16px; }
+.admin-empty h3 { font-size: 1.1rem; }
+@container (max-width: 1000px) { .admin-staff-layout { grid-template-columns: minmax(0, 1fr); } }

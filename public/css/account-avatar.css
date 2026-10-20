@@ -1,0 +1,39 @@
+.account-identity { position: relative; margin: 0 0 4px; }
+.account-identity-summary { display: flex; align-items: center; gap: 10px; list-style: none; padding: 10px; border: 1px solid transparent; border-radius: 9px; cursor: pointer; }
+.account-identity-summary::-webkit-details-marker { display: none; }
+.account-identity-summary:hover, .account-identity[open] > summary { background: var(--ui-sidebar-active); border-color: var(--ui-border); }
+.account-avatar { display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; width: 46px; height: 46px; border-radius: 50%; background: var(--account-avatar-background, #28766D); color: #fff; }
+.account-avatar > svg { width: 36px; height: 36px; }
+.account-avatar svg [hidden] { display: none; }
+.account-avatar-cutout { fill: var(--account-avatar-background, #28766D); }
+.account-identity-text { flex: 1; min-width: 0; }
+.account-identity-text strong { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; color: var(--ui-text); font-size: 13px; line-height: 1.4; overflow-wrap: anywhere; }
+.account-username, .account-role { display: block; color: var(--ui-sidebar-muted); font-size: 11px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.account-username { margin-top: 2px; }
+.account-customize-label { display: block; margin-top: 5px; color: var(--ui-sidebar-text); font-size: 11px; text-decoration: underline; text-underline-offset: 2px; }
+.account-identity-chevron { width: 14px; height: 14px; flex-shrink: 0; color: var(--ui-sidebar-muted); transition: transform 150ms var(--ui-easing); }
+.account-identity[open] .account-identity-chevron { transform: rotate(180deg); }
+.account-avatar-form { position: absolute; bottom: calc(100% + 8px); left: 0; right: 0; z-index: 2; max-height: calc(100dvh - 190px); overflow-y: auto; overscroll-behavior: contain; margin: 0; padding: 12px 10px; border-radius: 9px; background: var(--ui-surface); border: 1px solid var(--ui-border); box-shadow: 0 8px 28px #0002; }
+.account-avatar-form fieldset { margin: 0 0 12px; padding: 0; border: 0; min-width: 0; }
+.account-avatar-form legend { width: auto; margin: 0 0 7px; padding: 0; color: var(--ui-sidebar-muted); font-size: 11px; font-weight: 600; }
+.account-icon-options { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 7px; }
+.account-icon-option { position: relative; margin: 0; cursor: pointer; }
+.account-icon-option > input, .account-color-option > input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.account-icon-option > span { display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 5px; padding: 7px 3px; border: 1px solid var(--ui-input-border); border-radius: 7px; color: var(--ui-sidebar-text); font-size: 11px; }
+.account-avatar-choice { width: 33px; height: 33px; }
+.account-avatar-choice > svg { width: 27px; height: 27px; }
+.account-icon-option > input:checked + span { border-color: var(--ui-focus); background: var(--ui-surface-muted); box-shadow: 0 0 0 1px var(--ui-focus); }
+.account-icon-option > input:focus-visible + span, .account-color-option > input:focus-visible + span { outline: 2px solid var(--ui-focus); outline-offset: 3px; }
+.account-color-options { display: flex; flex-wrap: wrap; gap: 8px; }
+.account-color-option { position: relative; margin: 0; cursor: pointer; }
+.account-color-option > span:first-of-type { display: flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 50%; border: 1px solid #ffffff40; color: #fff; }
+.account-color-option svg { width: 14px; height: 14px; visibility: hidden; }
+.account-color-option > input:checked + span { outline: 2px solid var(--ui-focus); outline-offset: 2px; }
+.account-color-option > input:checked + span svg { visibility: visible; }
+.account-avatar-actions { display: flex; align-items: center; gap: 10px; }
+.account-avatar-save { min-height: 44px; padding: 5px 13px; border-radius: 5px; border: 1px solid var(--ui-accent); background: var(--ui-accent); color: var(--ui-accent-text); font-size: 12px; font-weight: 600; }
+.account-avatar-save:disabled { opacity: .6; cursor: wait; }
+.account-avatar-cancel { min-height: 44px; padding: 5px 0; border: 0; background: transparent; color: var(--ui-sidebar-text); font-size: 12px; }
+.account-avatar-status { margin: 7px 0 0; font-size: 11px; color: var(--ui-sidebar-text); }
+.account-avatar-status:empty { display: none; }
+.account-avatar-status[data-error="true"] { color: var(--ui-danger); }

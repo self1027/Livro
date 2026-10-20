@@ -1,0 +1,29 @@
+<%- include('../partials/header.ejs') %>
+<% const mandatory=mode==='password'&&typeof auth!=='undefined'&&auth?.account.must_change_password;
+const standalone=mode!=='password'||mandatory; %>
+<% if(standalone) { %><div class="auth-shell"><div class="auth-content"><% } else { %><%- include('../partials/navbar.ejs') %><% } %>
+<link rel="stylesheet" href="/css/auth.css">
+<main class="container auth-page">
+    <% if(standalone) { %><div class="auth-brand"><%- include('../partials/icon.ejs',{name:'brand'}) %><div>Livro <span>Vigilância Sanitária de Andradina</span></div></div><% } %>
+    <% const titles={login:'Entrar no Livro',password:'Alterar senha',recover:'Recuperar acesso',confirm:'Definir nova senha',done:'Acesso ao Livro'}; %>
+    <%- include('../partials/pageHeading.ejs',{eyebrow:'ACESSO',title:mandatory?'Troca de senha obrigatória':titles[mode],description:mandatory?'Defina uma nova senha para liberar seu acesso ao Livro.':mode==='password'?'Após a troca, suas sessões serão encerradas. Entre novamente com a nova senha.':'Use sua conta institucional para acessar o sistema.'}) %>
+    <section class="card"><div class="card-body">
+        <% if(mandatory) { %><div class="alert alert-warning" role="alert"><strong>Seu acesso está aguardando a troca de senha.</strong><p class="mb-0">A senha atual é temporária. As outras telas só serão liberadas depois que você cadastrar uma nova senha e entrar novamente.</p></div><% } %>
+        <% if(error) { %><div class="alert alert-danger" role="alert"><%= error %></div><% } %>
+        <% if(mode==='done') { %><p role="status"><%= message %></p><a class="btn btn-primary" href="/auth/login">Ir para o login</a><% } else { %>
+        <form method="POST" action="<%= mode==='login'?'/auth/login':mode==='password'?'/auth/password':mode==='recover'?'/auth/recover':'/auth/recover/confirm' %>">
+            <% if(mode==='login'||mode==='recover') { %>
+            <div class="form-group"><label for="username">Username</label><input class="form-control" id="username" name="username" required minlength="3" maxlength="64" autocomplete="username" autocapitalize="none" spellcheck="false" autofocus></div>
+            <% } %>
+            <% if(mode==='password') { %><div class="form-group"><label for="current_password"><%= mandatory?'Senha temporária atual':'Senha atual' %></label><input class="form-control" id="current_password" type="password" name="current_password" required maxlength="128" autocomplete="current-password" autofocus></div><% } %>
+            <% if(mode!=='recover') { %><div class="form-group"><label for="password"><%= mode==='login'?'Senha':'Nova senha' %></label><input class="form-control" id="password" type="password" name="password" required <%- mode!=='login'?'minlength="8"':'' %> maxlength="128" autocomplete="<%= mode==='login'?'current-password':'new-password' %>" aria-describedby="password-help"><% if(mode!=='login') { %><small id="password-help" class="form-text text-muted">Use de 8 a 128 caracteres. Uma frase longa é uma boa opção.</small><% } %></div><% } %>
+            <% if(mode==='confirm') { %><input type="hidden" name="token" value="<%= token %>"><% } %>
+            <% if(mode==='recover') { %><p class="text-muted">A recuperação da Chefia será enviada ao e-mail institucional do setor. Para outras responsabilidades, solicite uma redefinição à Chefia.</p><% } %>
+            <button class="btn btn-primary" type="submit"><%= mandatory?'Alterar senha e voltar ao login':mode==='login'?'Entrar':mode==='recover'?'Solicitar recuperação':'Salvar senha' %></button>
+            <% if(mode==='login') { %><a class="btn btn-link" href="/auth/recover">Esqueci minha senha</a><% } %>
+        </form>
+        <% if(mandatory) { %><form method="POST" action="/auth/logout" class="mt-3"><button class="btn btn-link" type="submit">Sair desta conta</button></form><% } %>
+        <% } %>
+    </div></section>
+</main>
+<%- include('../partials/footer.ejs') %>

@@ -1,0 +1,30 @@
+﻿<%- include('../partials/header.ejs') %>
+<%- include('../partials/navbar.ejs') %>
+<link rel="stylesheet" href="/css/schedule.css">
+<% if (editable) { %><link rel="stylesheet" href="/css/admin.css"><% } %>
+<main class="container schedule-page <%= editable ? 'admin-panel' : '' %>">
+    <%- include('../partials/pageHeading.ejs', {eyebrow:editable?'ADMINISTRATIVO':'FISCALIZAÇÃO',title:editable?'Gerenciar escala':'Escala de fiscalização',description:editable?'Configure os responsáveis semanais, as alterações por dia e os feriados.':'Consulte os responsáveis e as anotações da escala.',actionHref:editable?'/escala?ano='+ano+'&mes='+mes:'/',actionLabel:editable?'Visualizar escala':'Voltar à listagem'}) %>
+    <% if (editable) { %><%- include('../partials/adminTabs.ejs', {activeTab:'schedule'}) %><% } %>
+    <% const previous = new Date(ano,mes-1,1), next = new Date(ano,mes+1,1); %>
+    <section class="card" aria-labelledby="schedule-month-title">
+        <div class="card-header schedule-toolbar"><div><h2 id="schedule-month-title" class="ui-section-title"><%= mesLabel %></h2><p class="small text-muted mt-2 mb-0">Período da tarde · <%= editable ? 'Selecione uma semana ou um dia útil para editar.' : 'Somente visualização' %></p></div>
+            <nav class="schedule-month-navigation" aria-label="Navegar entre meses"><a class="btn btn-outline-secondary" href="<%= basePath %>?ano=<%= previous.getFullYear() %>&amp;mes=<%= previous.getMonth() %>" aria-label="Mês anterior">←</a><a class="btn btn-outline-secondary" href="<%= basePath %>">Mês atual</a><a class="btn btn-outline-secondary" href="<%= basePath %>?ano=<%= next.getFullYear() %>&amp;mes=<%= next.getMonth() %>" aria-label="Próximo mês">→</a></nav>
+        </div>
+        <div class="card-body"><div class="table-responsive"><table class="table table-bordered text-center <%= !editable ? 'schedule-readonly' : '' %>" id="calendario"><caption class="sr-only">Escala de fiscalização de <%= mesLabel %></caption><thead><tr><% ['Responsável semanal','Seg','Ter','Qua','Qui','Sex','Sáb','Dom'].forEach(label => { %><th scope="col"><%= label %></th><% }) %></tr></thead><tbody id="corpoCalendario"></tbody></table></div><noscript><p>Ative o JavaScript para visualizar o calendário.</p></noscript></div>
+    </section>
+</main>
+<% if (editable) { %>
+<div class="modal fade" id="modalSemana" tabindex="-1" role="dialog" aria-labelledby="schedule-edit-title" aria-hidden="true"><div class="modal-dialog"><div class="modal-content">
+    <form id="schedule-edit-form"><div class="modal-header"><h2 class="modal-title ui-section-title" id="schedule-edit-title">Configurar escala</h2><button type="button" class="close" data-dismiss="modal" aria-label="Fechar">&times;</button></div>
+        <div class="modal-body"><input type="hidden" id="chaveSelecionada"><div id="tipoDiaContainer" class="form-check mb-3"><input class="form-check-input" type="checkbox" id="checkboxFeriado"><label class="form-check-label" for="checkboxFeriado">Feriado / Ponto facultativo</label></div>
+            <div class="form-group"><label for="inputNome">Nome / Responsável</label><input id="inputNome" class="form-control" maxlength="255" placeholder="Digite o nome" autocomplete="off"><small class="form-text text-muted" id="schedule-day-help" hidden>Deixe o nome vazio para usar a configuração da semana.</small></div>
+            <div class="form-group"><label for="inputAnotacao">Anotação</label><textarea id="inputAnotacao" class="form-control" rows="4" maxlength="10000" placeholder="Detalhes adicionais"></textarea></div>
+            <p id="schedule-save-feedback" class="text-danger small" role="alert" hidden></p>
+        </div><div class="modal-footer"><button type="button" class="btn btn-outline-secondary" data-dismiss="modal">Cancelar</button><button id="schedule-save" class="btn btn-primary" type="submit">Salvar alterações</button></div>
+    </form>
+</div></div></div>
+<% } %>
+<script type="application/json" id="schedule-data"><%- JSON.stringify({ano,mes,semanas,dias,editable,basePath}).replace(/</g,'\\u003c') %></script>
+<script src="/js/schedule.js" defer></script>
+<% if (editable) { %><script src="/js/schedule-editor.js" defer></script><% } %>
+<%- include('../partials/footer.ejs') %>

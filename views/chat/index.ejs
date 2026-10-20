@@ -1,0 +1,67 @@
+<%- include('../partials/header.ejs') %>
+<link rel="stylesheet" href="/css/chat.css">
+<%- include('../partials/navbar.ejs') %>
+<% const currentChatUser=typeof chatUser!=='undefined'&&chatUser?chatUser:{id:0,name:''};
+const allowChatAnnouncement=typeof chatCanAnnounce!=='undefined'&&chatCanAnnounce;
+const chatDenunciationAccess=typeof can==='function'&&can('denunciations.read'); %>
+<main class="container chat-page" id="chat-app" data-user-id="<%= currentChatUser.id %>" data-can-read-denunciations="<%= chatDenunciationAccess?'true':'false' %>">
+    <div class="ui-page-heading chat-heading">
+        <div><p class="ui-eyebrow">COMUNICAÇÃO INTERNA</p><h1>Recados</h1><p class="ui-page-description">Converse com a equipe e acompanhe as respostas.</p></div>
+        <% if(allowChatAnnouncement) { %><button type="button" class="btn btn-outline-primary" id="chat-announce-open"><i class="fas fa-bullhorn" aria-hidden="true"></i> Enviar anúncio</button><% } %>
+    </div>
+    <div id="chat-status" class="chat-status" role="status" aria-live="polite" hidden></div>
+    <noscript><div class="alert alert-warning">Ative o JavaScript do navegador para usar os recados.</div></noscript>
+    <div class="chat-layout">
+        <section class="chat-sidebar" aria-label="Conversas">
+            <label for="chat-people-search" class="chat-search-label">Conversar com</label>
+            <input class="form-control" type="search" id="chat-people-search" placeholder="Buscar pessoa ou conversa" autocomplete="off" maxlength="120">
+            <div id="chat-people-results" class="chat-people-results" aria-label="Pessoas encontradas" hidden></div>
+            <h2 class="chat-list-title">Suas conversas</h2>
+            <div id="chat-conversations" class="chat-conversations"><p class="chat-muted chat-list-empty">Carregando conversas…</p></div>
+        </section>
+        <section class="chat-thread-panel" aria-label="Conversa">
+            <div id="chat-empty" class="chat-empty"><i class="far fa-comments" aria-hidden="true"></i><h2>Escolha uma conversa</h2><p>Busque uma pessoa para enviar o primeiro recado.</p></div>
+            <div id="chat-conversation" class="chat-conversation" hidden>
+                <header class="chat-thread-heading"><div><h2 id="chat-peer-name"></h2><p id="chat-peer-status">Conversa individual</p></div></header>
+                <div id="chat-messages" class="chat-messages" tabindex="0" role="region" aria-label="Mensagens da conversa" aria-busy="false">
+                    <button type="button" class="btn btn-sm btn-outline-secondary chat-load-older" id="chat-load-older" hidden>Carregar mensagens anteriores</button>
+                    <div id="chat-message-list"></div>
+                    <p id="chat-no-messages" class="chat-muted chat-no-messages" hidden>Envie o primeiro recado desta conversa.</p>
+                </div>
+                <button type="button" class="chat-new-messages" id="chat-new-messages" hidden>Ver novas mensagens ↓</button>
+                <form id="chat-compose" class="chat-compose">
+                    <% if(chatDenunciationAccess) { %><div class="chat-denunciation-picker" data-denunciation-picker>
+                        <button type="button" class="chat-link-button" data-denunciation-toggle>+ Referenciar denúncia</button>
+                        <div data-denunciation-search-panel hidden><label class="sr-only" for="chat-denunciation-search">Buscar denúncia</label><input class="form-control form-control-sm" id="chat-denunciation-search" type="search" placeholder="Buscar protocolo ou título da denúncia" autocomplete="off" maxlength="120" data-denunciation-search><div class="chat-denunciation-results" data-denunciation-results></div></div>
+                        <div class="chat-reference-selection" data-denunciation-selection hidden><span data-denunciation-label></span><button type="button" class="chat-link-button" data-denunciation-clear aria-label="Remover referência à denúncia">×</button></div>
+                    </div><% } %>
+                    <label class="sr-only" for="chat-message-body">Seu recado</label>
+                    <div class="chat-compose-row"><textarea class="form-control" id="chat-message-body" name="body" rows="2" maxlength="8000" required placeholder="Escreva um recado…"></textarea><button type="submit" class="btn btn-primary" id="chat-send">Enviar</button></div>
+                    <p class="chat-compose-hint">Enter envia · Shift + Enter cria uma nova linha</p>
+                </form>
+            </div>
+        </section>
+    </div>
+    <% if(allowChatAnnouncement) { %>
+    <dialog id="chat-announcement-dialog" class="chat-dialog" aria-labelledby="chat-announcement-title">
+        <form id="chat-announcement-form">
+            <div class="chat-dialog-heading"><h2 id="chat-announcement-title">Enviar anúncio</h2><button type="button" class="chat-dialog-close" data-close-dialog aria-label="Fechar">×</button></div>
+            <p class="chat-muted">Cada pessoa receberá o anúncio na conversa individual com você. As respostas serão privadas.</p>
+            <label for="chat-audience-type">Enviar para</label><select id="chat-audience-type" class="form-control"><option value="all">Toda a equipe</option><option value="roles">Cargos / setores</option><option value="users">Pessoas específicas</option></select>
+            <fieldset id="chat-audience-options" class="chat-audience-options" hidden><legend class="sr-only">Destinatários do anúncio</legend><div id="chat-audience-choices"></div></fieldset>
+            <p class="chat-audience-count" id="chat-audience-count" role="status"></p>
+            <% if(chatDenunciationAccess) { %><div class="chat-denunciation-picker" data-denunciation-picker>
+                <button type="button" class="chat-link-button" data-denunciation-toggle>+ Referenciar denúncia</button>
+                <div data-denunciation-search-panel hidden><label class="sr-only" for="chat-announcement-denunciation-search">Buscar denúncia para o anúncio</label><input class="form-control form-control-sm" id="chat-announcement-denunciation-search" type="search" placeholder="Buscar protocolo ou título da denúncia" autocomplete="off" maxlength="120" data-denunciation-search><div class="chat-denunciation-results" data-denunciation-results></div></div>
+                <div class="chat-reference-selection" data-denunciation-selection hidden><span data-denunciation-label></span><button type="button" class="chat-link-button" data-denunciation-clear aria-label="Remover referência à denúncia">×</button></div>
+            </div><% } %>
+            <label for="chat-announcement-body">Mensagem do anúncio</label><textarea id="chat-announcement-body" class="form-control" rows="5" maxlength="8000" required></textarea>
+            <p id="chat-announcement-error" class="chat-form-error" role="alert" hidden></p>
+            <div class="chat-dialog-actions"><button type="button" class="btn btn-outline-secondary" data-close-dialog>Cancelar</button><button type="submit" class="btn btn-primary" id="chat-announcement-submit">Enviar anúncio</button></div>
+        </form>
+    </dialog>
+    <% } %>
+    <dialog id="chat-receipts-dialog" class="chat-dialog" aria-labelledby="chat-receipts-title"><div class="chat-dialog-heading"><h2 id="chat-receipts-title">Visualizações do anúncio</h2><button type="button" class="chat-dialog-close" data-close-dialog aria-label="Fechar">×</button></div><p id="chat-receipts-summary" class="chat-muted"></p><ul id="chat-receipts-list" class="chat-receipts-list"></ul><div class="chat-dialog-actions"><button type="button" class="btn btn-outline-secondary" data-close-dialog>Fechar</button></div></dialog>
+</main>
+<script src="/js/chat.js" defer></script>
+<%- include('../partials/footer.ejs') %>

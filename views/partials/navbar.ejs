@@ -1,0 +1,15 @@
+<div class="app-shell">
+<a class="ui-skip-link" href="#main-workspace">Pular para o conteúdo</a>
+<%- include('sidebar.ejs') %>
+<div class="app-content" id="main-workspace" tabindex="-1">
+<header class="app-workspace-header">
+    <div class="app-workspace-context">Vigilância Sanitária <span aria-hidden="true">/</span> <span>Andradina</span></div>
+    <% if(typeof can!=='function'||can('denunciations.read')) { %>
+    <form class="app-global-search" method="GET" action="/buscar" role="search" aria-label="Buscar denúncia por protocolo">
+        <label class="sr-only" for="workspace-protocol">Número do protocolo</label>
+        <%- include('icon.ejs',{name:'search'}) %>
+        <input id="workspace-protocol" name="number" inputmode="numeric" pattern="[0-9]+" placeholder="Buscar protocolo…" required>
+        <button type="submit" aria-label="Buscar protocolo"><%- include('icon.ejs',{name:'arrow'}) %></button>
+    </form>
+    <% } %>
+</header>
