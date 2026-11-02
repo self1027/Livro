@@ -24,7 +24,7 @@
         transitions: { active: { animation: { duration: reducedMotion ? 0 : 120 } } },
         plugins: {
             legend: { display: false },
-            tooltip: { backgroundColor: ink, padding: 12, cornerRadius: 6, displayColors: true,
+            tooltip: { backgroundColor: color('--ui-surface-muted', '#24272e'), titleColor: ink, bodyColor: ink, borderColor: grid, borderWidth: 1, padding: 12, cornerRadius: 6, displayColors: true,
                 animation: reducedMotion ? false : { duration: 120 },
                 titleFont: { family: 'Inter, sans-serif', size: 12 }, bodyFont: { family: 'Inter, sans-serif', size: 12 } }
         }

@@ -14,7 +14,7 @@
         const badge=document.createElement('div');badge.className='nome-badge';badge.textContent=name
         let hash=0
         for(let i=0;i<name.length;i++)hash=name.charCodeAt(i)+((hash<<5)-hash)
-        badge.style.background=`hsl(${Math.abs(hash*137.508)%360}, 45%, 32%)`
+        badge.style.background=`hsl(${Math.abs(hash*137.508)%360}, 35%, 24%)`
         return badge
     }
     function note(text) {

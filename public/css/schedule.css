@@ -21,7 +21,7 @@
 	padding: 4px 8px;
 	border-radius: 6px;
 	font-size: 0.75rem;
-	color: var(--ui-surface);
+	color: #ffffff;
 	font-weight: 600;
 	max-width: 100%;
 	white-space: nowrap;
@@ -58,7 +58,7 @@
 	background: transparent;
 	display: block !important;
 	pointer-events: auto;
-	text-shadow: 0 0 3px rgba(255,255,255,0.8);
+	text-shadow: none;
 	}
 	.icone-anotacao:hover {
 	transform: scale(1.2);

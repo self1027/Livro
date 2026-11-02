@@ -33,8 +33,8 @@ body { min-height: 100dvh; }
 .app-shell :focus-visible { outline: 3px solid var(--ui-focus); outline-offset: 3px; }
 .app-sidebar :focus-visible { outline-color: var(--ui-focus); }
 .ui-icon { flex-shrink: 0; vertical-align: middle; }
-.ui-skip-link { position: fixed; top: 8px; left: 16px; z-index: 1100; padding: 12px 18px; border-radius: 8px; background: var(--ui-text); color: white; transform: translateY(-150%); }
-.ui-skip-link:focus { transform: none; color: white; }
+.ui-skip-link { position: fixed; top: 8px; left: 16px; z-index: 1100; padding: 12px 18px; border-radius: 8px; background: var(--ui-text); color: var(--ui-background); transform: translateY(-150%); }
+.ui-skip-link:focus { transform: none; color: var(--ui-background); }
 .footer { background: var(--ui-surface-muted) !important; border-top: 1px solid var(--ui-border); }
 .footer, .footer .text-light, .footer .text-muted { color: var(--ui-muted) !important; font-size: 12px; }
 @media (min-width: 1101px) {
@@ -79,8 +79,8 @@ body { min-height: 100dvh; }
 .btn-secondary:hover, .btn-outline-secondary:hover { background: var(--ui-surface-muted); color: var(--ui-text); border-color: var(--ui-muted); }
 .btn-warning { background: var(--ui-warning-background); color: var(--ui-warning); border-color: var(--ui-warning); }
 .btn-warning:hover { background: var(--ui-warning); color: var(--ui-surface); border-color: var(--ui-warning); }
-.btn-danger { background: var(--ui-danger); border-color: var(--ui-danger); }
-.btn-danger:hover { background: var(--ui-danger); border-color: var(--ui-danger); filter: brightness(.9); }
+.btn-danger { background: var(--ui-danger); border-color: var(--ui-danger); color: var(--ui-background); }
+.btn-danger:hover { background: var(--ui-danger); border-color: var(--ui-danger); color: var(--ui-background); filter: brightness(.9); }
 .btn-outline-danger { color: var(--ui-danger); border-color: var(--ui-danger); }
 .btn-outline-danger:hover { background: var(--ui-danger); border-color: var(--ui-danger); color: var(--ui-surface); }
 .text-primary, .text-success { color: var(--ui-primary) !important; }
@@ -98,9 +98,11 @@ body { min-height: 100dvh; }
 .border-warning { border-color: var(--ui-warning) !important; }
 .modal-content { background: var(--ui-surface); border: 1px solid var(--ui-border); border-radius: var(--ui-radius); }
 .modal-header, .modal-footer { border-color: var(--ui-border); gap: 12px; }
-.page-link { color: var(--ui-primary); border-color: var(--ui-border); }
+.page-link { background: var(--ui-surface); color: var(--ui-primary); border-color: var(--ui-border); }
+.page-link:hover, .page-item.disabled .page-link { background: var(--ui-surface-muted); color: var(--ui-muted); border-color: var(--ui-border); }
 .page-item.active .page-link { background: var(--ui-accent); border-color: var(--ui-accent); color: var(--ui-accent-text); }
-.ui-status { display: inline-block; padding: 4px 8px; border-radius: 5px; background: var(--status-background, var(--ui-surface-muted)); color: var(--status-color, var(--ui-muted)); font-size: 12px; font-weight: 600; }
+/* Adapta inclusive cores salvas no catálogo claro, preservando o matiz escolhido. */
+.ui-status { display: inline-block; padding: 4px 8px; border-radius: 5px; background: color-mix(in srgb, var(--status-background, var(--ui-surface-muted)) 10%, var(--ui-surface)); color: color-mix(in srgb, var(--status-color, var(--ui-muted)) 25%, var(--ui-text)); font-size: 12px; font-weight: 600; }
 .ui-report-text { white-space: pre-line; overflow-wrap: anywhere; }
 .table:not(#calendario) { table-layout: fixed; width: 100%; }
 .table:not(#calendario) th, .table:not(#calendario) td { white-space: normal; overflow-wrap: anywhere; }

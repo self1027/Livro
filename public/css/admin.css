@@ -47,10 +47,10 @@
 .admin-advanced summary { cursor: pointer; color: var(--ui-primary); }
 .admin-panel {
     --chart-primary: var(--ui-primary);
-    --chart-secondary: #708779;
-    --chart-ink: #343c38;
-    --chart-warning: #9a6c2c;
-    --chart-grid: #ededed;
+    --chart-secondary: #73c6d6;
+    --chart-ink: var(--ui-text);
+    --chart-warning: #e9b65b;
+    --chart-grid: var(--ui-border);
 }
 .admin-indicators { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); border: 1px solid var(--ui-border); border-radius: 8px; overflow: hidden; }
 .admin-indicator { padding: 22px; display: flex; flex-direction: column; gap: 12px; min-width: 0; }
