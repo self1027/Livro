@@ -13,6 +13,7 @@
 </p>
 
 <p align="center">
+  <a href="#por-dentro-do-livro">Interface</a> ·
   <a href="#como-explorar-a-demo">Como usar</a> ·
   <a href="#o-que-dá-para-fazer">Funcionalidades</a> ·
   <a href="#executar-localmente">Executar localmente</a> ·
@@ -22,6 +23,18 @@
 O Livro é um sistema de gestão da Vigilância Sanitária de Andradina, desenvolvido por Murilo Dias. Ele reúne o registro de denúncias, a distribuição entre fiscais e o acompanhamento das vistorias, com relatórios e indicadores do trabalho da equipe.
 
 A branch `main` apresenta uma demonstração pública para portfólio. Você pode percorrer o atendimento com dados fictícios, sem cadastro ou senha. A interface usa os mesmos templates EJS, estilos, scripts, fontes e imagens da `sistema-completo`, onde está o sistema completo.
+
+## Por dentro do Livro
+
+A listagem reúne os registros recentes, com protocolo, endereço, status e fiscal responsável. Você pode abrir uma denúncia para consultar os detalhes ou usar a busca avançada para filtrar os atendimentos.
+
+![Listagem de denúncias do Livro, com protocolos, endereços, status e fiscais responsáveis](docs/screenshots/denuncias.png)
+
+No painel administrativo, os filtros por período e situação permitem acompanhar os totais de denúncias registradas, em aberto e finalizadas.
+
+![Painel administrativo do Livro, com filtros por período e situação e totais de denúncias](docs/screenshots/painel.png)
+
+*Capturas da demonstração local, com dados fictícios e o tour desativado.*
 
 ## Como explorar a demo
 
