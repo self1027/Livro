@@ -58,6 +58,12 @@ test('TeamQueue.resolve aceita espaço duplicado e recusa fiscal desativado',()=
     })
 })
 
+test('TeamQueue.resolve aceita nome curto da ficha contra nome completo da equipe',()=>{
+    const catalog=[{id:'1',name:'Ricardo Fontes',login:'ricardofontes',hasPassword:true}]
+    const team=[{name:'RICARDO BOAVENTURA FONTES',login:'ricardofontes'}]
+    assert.equal(TeamQueue.resolve(['Ricardo Fontes'],team,catalog)[0].login,'ricardofontes')
+})
+
 test('TeamQueue.resolve pede cadastro quando falta senha ou login',()=>{
     const catalog=[{id:'1',name:'Murilo',login:'murilo',hasPassword:false}]
     const team=[{name:'Murilo',login:'murilo'}]
@@ -78,6 +84,39 @@ test('SignatureEvidence.resolve ordena logins pelo carimbo do PDF',()=>{
     const state=SignatureEvidence.resolve('01.001358/26',professionals,identities,[page])
     assert.equal(state.verified,true)
     assert.deepEqual(state.logins,['murilo','eduardo'])
+})
+
+test('SignatureEvidence.resolve aceita quebra de linha e nome parcial por contains',()=>{
+    const professionals=[
+        {name:'Murilo Dias',signed:true},
+        {name:'Eduardo Mota',signed:true},
+        {name:'Ricardo Fontes',signed:true}
+    ]
+    const identities={
+        diasmurilo:'MURILO DIAS CHOSSANI',
+        eduardomota:'EDUARDO MOTA',
+        ricardofontes:'RICARDO BOAVENTURA FONTES'
+    }
+    const page=[
+        'No. 01.001378/26 Assinado com senha eletrônica por:',
+        'MURILO DIAS CHOSSANI 16/11/2026 10:47:41/',
+        'EDUARDO MOTA 16/11/2026 10:47:50/',
+        'RICARDO',
+        'BOAVENTURA FONTES16/11/2026 10:48:00/',
+        'Documento nº'
+    ].join('\n')
+    const state=SignatureEvidence.resolve('01.001378/26',professionals,identities,[page])
+    assert.equal(state.verified,true)
+    assert.deepEqual(state.logins,['diasmurilo','eduardomota','ricardofontes'])
+})
+
+test('SignatureEvidence.resolve aceita protocolo colado e carimbo sem barra final',()=>{
+    const professionals=[{name:'EDUARDO MOTA',signed:true},{name:'MURILO DIAS CHOSSANI',signed:true}]
+    const identities={eduardomota:'EDUARDO MOTA',diasmurilo:'MURILO DIAS CHOSSANI'}
+    const page='No. 01.001378/26Assinado com senha eletrônica por: EDUARDO MOTA 16/11/2026 10:47:50 MURILO DIAS CHOSSANI 16/11/2026 10:47:41 Documento nº'
+    const state=SignatureEvidence.resolve('01.001378/26',professionals,identities,[page])
+    assert.equal(state.verified,true)
+    assert.deepEqual(state.logins,['diasmurilo','eduardomota'])
 })
 
 test('RunPolicy distingue Assinar e Retomar',()=>{
