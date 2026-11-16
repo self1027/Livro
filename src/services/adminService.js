@@ -1,15 +1,17 @@
 import repo from '../repositories/adminRepository.js'
 import { normalizeFilters, summarize, selectQueue, mergeMonthlyReports } from '../utils/adminMetrics.js'
 import {summarizeSivisa, selectSivisaReports, SIVISA_METRICS} from '../utils/sivisa.js'
+import {summarizeAssinador} from '../utils/assinadorMetrics.js'
 
 async function getDashboard(query = {}, { exporting = false } = {}) {
     const filters = normalizeFilters(query)
     const needsDenunciations = exporting || ['overview', 'analytics'].includes(filters.view)
     const needsMonthlyReports = !exporting && filters.view === 'analytics'
-    const [denuncias, users, districts, years, reports,sivisaReports, monthlyReports, monthlyClosed] = await Promise.all([
+    const [denuncias, users, districts, years, reports,sivisaReports,assinadorJobs, monthlyReports, monthlyClosed] = await Promise.all([
         needsDenunciations ? repo.findDenunciations(filters) : [], repo.findUsers(), repo.findDistricts(),
         repo.findYears(), !exporting && filters.view === 'reports' ? repo.findRecentReports(filters) : [],
         !exporting && filters.view === 'sivisa' ? repo.findSivisaReports(filters) : [],
+        !exporting && filters.view === 'assinador' ? repo.findAssinadorJobs(filters) : [],
         needsMonthlyReports ? repo.findMonthlyReportedDenunciations(filters) : [],
         needsMonthlyReports ? repo.findMonthlyClosedDenunciations(filters) : []
     ])
@@ -34,6 +36,7 @@ async function getDashboard(query = {}, { exporting = false } = {}) {
         filters: { ...filters, page: actionDetails?.page || page }, users, districts, years, reports, ...metrics, actionDetails,
         monthly: needsMonthlyReports ? mergeMonthlyReports(metrics.monthly, monthlyReports, monthlyClosed) : metrics.monthly,
         sivisaMetrics: filters.view === 'sivisa' && !exporting ? summarizeSivisa(sivisaReports,users) : null,
+        assinadorMetrics: filters.view === 'assinador' && !exporting ? summarizeAssinador(assinadorJobs,new Map(users.map(user=>[user.id,user])),filters) : null,
         selectedCount: selected.length, pages: Math.max(1, Math.ceil(selected.length / 25)),
         selectedRows: selected.slice((page - 1) * 25, page * 25), exportRows: selected
     }

@@ -1,0 +1,39 @@
+<% if(!assinadorMetrics){ %><div class="alert alert-info">Métricas do Assinador indisponíveis para estes filtros.</div><% return } %>
+<section class="card mb-4">
+    <div class="card-header"><h2 class="ui-section-title">Automação de assinaturas SIVISA</h2></div>
+    <div class="card-body">
+        <p class="text-muted">Cada execução corresponde a um protocolo enfileirado no Assinador. O período segue a data de conclusão ou de início.</p>
+        <div class="row">
+            <% [{label:'Execuções no período',value:assinadorMetrics.total,help:'Assinaturas enfileiradas que já saíram da fila ativa.'},{label:'Concluídas com PDF',value:assinadorMetrics.completed,help:'Execuções finalizadas com PDF salvo no servidor.'},{label:'Assinaturas confirmadas',value:assinadorMetrics.signatures,help:'Soma das assinaturas validadas em todas as execuções.'},{label:'Protocolos únicos',value:assinadorMetrics.uniqueProtocols,help:'Protocolos distintos automatizados no período.'}].forEach(item=>{ %>
+            <div class="col-md-3 mb-3"><div class="card metric"><div class="card-body"><span class="admin-metric-label"><%= item.label %></span><strong class="admin-metric-value"><%= item.value %></strong><span class="small text-muted d-block mt-2"><%= item.help %></span></div></div></div>
+            <% }) %>
+        </div>
+        <div class="row">
+            <div class="col-md-4 mb-3"><div class="card metric"><div class="card-body"><span class="admin-metric-label">Falhas</span><strong class="admin-metric-value"><%= assinadorMetrics.failed %></strong></div></div></div>
+            <div class="col-md-4 mb-3"><div class="card metric"><div class="card-body"><span class="admin-metric-label">Cancelamentos</span><strong class="admin-metric-value"><%= assinadorMetrics.cancelled %></strong></div></div></div>
+            <div class="col-md-4 mb-3"><div class="card metric"><div class="card-body"><span class="admin-metric-label">Taxa de sucesso</span><strong class="admin-metric-value"><%= assinadorMetrics.successRate==null?'—':assinadorMetrics.successRate+'%' %></strong></div></div></div>
+        </div>
+        <% if(assinadorMetrics.medianMs!=null){ %><p class="small text-muted">Tempo mediano de início à conclusão: <%= Math.round(assinadorMetrics.medianMs/1000) %> s</p><% } %>
+    </div>
+</section>
+<section class="card mb-4">
+    <div class="card-header"><h2 class="ui-section-title">Top automatizadores</h2></div>
+    <div class="card-body admin-assinador-visual">
+        <div class="chart-wrap chart-assinador"><canvas id="assinadorChart" role="img" aria-label="Operadores com mais execuções automatizadas" aria-describedby="assinador-chart-table"></canvas></div>
+        <details class="admin-chart-details mt-3">
+            <summary>Ver tabela detalhada</summary>
+            <div id="assinador-chart-table" class="table-responsive">
+                <table class="table table-striped mb-0">
+                    <thead><tr><th>Operador</th><th>Execuções</th><th>Concluídas</th><th>Falhas</th><th>Assinaturas</th></tr></thead>
+                    <tbody>
+                        <% assinadorMetrics.topAutomators.forEach(row=>{ %><tr><th scope="row"><%= row.name %></th><td><%= row.total %></td><td><%= row.completed %></td><td><%= row.failed %></td><td><%= row.signatures %></td></tr><% }) %>
+                        <% if(!assinadorMetrics.topAutomators.length){ %><tr><td colspan="5">Nenhuma execução encontrada para estes filtros.</td></tr><% } %>
+                    </tbody>
+                </table>
+            </div>
+        </details>
+    </div>
+</section>
+<script id="admin-chart-data" type="application/json"><%- JSON.stringify({assinador:assinadorMetrics.topAutomators,filters}).replace(/</g, '\\u003c') %></script>
+<script src="/vendor/chartjs/chart.umd.js" defer></script>
+<script src="/js/admin.js" defer></script>

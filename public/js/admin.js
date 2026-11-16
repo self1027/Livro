@@ -7,7 +7,7 @@
         })
         return
     }
-    const { monthly, bairros, statusStats, ages, origins, sivisa, filters } = JSON.parse(source.textContent)
+    const { monthly, bairros, statusStats, ages, origins, sivisa, assinador, filters } = JSON.parse(source.textContent)
     const theme = typeof getComputedStyle === 'function' ? getComputedStyle(document.querySelector('.admin-panel')) : null
     const color = (token, fallback) => theme?.getPropertyValue(token).trim() || fallback
     const primary = color('--chart-primary', '#18794e')
@@ -92,5 +92,8 @@
             type: 'doughnut', data: { labels: sivisa.map(row => row.label), datasets: [{ data: sivisa.map(row => row.count), backgroundColor: colors, borderWidth: 3, borderColor: color('--ui-surface', '#fff'), hoverOffset: 2 }] },
             options: { ...options, cutout: '76%', onClick: (_event, elements) => { if(elements.length) navigate({ actionMetric: sivisa[elements[0].index].key }, 'sivisa') } }
         })
+    }
+    if (assinador) {
+        bars('assinadorChart', assinador, 'name', 'total', row => navigate({ userId: row.id }, 'assinador'))
     }
 })()

@@ -10,7 +10,11 @@ const actions={
     'password.recovery.requested':'Recuperação de senha solicitada',
     'password.recovered':'Senha recuperada',
     'recovery_email.initialized':'E-mail de recuperação configurado',
-    'recovery_email.changed':'E-mail de recuperação alterado'
+    'recovery_email.changed':'E-mail de recuperação alterado',
+    'assinador.job.started':'Assinatura SIVISA iniciada',
+    'assinador.job.finished':'Assinatura SIVISA finalizada',
+    'assinador.signer.saved':'Fiscal do Assinador salvo',
+    'assinador.signer.deleted':'Fiscal do Assinador removido'
 }
 
 export function presentAudit(event,{accounts,users,roles}){
@@ -23,6 +27,8 @@ export function presentAudit(event,{accounts,users,roles}){
     }
     let target=''
     if(event.action==='sivisa.saved')target=`Relatório #${details.report_id}`
+    else if(event.action==='assinador.job.started'||event.action==='assinador.job.finished')target=details.protocol?`Protocolo ${details.protocol}`:`Execução #${details.job_id||'?'}`
+    else if(event.action==='assinador.signer.saved'||event.action==='assinador.signer.deleted')target=details.name?`${details.name} (${details.login})`:'Fiscal do Assinador'
     else if(event.action==='role.saved'){
         target=details.name||roles.find(item=>item.id===event.target_id)?.name||`Responsabilidade #${event.target_id}`
     }else if(event.action==='staff.updated'){
@@ -31,6 +37,8 @@ export function presentAudit(event,{accounts,users,roles}){
     else if(event.action.startsWith('recovery_email.'))target=details.email||'E-mail institucional do setor'
     const notes=[]
     if(event.action==='sivisa.saved')notes.push(details.protocols?.length?`Protocolos: ${details.protocols.map(item=>item.protocol).join(', ')}`:details.applies?'SIVISA pendente':'Não cabe SIVISA')
+    if(event.action==='assinador.job.finished'&&details.outcome)notes.push(`Situação: ${details.outcome}`)
+    if(event.action==='assinador.job.finished'&&details.error)notes.push(details.error)
     if(event.action==='account.saved'){
         const role=roles.find(item=>item.id===details.role_id)
         if(role)notes.push(`Responsabilidade: ${role.name}`)

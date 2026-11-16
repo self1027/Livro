@@ -30,13 +30,15 @@
     <script src="/js/attendance.js" defer></script>
     <% } else { %>
     <nav class="admin-views" aria-label="Análises do painel">
-        <% [['overview','Resumo e filas'],['sivisa','Ações e SIVISA'],['analytics','Distribuições'],['reports','Atividade recente']].forEach(([view,label])=>{ %>
+        <% [['overview','Resumo e filas'],['sivisa','Ações e SIVISA'],...(panelAllowed('assinador.manage')?[['assinador','Assinador automatizado']]:[]),['analytics','Distribuições'],['reports','Atividade recente']].forEach(([view,label])=>{ %>
         <a class="btn btn-sm <%= filters.view===view?'btn-primary':'btn-outline-secondary' %>" href="<%= adminUrl(filters,{view,queue:'',actionMetric:''}) %>" <%- filters.view===view?'aria-current="page"':'' %>><%= label %></a>
         <% }) %>
     </nav>
     <%- include('../partials/adminFilters.ejs') %>
     <% if(filters.view==='sivisa') { %>
         <%- include('../partials/adminSivisa.ejs',{panelAllowed,panelCanEditReport}) %>
+    <% } else if(filters.view==='assinador') { %>
+        <%- include('../partials/adminAssinador.ejs') %>
     <% } else if(filters.view==='analytics') { %>
         <%- include('../partials/adminAnalytics.ejs') %>
     <% } else if(filters.view==='reports') { %>

@@ -12,7 +12,7 @@ export function normalizeFilters(query = {}, now = new Date()) {
     const filters = {
         year: /^\d{4}$/.test(scalar(query.year)) ? scalar(query.year) : '',
         start: explicitPeriod ? scalar(query.start) : currentYearStart(now), end: scalar(query.end),
-        view: ['sivisa', 'analytics', 'reports'].includes(query.view) ? query.view : 'overview',
+        view: ['sivisa', 'assinador', 'analytics', 'reports'].includes(query.view) ? query.view : 'overview',
         actionMetric: Object.hasOwn(SIVISA_METRICS, scalar(query.actionMetric)) ? scalar(query.actionMetric) : '',
         userId: /^\d+$/.test(scalar(query.userId)) || query.userId === 'unassigned' ? query.userId : '',
         bairro: scalar(query.bairro),

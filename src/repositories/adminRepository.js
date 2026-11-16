@@ -8,6 +8,7 @@ import { closedStatusSlugs } from '../utils/catalogRegistry.js'
 import {sivisaInclude} from '../models/sivisaModels.js'
 import REPORT_TYPE from '../constants/reportType.js'
 import {summarizeMonthlyClosures} from '../utils/adminMetrics.js'
+import {AssinadorJob} from '../models/assinadorModels.js'
 
 export function whereFor(filters) {
     const where = {}
@@ -89,6 +90,20 @@ async function findMonthlyClosedDenunciations(filters) {
     })
     return summarizeMonthlyClosures(events)
 }
+async function findAssinadorJobs(filters){
+    const where={status:{[Op.in]:['completed','failed','cancelled','paused']}}
+    const period=whereFor({start:filters.start,end:filters.end})
+    if(period.created_at){
+        where[Op.or]=[
+            {finished_at:period.created_at},
+            {finished_at:null,started_at:period.created_at},
+            {finished_at:null,started_at:null,createdAt:period.created_at}
+        ]
+    }
+    if(filters.userId)where.requested_by=filters.userId==='unassigned'?null:Number(filters.userId)
+    const rows=await AssinadorJob.findAll({where,attributes:['id','protocol','protocol_key','status','confirmed','requested_by','started_at','finished_at','createdAt'],order:[['id','DESC']]})
+    return rows.map(row=>row.get({plain:true}))
+}
 async function findSivisaReports(filters){
     const where={type:1}
     if(filters.userId)where.user_id=filters.userId==='unassigned'?null:Number(filters.userId)
@@ -109,6 +124,6 @@ async function findActionReports(ids) {
     })
     return reports.map(report=>report.get({plain:true}))
 }
-export default { findDenunciations, findRecentReports, findYears,findSivisaReports, findMonthlyReportedDenunciations, findMonthlyClosedDenunciations, findActionReports,
+export default { findDenunciations, findRecentReports, findYears,findAssinadorJobs,findSivisaReports, findMonthlyReportedDenunciations, findMonthlyClosedDenunciations, findActionReports,
     findUsers: () => usersRepository.findAll({ attributes: ['id', 'name', 'ativo'], order: [['name', 'ASC']], raw: true }),
     findDistricts: () => District.findAll({ attributes: ['name'], order: [['name', 'ASC']], raw: true }) }
