@@ -18,6 +18,7 @@ const groups=[{name:'Fiscal',items:[['Área do Fiscal','/area-fiscal','fiscal.ar
             <% items.forEach(item=>{ %><a class="app-nav-link" href="<%= item[1] %>"><%- include('icon.ejs',{name:item[3]}) %><span><%= item[0] %></span></a><% }) %>
         </div><% }) %>
         <% if(navAllowed('reports.edit')) { %><a class="app-nav-link" href="/sivisa/pendencias"><%- include('icon.ejs',{name:'clock'}) %><span>SIVISA pendentes</span><% if(locals.sivisaPendingCount) { %> <span class="badge badge-warning"><%= sivisaPendingCount %></span><% } %></a><% } %>
+        <% if(navAllowed('assinador.use')) { %><a class="app-nav-link" href="/assinador"><%- include('icon.ejs',{name:'archive'}) %><span>Assinador SIVISA</span></a><% } %>
     </nav>
         <% if(typeof authEnabled!=='undefined'&&authEnabled) { %><section class="app-sidebar-account" aria-labelledby="sidebar-account-title"><h2 id="sidebar-account-title">Minha conta</h2>
         <% if(auth) { %><%- include('accountIdentity.ejs') %><div class="app-account-actions"><a class="app-nav-link" href="/auth/password">Alterar senha</a><form method="POST" action="/auth/logout"><button class="app-account-logout" type="submit">Sair</button></form></div>

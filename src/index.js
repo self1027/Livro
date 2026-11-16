@@ -30,6 +30,8 @@ import {migrateReportOperations} from './database/migrateReportOperations.js'
 import {migrateSivisa} from './database/migrateSivisa.js'
 import {migrateDenunciationCreators} from './database/migrateDenunciationCreators.js'
 import chatController from './controllers/chatController.js'
+import assinadorRouter from './controllers/assinadorController.js'
+import {migrateAssinador,reclaimAssinadorOrphans,startAssinadorPdfSweep} from './database/migrateAssinador.js'
 import {notifications as chatNotifications} from './services/chatService.js'
 import {can} from './auth/permissions.js'
 
@@ -65,6 +67,7 @@ app.get('/api/recados/notifications',async(req,res)=>{
     res.json(await chatNotifications(req.auth))
 })
 app.use(chatController)
+app.use(assinadorRouter)
 
 user.hasMany(denunciation, {
 	foreignKey: 'user_id'
@@ -138,6 +141,10 @@ try {
     await migrateReportOperations()
     await migrateSivisa()
     await migrateDenunciationCreators()
+    await migrateAssinador()
+    const orphans=await reclaimAssinadorOrphans()
+    if(orphans)console.log(`Assinador: ${orphans} execução(ões) órfã(s) marcada(s) para Retomar.`)
+    startAssinadorPdfSweep()
     await catalogService.initialize()
     app.listen(80, () => console.log('Livro disponível em http://localhost'))
 } catch (error) {

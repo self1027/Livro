@@ -39,7 +39,8 @@ export const Setting = db.define('auth_settings', {
     role_receiving_migrated: {type:D.BOOLEAN,allowNull:false,defaultValue:false},
     fiscal_area_permissions_migrated: {type:D.BOOLEAN,allowNull:false,defaultValue:false},
     denunciation_edit_permissions_migrated: {type:D.BOOLEAN,allowNull:false,defaultValue:false},
-    chat_permissions_migrated: {type:D.BOOLEAN,allowNull:false,defaultValue:false}
+    chat_permissions_migrated: {type:D.BOOLEAN,allowNull:false,defaultValue:false},
+    assinador_permissions_migrated: {type:D.BOOLEAN,allowNull:false,defaultValue:false}
 })
 export const Audit = db.define('auth_audits', {
     actor_id: {type:D.INTEGER,allowNull:true},

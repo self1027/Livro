@@ -18,6 +18,7 @@ const routes=[
     ['GET','/admin/assignments','denunciations.assign'],['POST','/admin/assignments/1','denunciations.assign'],['POST','/atribuir/1','denunciations.assign'],
     ['POST','/denuncias/1/adicionar-relatorio','reports.create'],['GET','/relatorio/1','reports.edit'],['POST','/relatorio/1/editar','reports.edit'],['POST','/relatorio/1/deletar','reports.delete'],
     ['GET','/relatorio/1/sivisa','reports.edit'],['POST','/relatorio/1/sivisa','reports.edit'],['GET','/sivisa/pendencias','reports.edit'],
+    ['GET','/assinador','assinador.use'],['GET','/api/assinador/signers','assinador.use'],['GET','/api/assinador/signers/1/secret','assinador.manage'],['POST','/api/assinador/signers','assinador.manage'],['PUT','/api/assinador/signers/1','assinador.manage'],['DELETE','/api/assinador/signers/1','assinador.manage'],['GET','/api/assinador/jobs','assinador.use'],['POST','/api/assinador/jobs','assinador.use'],['GET','/api/assinador/jobs/1','assinador.use'],['POST','/api/assinador/jobs/1/cancel','assinador.use'],['GET','/api/assinador/jobs/1/pdf','assinador.use'],
     ['GET','/area-fiscal','fiscal.area.own'],['GET','/area-fiscal/1','fiscal.area.own'],['GET','/denuncias/pdf?fiscalId=1','fiscal.area.own'],
     ['GET','/area-fiscal/2','fiscal.area.all'],['GET','/denuncias/pdf?fiscalId=2','fiscal.area.all'],
     ['GET','/escala','schedule.read'],['GET','/admin/schedule','schedule.manage'],['POST','/admin/schedule/week','schedule.manage'],['POST','/admin/schedule/day','schedule.manage'],

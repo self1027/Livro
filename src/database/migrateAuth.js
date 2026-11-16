@@ -17,7 +17,7 @@ export async function migrateAuth() {
     }
     for(const model of authModels)await model.sync() // Never alter/drop existing tables.
     const columns=await db.getQueryInterface().describeTable(Setting.tableName)
-    for(const field of ['role_receiving_migrated','fiscal_area_permissions_migrated','denunciation_edit_permissions_migrated','chat_permissions_migrated']){
+    for(const field of ['role_receiving_migrated','fiscal_area_permissions_migrated','denunciation_edit_permissions_migrated','chat_permissions_migrated','assinador_permissions_migrated']){
         if(!columns[field])await db.getQueryInterface().addColumn(Setting.tableName,field,Setting.rawAttributes[field])
     }
     await db.transaction(async transaction=>{
@@ -67,6 +67,17 @@ export async function migrateAuth() {
                 await role.update({permissions:[...new Set(permissions)]},{transaction})
             }
             await locked.update({denunciation_edit_permissions_migrated:true},{transaction})
+        }
+        if(!locked.assinador_permissions_migrated){
+            for(const role of await Role.findAll({transaction})){
+                const permissions=[...new Set([
+                    ...role.permissions,
+                    ...(role.permissions.includes('reports.edit')||role.maximum?'assinador.use':[]),
+                    ...(role.maximum?['assinador.manage']:[])
+                ])]
+                await role.update({permissions},{transaction})
+            }
+            await locked.update({assinador_permissions_migrated:true},{transaction})
         }
     })
 }
