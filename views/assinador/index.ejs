@@ -1,0 +1,109 @@
+<%- include('../partials/header.ejs') %>
+<link rel="stylesheet" href="/css/assinador.css">
+<%- include('../partials/navbar.ejs') %>
+<% const canManage=typeof assinador!=='undefined'&&assinador?.canManage;
+const vaultReady=typeof assinador!=='undefined'&&assinador?.vaultReady;
+const pollMs=typeof assinador!=='undefined'&&assinador?.pollMs?assinador.pollMs:200;
+const stallMs=typeof assinador!=='undefined'&&assinador?.stallMs?assinador.stallMs:45000; %>
+<main class="container assinador-page" id="assinador-app" data-can-manage="<%= canManage?'true':'false' %>" data-vault-ready="<%= vaultReady?'true':'false' %>" data-poll-ms="<%= pollMs %>" data-stall-ms="<%= stallMs %>">
+    <%- include('../partials/pageHeading.ejs',{eyebrow:'PORTAL SIVISA',title:'Assinador SIVISA',description:'Informe o protocolo e acompanhe a fila. Em falha ou instabilidade do portal, prefira Retomar — uma execução por vez no servidor.'}) %>
+    <% if(!vaultReady){ %><div class="alert alert-warning" role="status">Configure <code>ASSINADOR_VAULT_KEY</code> no servidor antes de cadastrar senhas ou iniciar assinaturas.</div><% } %>
+    <div id="assinador-portal-alert" class="alert alert-warning assinador-portal-alert" role="alert" hidden>
+        <strong>Portal SIVISA instável.</strong>
+        <span id="assinador-portal-alert-text">A conexão com o portal oficial falhou ou está lenta.</span>
+        <p class="assinador-portal-alert-hint mb-0">Aguarde alguns minutos e clique em <strong>Retomar</strong>. Não comece do zero se a execução foi pausada.</p>
+    </div>
+    <div id="assinador-stall-alert" class="alert alert-warning assinador-portal-alert" role="status" hidden>
+        <strong>Sem progresso recente.</strong>
+        <span id="assinador-stall-alert-text">O portal pode estar lento.</span>
+        <p class="assinador-portal-alert-hint mb-0">Aguarde a etapa atual. Se persistir, cancele e use <strong>Retomar</strong> depois.</p>
+    </div>
+    <div id="assinador-banner" class="assinador-banner" role="status" hidden></div>
+    <div id="assinador-status" class="assinador-status" role="status" aria-live="polite" hidden></div>
+    <noscript><div class="alert alert-warning">Ative o JavaScript do navegador para usar o Assinador SIVISA.</div></noscript>
+    <div class="assinador-layout">
+        <section class="card assinador-panel" aria-label="Execução">
+            <div class="card-header"><h2 class="ui-section-title">Execução</h2></div>
+            <div class="card-body">
+                <label for="assinador-protocol">Protocolo / Nº da ficha</label>
+                <input class="form-control" id="assinador-protocol" type="text" maxlength="100" autocomplete="off" placeholder="01.000000/26">
+                <div class="assinador-actions" data-prefer-resume="false">
+                    <button type="button" class="btn btn-primary" id="assinador-start">Assinar</button>
+                    <button type="button" class="btn btn-outline-primary" id="assinador-resume">Retomar</button>
+                    <button type="button" class="btn btn-outline-secondary" id="assinador-cancel" disabled>Cancelar</button>
+                    <a class="btn btn-outline-secondary" id="assinador-pdf" hidden href="#" target="assinador-pdf-frame">Baixar PDF</a>
+                    <iframe id="assinador-pdf-frame" name="assinador-pdf-frame" title="Download do PDF do SIVISA" style="position:absolute;width:0;height:0;border:0" tabindex="-1" aria-hidden="true"></iframe>
+                </div>
+                <div class="assinador-progress">
+                    <p class="assinador-stage" id="assinador-stage">Aguardando protocolo.</p>
+                    <p class="assinador-count" id="assinador-count" hidden></p>
+                    <ol class="assinador-queue" id="assinador-queue" aria-label="Fila de assinantes"></ol>
+                </div>
+                <h2 class="ui-section-title assinador-log-title">Acompanhamento</h2>
+                <div class="assinador-log" id="assinador-log" role="log" aria-live="polite" aria-relevant="additions"></div>
+            </div>
+        </section>
+        <aside class="assinador-side" aria-label="Cadastro e histórico">
+            <details class="card assinador-fold" id="assinador-signers-fold">
+                <summary class="assinador-fold-summary">
+                    <span class="ui-section-title">Fiscais SIVISA</span>
+                    <% if(canManage){ %><button type="button" class="btn btn-outline-primary btn-sm" id="assinador-signer-open">Cadastrar</button><% } %>
+                </summary>
+                <div class="card-body">
+                    <label class="sr-only" for="assinador-signer-filter">Filtrar fiscais</label>
+                    <input class="form-control" id="assinador-signer-filter" type="search" placeholder="Filtrar por nome ou login" autocomplete="off" maxlength="120">
+                    <div id="assinador-signers" class="assinador-signers"><p class="assinador-muted">Carregando cadastro…</p></div>
+                </div>
+            </details>
+            <details class="card assinador-fold assinador-history" id="assinador-history-fold">
+                <summary class="assinador-fold-summary">
+                    <span class="ui-section-title">Meu histórico</span>
+                </summary>
+                <div class="card-body">
+                    <p class="assinador-muted">Suas execuções recentes no Assinador SIVISA.</p>
+                    <div class="table-responsive assinador-history-scroll">
+                        <table class="table table-sm assinador-history-table">
+                            <thead>
+                                <tr>
+                                    <th scope="col">Protocolo</th>
+                                    <th scope="col">Situação</th>
+                                    <th scope="col">Duração</th>
+                                    <th scope="col"><span class="sr-only">Ações</span></th>
+                                </tr>
+                            </thead>
+                            <tbody id="assinador-history-body"><tr><td colspan="4">Carregando histórico…</td></tr></tbody>
+                        </table>
+                    </div>
+                </div>
+            </details>
+        </aside>
+    </div>
+    <% if(canManage){ %>
+    <dialog id="assinador-signer-dialog" class="assinador-dialog" aria-labelledby="assinador-signer-title">
+        <form id="assinador-signer-form">
+            <div class="assinador-dialog-heading">
+                <h2 id="assinador-signer-title">Cadastrar fiscal</h2>
+                <button type="button" class="assinador-dialog-close" data-close-dialog aria-label="Fechar">×</button>
+            </div>
+            <input type="hidden" id="assinador-signer-id" value="">
+            <label for="assinador-signer-name">Nome</label>
+            <input class="form-control" id="assinador-signer-name" required maxlength="160">
+            <label for="assinador-signer-login">Login SIVISA</label>
+            <input class="form-control" id="assinador-signer-login" required maxlength="80" autocomplete="username">
+            <label for="assinador-signer-password">Senha eletrônica</label>
+            <div class="assinador-password-field">
+                <input class="form-control" id="assinador-signer-password" type="password" maxlength="200" autocomplete="new-password">
+                <button type="button" class="assinador-link-button" id="assinador-password-toggle" aria-pressed="false" aria-controls="assinador-signer-password">Mostrar senha</button>
+            </div>
+            <p class="assinador-muted" id="assinador-password-hint">Na edição, deixe em branco para manter a senha atual. Use Mostrar senha para revelar a cadastrada.</p>
+            <p id="assinador-signer-error" class="assinador-form-error" role="alert" hidden></p>
+            <div class="assinador-dialog-actions">
+                <button type="button" class="btn btn-outline-secondary" data-close-dialog>Cancelar</button>
+                <button type="submit" class="btn btn-primary">Salvar</button>
+            </div>
+        </form>
+    </dialog>
+    <% } %>
+</main>
+<script src="/js/assinador.js" defer></script>
+<%- include('../partials/footer.ejs') %>
