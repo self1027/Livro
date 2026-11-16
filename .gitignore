@@ -8,3 +8,8 @@ node_modules/
 *.dump
 coverage/
 .taste-skill/
+
+# Assinador: PDF gerado, captura de execução e sondas locais do portal
+data/assinador/
+job-*.json
+scripts/probeAssinador*.js
