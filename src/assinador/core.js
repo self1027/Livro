@@ -89,6 +89,23 @@ export const RunPolicy={
 }
 
 const foldName=value=>String(value||'').normalize('NFC').replace(/\s+/g,' ').trim().toLowerCase()
+const orderedTokens=(haystack,needle)=>{
+    const hay=foldName(haystack),tokens=foldName(needle).split(' ').filter(Boolean)
+    if(!hay||!tokens.length)return false
+    if(hay.includes(foldName(needle)))return true
+    let from=0
+    for(const token of tokens){
+        const at=hay.indexOf(token,from)
+        if(at<0)return false
+        from=at+token.length
+    }
+    return true
+}
+const namesMatch=(left,right)=>orderedTokens(left,right)||orderedTokens(right,left)
+const uniqueNameMatch=(candidates,name)=>{
+    const hits=candidates.filter(item=>namesMatch(item,name))
+    return hits.length===1?hits[0]:null
+}
 
 export const TeamQueue={
     resolve(linkedNames,team,catalog){
@@ -100,8 +117,10 @@ export const TeamQueue={
         if(new Set(team.map(m=>foldName(m.login))).size!==team.length)throw new PauseException('A lista da equipe contém usuários duplicados.')
         const resolved=[],missingDirectory=[],missingCatalog=[],missingCredential=[],disabled=[]
         for(const name of linked){
-            const member=team.find(item=>foldName(item.name)===foldName(name))
-            if(!member||!String(member.login||'').trim()){missingDirectory.push(name);continue}
+            // shortcut: namesMatch único; se dois da equipe casarem no mesmo nome da ficha, tratar como não resolvido.
+            const members=team.filter(item=>namesMatch(item.name,name)&&String(item.login||'').trim())
+            if(members.length!==1){missingDirectory.push(name);continue}
+            const member=members[0]
             const login=member.login.trim()
             const signer=catalog.find(item=>foldName(item.login)===foldName(login))
             if(!signer){missingCatalog.push({name,login});continue}
@@ -127,32 +146,43 @@ export const TeamQueue={
     }
 }
 
-const STAMP=/([\p{L}\p{M} .'-]+?)\s+(\d{2}\/\d{2}\/\d{4}\s*\d{2}:\d{2}:\d{2})\s*\//gu
+// pdf.js cola nome na data e às vezes omite a barra final; espaço e / são opcionais.
+const STAMP=/([\p{L}\p{M} .'-]+?)\s*(\d{2}\/\d{2}\/\d{4}\s*\d{2}:\d{2}:\d{2})\s*\/?/gu
 const STAMP_AT=/^(\d{2}\/\d{2}\/\d{4})\s*(\d{2}:\d{2}:\d{2})$/
+const escapeRegExp=value=>String(value).replace(/[.*+?^${}()|[\]\\]/g,'\\$&')
+const pageHasProtocol=(page,protocol)=>new RegExp(`No\\.\\s*${escapeRegExp(protocol)}(?![\\d./])`,'i').test(page)
 
 export const SignatureEvidence={
     resolve(protocol,professionals,identities,pages){
         const marker='Assinado com senha eletrônica por:'
         const unknown=message=>({verified:false,logins:[],reason:message})
         const names=professionals.map(p=>p.name.trim())
-        if(!professionals.length||new Set(names.map(n=>n.toLowerCase())).size!==names.length)return unknown('A tabela oficial de profissionais está ausente ou contém identidades ambíguas.')
+        if(!professionals.length||new Set(names.map(foldName)).size!==names.length)return unknown('A tabela oficial de profissionais está ausente ou contém identidades ambíguas.')
         const identityNames=Object.values(identities)
-        if(new Set(identityNames.map(n=>n.toLowerCase())).size!==identityNames.length)return unknown('Dois logins selecionados correspondem ao mesmo nome no portal.')
-        if(identityNames.some(name=>!professionals.some(p=>p.name.toLowerCase()===name.toLowerCase())))return unknown('Um fiscal selecionado não está vinculado ao procedimento no SIVISA.')
+        if(new Set(identityNames.map(foldName)).size!==identityNames.length)return unknown('Dois logins selecionados correspondem ao mesmo nome no portal.')
+        if(identityNames.some(name=>!professionals.some(p=>namesMatch(p.name,name))))return unknown('Um fiscal selecionado não está vinculado ao procedimento no SIVISA.')
         const signed=professionals.filter(p=>p.signed).map(p=>p.name.trim())
-        if(signed.some(name=>!identityNames.some(n=>n.toLowerCase()===name.toLowerCase())))return unknown('Há assinatura de um profissional fora da fila selecionada.')
+        if(signed.some(name=>!identityNames.some(n=>namesMatch(n,name))))return unknown('Há assinatura de um profissional fora da fila selecionada.')
         if(!signed.length)return {verified:true,logins:[],reason:null}
         if(!pages.length)return unknown('A prévia oficial não disponibilizou o registro das assinaturas.')
         let reference=null
         for(const raw of pages){
+            // Quebra de linha do PDF vira espaço; a área inteira das assinaturas é checada com contains.
             const page=String(raw).replace(/\s+/g,' ').trim()
-            if(!page.includes('No. '+protocol+' '))return unknown('A prévia PDF não corresponde ao protocolo pesquisado.')
+            if(!pageHasProtocol(page,protocol))return unknown('A prévia PDF não corresponde ao protocolo pesquisado.')
             const start=page.toLowerCase().lastIndexOf(marker.toLowerCase())
             if(start<0)return unknown('O PDF não apresenta o registro oficial das assinaturas em todas as páginas.')
+            const area=page.slice(start+marker.length)
+            for(const name of signed){
+                const identity=uniqueNameMatch(identityNames,name)||name
+                if(!orderedTokens(area,name)&&!orderedTokens(area,identity)){
+                    return unknown('O registro de assinaturas no PDF diverge da tabela oficial do portal.')
+                }
+            }
             const stamps=[]
             STAMP.lastIndex=0
             let match
-            while((match=STAMP.exec(page.slice(start+marker.length)))){
+            while((match=STAMP.exec(area))){
                 const atMatch=STAMP_AT.exec(match[2].replace(/\s+/,' '))
                 if(!atMatch)return unknown('O horário de uma assinatura não pôde ser interpretado.')
                 const [day,month,year]=atMatch[1].split('/').map(Number)
@@ -161,21 +191,26 @@ export const SignatureEvidence={
                 if(!Number.isFinite(at))return unknown('O horário de uma assinatura não pôde ser interpretado.')
                 stamps.push({name:match[1].trim(),at})
             }
-            if(stamps.length!==signed.length||new Set(stamps.map(s=>s.name.toLowerCase())).size!==stamps.length||!signed.every(name=>stamps.some(s=>s.name.toLowerCase()===name.toLowerCase()))){
-                return unknown('O registro de assinaturas no PDF diverge da tabela oficial do portal.')
+            if(stamps.length!==signed.length)return unknown('O registro de assinaturas no PDF diverge da tabela oficial do portal.')
+            const matched=[]
+            for(const stamp of stamps){
+                const hit=signed.find(name=>namesMatch(stamp.name,name)&&!matched.some(item=>namesMatch(item,name)))
+                if(!hit)return unknown('O registro de assinaturas no PDF diverge da tabela oficial do portal.')
+                matched.push(hit)
             }
             if(new Set(stamps.map(s=>s.at)).size!==stamps.length)return unknown('Duas assinaturas têm o mesmo horário; não foi possível comprovar a ordem cronológica.')
             const ordered=[...stamps].sort((a,b)=>a.at-b.at)
-            if(reference&&(reference.length!==ordered.length||reference.some((item,index)=>item.name!==ordered[index].name||item.at!==ordered[index].at))){
+            if(reference&&(reference.length!==ordered.length||reference.some((item,index)=>item.at!==ordered[index].at||!namesMatch(item.name,ordered[index].name)))){
                 return unknown('As páginas do PDF divergem sobre as assinaturas registradas.')
             }
             reference=ordered
         }
         const logins=reference.map(stamp=>{
-            const entry=Object.entries(identities).find(([,name])=>name.toLowerCase()===stamp.name.toLowerCase())
+            const entry=Object.entries(identities).find(([,name])=>namesMatch(name,stamp.name))
             if(!entry)throw new PauseException('Não foi possível mapear a assinatura ao login esperado.')
             return entry[0]
         })
+        if(new Set(logins).size!==logins.length)return unknown('Não foi possível mapear a assinatura ao login esperado.')
         return {verified:true,logins,reason:null}
     }
 }

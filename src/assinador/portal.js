@@ -53,8 +53,8 @@ export class PlaywrightPortal{
             this.log?.(`Validando cadastro e credencial de ${signer.name}…`)
             await this.login(signer,signal)
         }
-        const names=Object.values(this.identities)
-        if(new Set(names.map(name=>name.toLowerCase())).size!==signers.length){
+        const names=Object.values(this.identities).map(name=>String(name||'').normalize('NFC').replace(/\s+/g,' ').trim().toLowerCase())
+        if(new Set(names).size!==signers.length){
             throw new PauseException('Os logins selecionados correspondem a nomes ambíguos no SIVISA.')
         }
     }
